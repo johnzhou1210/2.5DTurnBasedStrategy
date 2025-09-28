@@ -4,4 +4,5 @@ using UnityEngine;
 public class GridEntityData : ScriptableObject {
    public GameObject SpritePrefab;
    public int Health;
+   public int MaxHealth;
 }

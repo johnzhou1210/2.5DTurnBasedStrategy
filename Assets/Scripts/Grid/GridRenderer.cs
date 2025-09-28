@@ -5,10 +5,10 @@ using UnityEngine;
 namespace Grid {
     public class GridRenderer : MonoBehaviour {
         [SerializeField] private GameObject[] tilePrefabs;
-        [SerializeField] private GameObject entityPrefab;
-
+        [SerializeField] private GameObject entityPrefab, healthBillboardPrefab;
+        
         private GameObject[,] _tileVisuals;
-        private Dictionary<Vector2Int, GameObject> _entityVisuals;
+        private Dictionary<int, GameObject> _entityVisuals;
         
         
         [SerializeField] private GridManager grid;
@@ -21,25 +21,43 @@ namespace Grid {
                 grid = value;
             }
         }
-
+        
+        
         private void OnEnable() {
             _tileVisuals = new GameObject[grid.GetSize().x, grid.GetSize().y];
-            _entityVisuals = new Dictionary<Vector2Int, GameObject>();
+            _entityVisuals = new Dictionary<int, GameObject>();
             GridDelegates.OnEntitySpawned += OnEntitySpawned;
+            GridDelegates.GetEntityVisualTransformById = GetEntityVisualTransformById;
             OnGridRedraw();
+        }
+
+        private void OnDisable() {
+            GridDelegates.OnEntitySpawned -= OnEntitySpawned;
+        }
+
+        private Transform GetEntityVisualTransformById(int id) {
+            return _entityVisuals[id].transform;
         }
 
         private Vector3 Vector2IntToVector3(Vector2Int vector2Int) {
             return new Vector3(vector2Int.x, 0, vector2Int.y);
         }
         
-        private void OnEntitySpawned(GridEntityData entityData, Vector2Int newPosition) {
+        private void OnEntitySpawned(GridEntity entity, Vector2Int newPosition) {
             GameObject entityVisual = Instantiate(entityPrefab, transform);
-            GameObject entitySpriteGameObject = Instantiate(entityData.SpritePrefab, entityVisual.transform);
+            GameObject entitySpriteGameObject = Instantiate(entity.GetSpritePrefab(), entityVisual.transform);
             entitySpriteGameObject.transform.position += new Vector3(0, 0.25f, 0);
-            _entityVisuals[newPosition] = entityVisual;
+            _entityVisuals[entity.Id] = entityVisual;
             entityVisual.transform.position = Vector2IntToVector3(newPosition);
-
+            
+            // Attach health billboard
+            Transform billboardCanvasTransform = BillboardDelegates.GetBillboardCanvasTransform?.Invoke();
+            GameObject healthBillboard = Instantiate(healthBillboardPrefab, billboardCanvasTransform);
+            if (healthBillboard.TryGetComponent(out HealthBillboard healthBillboardComponent)) {
+                Debug.Log(healthBillboardComponent);
+                healthBillboardComponent.Initialize(entity);
+            }
+            
         }
         
 

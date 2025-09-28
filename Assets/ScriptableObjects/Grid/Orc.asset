@@ -13,3 +13,5 @@ MonoBehaviour:
   m_Name: Orc
   m_EditorClassIdentifier: 
   SpritePrefab: {fileID: 374549065707966590, guid: ead840e7aeb03464782a96ba34b102a8, type: 3}
+  Health: 16
+  MaxHealth: 40

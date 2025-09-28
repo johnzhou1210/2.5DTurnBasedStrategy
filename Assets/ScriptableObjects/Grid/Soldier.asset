@@ -13,3 +13,5 @@ MonoBehaviour:
   m_Name: Soldier
   m_EditorClassIdentifier: 
   SpritePrefab: {fileID: 9023742116720488871, guid: d03ecec5f173f479d9c5b2163e1a140f, type: 3}
+  Health: 32
+  MaxHealth: 50
