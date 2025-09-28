@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Grid {
     public class GridManager : MonoBehaviour { 
         private Tile[,] _tiles;
+        private Dictionary<int, GridEntity> _entities;
        [SerializeField] private Vector2Int size;
        [SerializeField] private GridEntityData soldierData, orcData;
 

@@ -10,6 +10,7 @@ namespace Grid {
         private GameObject[,] _tileVisuals;
         private Dictionary<Vector2Int, GameObject> _entityVisuals;
         
+        
         [SerializeField] private GridManager grid;
         public GridManager Grid {
             get {
