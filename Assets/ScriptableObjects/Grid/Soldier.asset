@@ -1,0 +1,15 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd5ff0ed0b7ed42c19af7c0619837e1b, type: 3}
+  m_Name: Soldier
+  m_EditorClassIdentifier: 
+  SpritePrefab: {fileID: 9023742116720488871, guid: d03ecec5f173f479d9c5b2163e1a140f, type: 3}
