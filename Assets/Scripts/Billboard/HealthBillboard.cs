@@ -38,7 +38,7 @@ public class HealthBillboard : MonoBehaviour {
             case WeaponType.AXE:
                 return Color.red;
             case WeaponType.BOW:
-                return new Color(1, .5f, 0);
+                return new Color(1, .75f, 0);
             case WeaponType.STAFF:
                 return new Color(.5f,0,1);
             default:

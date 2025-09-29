@@ -7,7 +7,6 @@ namespace Grid {
         private Tile[,] _tiles;
         private Dictionary<int, GridEntity> _entities;
        [SerializeField] private Vector2Int size;
-       [SerializeField] private GridEntityData soldierData, orcData;
 
        private void OnEnable() {
            GridDelegates.GetGridEntityById = GetEntityById;
@@ -44,10 +43,12 @@ namespace Grid {
                }
            }
            
-           GridEntity soldierEntity = SpawnEntity(soldierData, new(0,0));
-           GridEntity orcEntity = SpawnEntity(orcData, new(1,1));
+           GridEntity soldierEntity = SpawnEntity(Resources.Load<GridEntityData>("ScriptableObjects/Entities/Soldier"), new(0,0));
+           GridEntity orcEntity = SpawnEntity(Resources.Load<GridEntityData>("ScriptableObjects/Entities/Orc"), new(1,1));
+           GridEntity archerEntity = SpawnEntity(Resources.Load<GridEntityData>("ScriptableObjects/Entities/Archer"), new(2,2));
            _entities[soldierEntity.Id] = soldierEntity;
            _entities[orcEntity.Id] = orcEntity;
+           _entities[archerEntity.Id] = archerEntity;
        }
        
        
