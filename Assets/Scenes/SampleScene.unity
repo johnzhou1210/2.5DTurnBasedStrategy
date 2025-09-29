@@ -256,6 +256,53 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 94473862}
   m_CullTransparentMesh: 1
+--- !u!1 &172940113
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 172940115}
+  - component: {fileID: 172940114}
+  m_Layer: 0
+  m_Name: GridHighlighter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &172940114
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 172940113}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 941feb2032f884654bd0eab3ef5fae67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tileLayerMask:
+    serializedVersion: 2
+    m_Bits: 8
+--- !u!4 &172940115
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 172940113}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.3546433, y: -6.897197, z: 8.306165}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &192576169
 GameObject:
   m_ObjectHideFlags: 0
@@ -1128,7 +1175,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1029370121}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
   m_Name: 
@@ -1182,7 +1229,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 5
   m_TargetDisplay: 0
 --- !u!224 &1029370126
 RectTransform:
@@ -1349,7 +1396,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tilePrefabs:
   - {fileID: 3002595594564557527, guid: 444b9c800d0984f8ab0ab89d290373b1, type: 3}
-  - {fileID: 4698560772548353338, guid: 0e6052811d9c4471481cf212ad9c80a7, type: 3}
+  - {fileID: 3002595594564557527, guid: c68a15e5445f048d6b3a64eb4649a283, type: 3}
   entityPrefab: {fileID: 349858154927908944, guid: 796eaf121e5834e7eb2f90d320604c97, type: 3}
   healthBillboardPrefab: {fileID: 432172801547459356, guid: 5045b5b53b4934135bc664ac4f816b6c, type: 3}
   grid: {fileID: 1283046958}
@@ -1757,5 +1804,6 @@ SceneRoots:
   - {fileID: 861405294}
   - {fileID: 1233283330}
   - {fileID: 218833781}
+  - {fileID: 172940115}
   - {fileID: 1283046957}
   - {fileID: 1029370126}

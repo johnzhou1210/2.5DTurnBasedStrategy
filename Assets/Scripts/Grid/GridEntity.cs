@@ -8,18 +8,18 @@ namespace Grid {
         public int MaxHealth { get; private set; }
         
         private Tile _tile;
-        private GridEntityData _gridEntityData;
+        public GridEntityData GridEntityData { get; private set; }
 
 
         public GridEntity(GridEntityData gridEntityData) {
             Id = _nextId++;
-            _gridEntityData = gridEntityData;
-            Health = _gridEntityData.Health;
-            MaxHealth = _gridEntityData.MaxHealth;
+            GridEntityData = gridEntityData;
+            Health = GridEntityData.Health;
+            MaxHealth = GridEntityData.MaxHealth;
         }
 
         public GameObject GetSpritePrefab() {
-            return _gridEntityData.SpritePrefab;
+            return GridEntityData.SpritePrefab;
         }
         
         

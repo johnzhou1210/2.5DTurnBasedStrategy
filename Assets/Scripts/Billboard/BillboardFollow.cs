@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class BillboardFollow : MonoBehaviour {
     [SerializeField] private Transform target;
-    [SerializeField] private Vector3 offset = new Vector3(0, 2f, 0);
+    [SerializeField] private Vector3 offset = new Vector3(0, -1f, 0);
 
     private void LateUpdate() {
         if (target != null) {

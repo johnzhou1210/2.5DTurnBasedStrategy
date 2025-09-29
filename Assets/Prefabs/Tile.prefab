@@ -12,8 +12,8 @@ GameObject:
   - component: {fileID: 6056749975994361015}
   - component: {fileID: 1782813488900329825}
   - component: {fileID: 1813568328477836039}
-  m_Layer: 0
-  m_Name: TileDark
+  m_Layer: 3
+  m_Name: Tile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
