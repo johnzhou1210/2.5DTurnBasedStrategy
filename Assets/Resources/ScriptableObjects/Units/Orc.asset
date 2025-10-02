@@ -10,8 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dd5ff0ed0b7ed42c19af7c0619837e1b, type: 3}
-  m_Name: Soldier
+  m_Name: Orc
   m_EditorClassIdentifier: 
-  SpritePrefab: {fileID: 9023742116720488871, guid: d03ecec5f173f479d9c5b2163e1a140f, type: 3}
-  Health: 32
-  MaxHealth: 50
+  visualPrefab: {fileID: 374549065707966590, guid: ead840e7aeb03464782a96ba34b102a8, type: 3}
+  health: 20
+  maxHealth: 50
+  weaponType: 2

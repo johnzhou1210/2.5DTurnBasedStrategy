@@ -17,8 +17,8 @@ namespace StrategyGame.Core.Delegates {
 
         #region Funcs
 
-        public static Func<int, Transform> GetEntityVisualTransformById;
-        public static Func<int, GridEntity> GetGridEntityById;
+        public static Func<int, Transform> GetEntityVisualTransformByID;
+        public static Func<int, GridEntity> GetGridEntityByID;
 
         #endregion
 

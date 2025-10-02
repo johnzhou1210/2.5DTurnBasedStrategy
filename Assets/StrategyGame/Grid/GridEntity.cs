@@ -1,46 +1,67 @@
+using System;
+using StrategyGame.Factions;
 using StrategyGame.Grid.GridData;
 using UnityEngine;
 
 namespace StrategyGame.Grid {
-    public class GridEntity {
-        private static int _nextId = 0;
-        public int Id { get; private set; }
-        public int Health { get; private set; }
-        public int MaxHealth { get; private set; }
-        
-        private Tile _tile;
-        public GridEntityData GridEntityData { get; private set; }
+    public abstract class GridEntity {
+            // Core
+            public Vector2Int GridPosition { get; set; }
+            public Vector3 WorldPosition => new Vector3(GridPosition.x, 0, GridPosition.y);
+            public bool IsPassable { get; set; } = true;
+            public GridEntityData GridEntityData { get; set; }
 
+            // Identity
+            private static int _nextID = 0;
+            public string Name { get; set; }
+            public int ID { get; set; }
+            public Faction Faction { get; set; }
 
-        public GridEntity(GridEntityData gridEntityData) {
-            Id = _nextId++;
-            GridEntityData = gridEntityData;
-            Health = GridEntityData.Health;
-            MaxHealth = GridEntityData.MaxHealth;
-        }
-
-        public GameObject GetSpritePrefab() {
-            return GridEntityData.SpritePrefab;
-        }
-        
-        
-        public void Move(Vector2Int newPosition) {
-            Vector2Int startPosition = GetPosition();
-        }
-
-        public void Move(Tile targetTile) {
+            // Gameplay
+            public bool CanMove { get; set; } = false;
+            public bool CanAct { get; set; } = false;
+            public bool Selectable { get; set; } = true;
             
-        }
+            // Visual
+            public bool IsSelected { get; set; } = false;
+            public bool IsVisible { get; set; } = true;
 
-        private bool IsValidPosition(Vector2Int position) {
+            // Optional
+            public int Health { get; set; }
+            public int MaxHealth { get; set; }
+            public int MovementRange { get; set; }
+            public int VisionRange { get; set; }
+
+            // Events
+            public event Action<GridEntity> OnSelected;
+            public event Action<GridEntity, Vector2Int> OnMoved;
+
             
-            return true;
-        }
+            // Constructor
+            public GridEntity(GridEntityData gridEntityData) {
+                ID = _nextID++;
+                GridEntityData = gridEntityData;
+                Initialize();
+            }
 
-        public Vector2Int GetPosition() {
-            return _tile.Position;
-        }
-    
+            private void Initialize() {
+                Health = GridEntityData.Health;
+                MaxHealth = GridEntityData.MaxHealth;
+                
+            }
+            
+            public virtual void Select() => OnSelected?.Invoke(this);
+
+            public virtual void MoveTo(Vector2Int newPos) {
+                GridPosition = newPos;
+                OnMoved?.Invoke(this, newPos);
+            }
+
+            public virtual GameObject GetSpritePrefab() {
+                return GridEntityData.VisualPrefab;
+            }
+
+        
     }
 }
 

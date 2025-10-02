@@ -10,18 +10,18 @@ namespace StrategyGame.Grid {
        [SerializeField] private Vector2Int size;
 
        private void OnEnable() {
-           GridDelegates.GetGridEntityById = GetEntityById;
+           GridDelegates.GetGridEntityByID = GetEntityByID;
        }
 
        private void OnDisable() {
-           GridDelegates.GetGridEntityById = null;
+           GridDelegates.GetGridEntityByID = null;
        }
 
        public Vector2Int GetSize() {
            return size;
        }
 
-       private GridEntity GetEntityById(int id) {
+       private GridEntity GetEntityByID(int id) {
            return _entities[id];
        }
        
@@ -29,8 +29,8 @@ namespace StrategyGame.Grid {
             return _tiles[position.x, position.y];
        }
 
-       public GridEntity SpawnEntity(GridEntityData entityData, Vector2Int position) {
-           GridEntity newEntity = new GridEntity(entityData);
+       public GridEntity SpawnUnit(GridUnitData unitData, Vector2Int position) {
+           GridEntity newEntity = new GridUnit(unitData, unitData);
            GridDelegates.InvokeOnEntitySpawned(newEntity, position);
            return newEntity;
        }
@@ -44,12 +44,13 @@ namespace StrategyGame.Grid {
                }
            }
            
-           GridEntity soldierEntity = SpawnEntity(Resources.Load<GridEntityData>("ScriptableObjects/Entities/Soldier"), new(0,0));
-           GridEntity orcEntity = SpawnEntity(Resources.Load<GridEntityData>("ScriptableObjects/Entities/Orc"), new(1,1));
-           GridEntity archerEntity = SpawnEntity(Resources.Load<GridEntityData>("ScriptableObjects/Entities/Archer"), new(2,2));
-           _entities[soldierEntity.Id] = soldierEntity;
-           _entities[orcEntity.Id] = orcEntity;
-           _entities[archerEntity.Id] = archerEntity;
+           GridEntity soldierEntity = SpawnUnit(Resources.Load<GridUnitData>("ScriptableObjects/Units/Soldier"), new(0,0));
+           GridEntity orcEntity = SpawnUnit(Resources.Load<GridUnitData>("ScriptableObjects/Units/Orc"), new(1,1));
+           GridEntity archerEntity = SpawnUnit(Resources.Load<GridUnitData>("ScriptableObjects/Units/Archer"), new(2,2));
+           
+           _entities[soldierEntity.ID] = soldierEntity;
+           _entities[orcEntity.ID] = orcEntity;
+           _entities[archerEntity.ID] = archerEntity;
        }
        
        

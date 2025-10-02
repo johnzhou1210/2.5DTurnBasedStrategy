@@ -659,6 +659,53 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 192576169}
   m_CullTransparentMesh: 1
+--- !u!1 &198717404
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 198717406}
+  - component: {fileID: 198717405}
+  m_Layer: 0
+  m_Name: GridEntitySpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &198717405
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 198717404}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e57c3aae2e14f7aaed0b49b61ef5d38, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  entityPrefab: {fileID: 349858154927908944, guid: 796eaf121e5834e7eb2f90d320604c97, type: 3}
+  healthBillboardPrefab: {fileID: 432172801547459356, guid: 5045b5b53b4934135bc664ac4f816b6c, type: 3}
+  unitWeaponTypeBillboardPrefab: {fileID: 432172801547459356, guid: 315bf4feff28a4d1781cd66056c200d6, type: 3}
+--- !u!4 &198717406
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 198717404}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.7761695, y: -3.5357943, z: -0.4296618}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &218833778
 GameObject:
   m_ObjectHideFlags: 0
@@ -827,10 +874,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29a488aaa16f707479c065ca1ca3c37d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_color1: {r: 0, g: 0, b: 0, a: 0.19607843}
-  m_color2: {r: 1, g: 1, b: 1, a: 1}
-  m_angle: -90
-  m_ignoreRatio: 1
+  mColor1: {r: 0, g: 0, b: 0, a: 0.19607843}
+  mColor2: {r: 1, g: 1, b: 1, a: 1}
+  mAngle: -90
+  mIgnoreRatio: 1
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -1606,8 +1653,6 @@ MonoBehaviour:
   tilePrefabs:
   - {fileID: 3002595594564557527, guid: 444b9c800d0984f8ab0ab89d290373b1, type: 3}
   - {fileID: 3002595594564557527, guid: c68a15e5445f048d6b3a64eb4649a283, type: 3}
-  entityPrefab: {fileID: 349858154927908944, guid: 796eaf121e5834e7eb2f90d320604c97, type: 3}
-  healthBillboardPrefab: {fileID: 432172801547459356, guid: 5045b5b53b4934135bc664ac4f816b6c, type: 3}
   grid: {fileID: 1283046958}
 --- !u!4 &1283046957
 Transform:
@@ -1726,10 +1771,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29a488aaa16f707479c065ca1ca3c37d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_color1: {r: 0, g: 0, b: 0, a: 0.19607843}
-  m_color2: {r: 1, g: 1, b: 1, a: 1}
-  m_angle: 90
-  m_ignoreRatio: 1
+  mColor1: {r: 0, g: 0, b: 0, a: 0.19607843}
+  mColor2: {r: 1, g: 1, b: 1, a: 1}
+  mAngle: 90
+  mIgnoreRatio: 1
 --- !u!1 &1451818069
 GameObject:
   m_ObjectHideFlags: 0
@@ -2013,6 +2058,7 @@ SceneRoots:
   - {fileID: 218833781}
   - {fileID: 172940115}
   - {fileID: 1283046957}
+  - {fileID: 198717406}
   - {fileID: 1029370126}
   - {fileID: 144049700}
   - {fileID: 169060008}

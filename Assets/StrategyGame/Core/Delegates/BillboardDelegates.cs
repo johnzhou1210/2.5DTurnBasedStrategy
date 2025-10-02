@@ -1,4 +1,5 @@
 using System;
+using StrategyGame.Grid.GridData;
 using UnityEngine;
 
 namespace StrategyGame.Core.Delegates {
@@ -6,9 +7,13 @@ namespace StrategyGame.Core.Delegates {
     {
         #region Events
         public static event Action<int, int, int> OnHealthChanged;
+        public static event Action<GridUnit> OnUnitWeaponTypeChanged;
 
         public static void InvokeOnHealthChanged(int id, int health, int maxHealth) {
             OnHealthChanged?.Invoke(id, health, maxHealth);
+        }
+        public static void InvokeOnUnitWeaponTypeChanged(GridUnit unit) {
+            OnUnitWeaponTypeChanged?.Invoke(unit);
         }
         #endregion
 

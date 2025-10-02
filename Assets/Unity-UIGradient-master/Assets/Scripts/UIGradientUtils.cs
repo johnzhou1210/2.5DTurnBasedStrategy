@@ -3,28 +3,28 @@ using UnityEngine.UI;
 
 public static class UIGradientUtils
 {
-	public struct Matrix2x3
+	public struct Matrix2X3
 	{
-		public float m00, m01, m02, m10, m11, m12;
-		public Matrix2x3(float m00, float m01, float m02, float m10, float m11, float m12)
+		public float M00, M01, M02, M10, M11, M12;
+		public Matrix2X3(float m00, float m01, float m02, float m10, float m11, float m12)
 		{
-			this.m00 = m00;
-			this.m01 = m01;
-			this.m02 = m02;
-			this.m10 = m10;
-			this.m11 = m11;
-			this.m12 = m12;
+			this.M00 = m00;
+			this.M01 = m01;
+			this.M02 = m02;
+			this.M10 = m10;
+			this.M11 = m11;
+			this.M12 = m12;
 		}
 
-		public static Vector2 operator*(Matrix2x3 m, Vector2 v)
+		public static Vector2 operator*(Matrix2X3 m, Vector2 v)
 		{
-			float x = (m.m00 * v.x) - (m.m01 * v.y) + m.m02;
-			float y = (m.m10 * v.x) + (m.m11 * v.y) + m.m12;
+			float x = (m.M00 * v.x) - (m.M01 * v.y) + m.M02;
+			float y = (m.M10 * v.x) + (m.M11 * v.y) + m.M12;
 			return new Vector2(x, y);
 		}
 	}
 
-	public static Matrix2x3 LocalPositionMatrix(Rect rect, Vector2 dir)
+	public static Matrix2X3 LocalPositionMatrix(Rect rect, Vector2 dir)
 	{
 		float cos = dir.x;
 		float sin = dir.y;
@@ -39,13 +39,13 @@ public static class UIGradientUtils
 		float m10 = sin / rectSize.x;
 		float m11 = cos / rectSize.y;		
 		float m12 = -(ax * sin + ay * cos - c);
-		return new Matrix2x3(m00, m01, m02, m10, m11, m12);
+		return new Matrix2X3(m00, m01, m02, m10, m11, m12);
 	}
 
-	static Vector2[] ms_verticesPositions = new Vector2[] { Vector2.up, Vector2.one, Vector2.right, Vector2.zero };
+	static Vector2[] _msVerticesPositions = new Vector2[] { Vector2.up, Vector2.one, Vector2.right, Vector2.zero };
 	public static Vector2[] VerticePositions
 	{
-		get { return ms_verticesPositions; }
+		get { return _msVerticesPositions; }
 	}
 
 	public static Vector2 RotationDir(float angle)
