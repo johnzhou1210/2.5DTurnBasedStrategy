@@ -3,38 +3,52 @@ using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class CameraController : MonoBehaviour
+public class CameraRigController : MonoBehaviour
 {
     [SerializeField] private PlayerInput playerInput;
-    [SerializeField] private float cameraMoveSpeed = 5f;
-    [SerializeField] private Vector2 cameraYMinMax = new Vector2(0f, 20f);
+    [SerializeField] private float rigMoveSpeed = 5f;
+    [SerializeField] private float rigZoomSpeed = 5f;
+    [SerializeField] private Vector2 rigZoomMinMax = new Vector2(0f, 10f);
+    [SerializeField] private float zoomSmoothTime = 0.2f;
+    [SerializeField] private CinemachineOrbitalFollow orbitalFollow;
 
-    
-    private CinemachineCamera _vCam;
+    private InputAction _rigMoveAction;
+    private InputAction _rigZoomAction;
 
-    private InputAction cameraMoveAction;
-    private InputAction cameraLookAction;
+    private float _targetZoom;
+    private float _zoomVelocity;
 
     private void Awake() {
-        cameraMoveAction = playerInput.actions["Move"];
-        cameraLookAction = playerInput.actions["Look"];
-    }
+        if (orbitalFollow == null) return;
+        
+        _rigMoveAction = playerInput.actions["Move"];
+        _rigZoomAction = playerInput.actions["Zoom"];
 
-    private void OnEnable() {
-        _vCam = GetComponent<CinemachineCamera>();
+        _targetZoom = orbitalFollow.Radius;
     }
+    
 
     private void Update() {
-        if (_vCam == null) return;
-        Vector2 moveInput = cameraMoveAction.ReadValue<Vector2>();
-        Vector2 lookInput = cameraLookAction.ReadValue<Vector2>();
-        _vCam.transform.Translate(new Vector3(moveInput.x, 0f, moveInput.y) * (Time.deltaTime * cameraMoveSpeed));
-        _vCam.transform.position = new Vector3(_vCam.transform.position.x, Mathf.Clamp(_vCam.transform.position.y, cameraYMinMax.x, cameraYMinMax.y), _vCam.transform.position.z); ;
-
-        Vector3 raycastPosition = InputDelegates.GetMouseRaycastPosition?.Invoke() ?? transform.position;
-        if (raycastPosition == transform.position) return;
-      
-        // _vCam.transform.Rotate(0f, 180f, 0f);
+        if (orbitalFollow == null) return;
+        
+        // Camera rig movement
+        Vector2 moveInput = _rigMoveAction.ReadValue<Vector2>();
+        transform.Translate(new Vector3(moveInput.x, 0f, moveInput.y) * (Time.deltaTime * rigMoveSpeed));
+        
+        // Cinemachine camera zoom
+        Vector2  zoomInput = _rigZoomAction.ReadValue<Vector2>();
+        float scrollY = zoomInput.y;
+        _targetZoom = Mathf.Clamp(
+                _targetZoom - scrollY * rigZoomSpeed * Time.deltaTime,
+                rigZoomMinMax.x, rigZoomMinMax.y
+            );
+        
+        orbitalFollow.Radius = Mathf.SmoothDamp(
+                orbitalFollow.Radius,
+                _targetZoom,
+                ref _zoomVelocity,
+                zoomSmoothTime
+            );
         
     }
 
