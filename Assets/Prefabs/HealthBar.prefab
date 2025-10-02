@@ -129,6 +129,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetTransform: {fileID: 0}
+  lookAtTarget: 1
 --- !u!114 &6587983220924128340
 MonoBehaviour:
   m_ObjectHideFlags: 0

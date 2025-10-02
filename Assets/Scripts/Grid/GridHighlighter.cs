@@ -5,11 +5,26 @@ namespace Grid {
     public class GridHighlighter : MonoBehaviour {
         [SerializeField] private LayerMask tileLayerMask;
         private GameObject _currHighlight;
-        
+        private Vector3 _lastMouseRaycastPosition;
+        private Camera _camera;
+
+        private void Start() {
+            _camera = Camera.main;
+        }
+
+        private void OnEnable() {
+            InputDelegates.GetMouseRaycastPosition = GetMouseRaycastPosition;
+        }
+
+        private void OnDisable() {
+            InputDelegates.GetMouseRaycastPosition = null;
+        }
+
         private void Update() {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            
+            if (_camera == null) return;
+            Ray ray = _camera.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out RaycastHit hit, 100, tileLayerMask)) {
+                _lastMouseRaycastPosition = hit.point;
                 Debug.DrawRay(ray.origin, ray.direction * 100, Color.green);
                 GameObject hitTile = hit.collider.gameObject;
                 
@@ -40,6 +55,11 @@ namespace Grid {
                 _currHighlight = null;
             }
         }
+
+        private Vector3 GetMouseRaycastPosition() {
+            return _lastMouseRaycastPosition;
+        }
+        
     }
 
 }
