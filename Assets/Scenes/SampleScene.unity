@@ -326,7 +326,7 @@ Transform:
   m_GameObject: {fileID: 144049698}
   serializedVersion: 2
   m_LocalRotation: {x: -0.26987663, y: 0.017617287, z: -0.0048771035, w: -0.9627214}
-  m_LocalPosition: {x: 0.5303211, y: -0.505636, z: 1.0871668}
+  m_LocalPosition: {x: 0, y: 3.0070581, z: -9.537169}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -422,7 +422,7 @@ Transform:
   m_GameObject: {fileID: 169060007}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.5303211, y: -3.5126941, z: 10.624336}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -472,8 +472,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerInput: {fileID: 169060009}
   rigMoveSpeed: 5
-  rigZoomSpeed: 5
+  orbitalCameraZoomSpeed: 5
   rigZoomMinMax: {x: 0, y: 10}
+  zoomSmoothTime: 0.2
   orbitalFollow: {fileID: 144049703}
 --- !u!1 &172940113
 GameObject:
@@ -918,7 +919,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: -0.26987663, y: 0.017617287, z: -0.0048771035, w: -0.9627214}
-  m_LocalPosition: {x: 0.5303211, y: -0.505636, z: 1.0871668}
+  m_LocalPosition: {x: 0, y: 3.0070581, z: -9.537169}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

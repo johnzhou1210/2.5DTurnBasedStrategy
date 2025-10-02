@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Grid {
+namespace StrategyGame.Grid {
     public class Tile {
         public int Elevation { get; private set; }
         public Vector2Int Position { get; private set; }

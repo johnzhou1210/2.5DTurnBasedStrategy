@@ -1,8 +1,9 @@
-using System;
 using System.Collections.Generic;
+using StrategyGame.Core.Delegates;
+using StrategyGame.UI.World;
 using UnityEngine;
 
-namespace Grid {
+namespace StrategyGame.Grid {
     public class GridRenderer : MonoBehaviour {
         [SerializeField] private GameObject[] tilePrefabs;
         [SerializeField] private GameObject entityPrefab, healthBillboardPrefab;

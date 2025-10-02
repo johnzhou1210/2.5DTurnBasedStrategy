@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Grid {
+namespace StrategyGame.Grid.GridData {
     public enum WeaponType {
         SWORD,
         SPEAR,

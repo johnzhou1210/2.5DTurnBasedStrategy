@@ -1,0 +1,22 @@
+using System;
+using UnityEngine;
+
+namespace StrategyGame.Core.Delegates {
+    public static class BillboardDelegates
+    {
+        #region Events
+        public static event Action<int, int, int> OnHealthChanged;
+
+        public static void InvokeOnHealthChanged(int id, int health, int maxHealth) {
+            OnHealthChanged?.Invoke(id, health, maxHealth);
+        }
+        #endregion
+
+        #region Funcs
+
+        public static Func<Transform> GetBillboardCanvasTransform;
+
+        #endregion
+
+    }
+}

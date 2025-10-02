@@ -1,7 +1,7 @@
-using System;
+using StrategyGame.Core.Delegates;
 using UnityEngine;
 
-namespace Grid {
+namespace StrategyGame.Grid {
     public class GridHighlighter : MonoBehaviour {
         [SerializeField] private LayerMask tileLayerMask;
         private GameObject _currHighlight;

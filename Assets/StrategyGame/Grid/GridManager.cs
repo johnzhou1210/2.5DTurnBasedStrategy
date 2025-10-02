@@ -1,8 +1,9 @@
-using System;
 using System.Collections.Generic;
+using StrategyGame.Core.Delegates;
+using StrategyGame.Grid.GridData;
 using UnityEngine;
 
-namespace Grid {
+namespace StrategyGame.Grid {
     public class GridManager : MonoBehaviour { 
         private Tile[,] _tiles;
         private Dictionary<int, GridEntity> _entities;

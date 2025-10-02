@@ -1,6 +1,7 @@
+using StrategyGame.Grid.GridData;
 using UnityEngine;
 
-namespace Grid {
+namespace StrategyGame.Grid {
     public class GridEntity {
         private static int _nextId = 0;
         public int Id { get; private set; }
