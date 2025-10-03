@@ -32,16 +32,17 @@ namespace StrategyGame.Grid.Rendering {
         }
         
         private void OnEntitySpawned(GridEntity entity, Vector2Int newPosition) {
-            
-            
             GameObject entityVisual = Instantiate(entityPrefab, transform);
-            Debug.Log($"{entity.GetSpritePrefab()}");
+            entityVisual.name =  $"{entity.ID} : {entity.GridEntityData.name}";
+            Debug.Log($"{entity.ID} : {entity.GetSpritePrefab()}");
             GameObject entitySpriteGameObject = Instantiate(entity.GetSpritePrefab(), entityVisual.transform);
             entitySpriteGameObject.transform.position += new Vector3(0, 0.25f, 0);
             _entityVisuals[entity.ID] = entityVisual;
             entityVisual.transform.position = VectorUtils.Vector2IntToVector3(newPosition);
 
             AttachBillboards(entity);
+            
+            Debug.Log(DictionaryUtils.FormatDictionary(_entityVisuals));
         }
         
         
@@ -55,12 +56,11 @@ namespace StrategyGame.Grid.Rendering {
             if (entity is GridUnit unit) {
                 AttachWeaponTypeBillboard(unit, billboardCanvasTransform);
             }
-            
-          
         }
 
         private void AttachHealthBillboard(GridEntity entity, Transform billboardCanvasTransform) {
             GameObject healthBillboard = Instantiate(healthBillboardPrefab, billboardCanvasTransform);
+            healthBillboard.name = $"{entity.ID} : {entity.GridEntityData.name}'s Health Billboard";
             if (healthBillboard.TryGetComponent(out HealthBillboard healthBillboardComponent)) {
                 Debug.Log(healthBillboardComponent);
                 healthBillboardComponent.Initialize(entity);
@@ -69,6 +69,7 @@ namespace StrategyGame.Grid.Rendering {
 
         private void AttachWeaponTypeBillboard(GridUnit unit, Transform billboardCanvasTransform) {
             GameObject weaponTypeBillboard = Instantiate(unitWeaponTypeBillboardPrefab, billboardCanvasTransform);
+            weaponTypeBillboard.name = $"{unit.ID} : {unit.GridEntityData.name}'s Weapon Type Billboard";
             if (weaponTypeBillboard.TryGetComponent(out WeaponTypeBillboard billboardComponent)) {
                 billboardComponent.Initialize(unit);
             }

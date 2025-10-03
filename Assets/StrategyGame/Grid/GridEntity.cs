@@ -6,31 +6,30 @@ using UnityEngine;
 namespace StrategyGame.Grid {
     public abstract class GridEntity {
             // Core
-            public Vector2Int GridPosition { get; set; }
-            public Vector3 WorldPosition => new Vector3(GridPosition.x, 0, GridPosition.y);
-            public bool IsPassable { get; set; } = true;
-            public GridEntityData GridEntityData { get; set; }
+            public Vector2Int GridPosition { get; private set; }
+            public bool IsPassable { get; private set; } = true;
+            public GridEntityData GridEntityData { get; private set; }
 
             // Identity
             private static int _nextID = 0;
-            public string Name { get; set; }
-            public int ID { get; set; }
-            public Faction Faction { get; set; }
+            public string Name { get; private set; }
+            public int ID { get; private set; }
+            public FactionData FactionData { get; private set; }
 
             // Gameplay
-            public bool CanMove { get; set; } = false;
-            public bool CanAct { get; set; } = false;
-            public bool Selectable { get; set; } = true;
+            public bool CanMove { get; private set; } = false;
+            public bool CanAct { get; private set; } = false;
+            public bool Selectable { get; private set; } = true;
             
             // Visual
-            public bool IsSelected { get; set; } = false;
-            public bool IsVisible { get; set; } = true;
+            public bool IsSelected { get; private set; } = false;
+            public bool IsVisible { get; private set; } = true;
 
             // Optional
-            public int Health { get; set; }
-            public int MaxHealth { get; set; }
-            public int MovementRange { get; set; }
-            public int VisionRange { get; set; }
+            public int Health { get; private set; }
+            public int MaxHealth { get; private set; }
+            public int MovementRange { get; private set; }
+            public int VisionRange { get; private set; }
 
             // Events
             public event Action<GridEntity> OnSelected;
@@ -47,7 +46,9 @@ namespace StrategyGame.Grid {
             private void Initialize() {
                 Health = GridEntityData.Health;
                 MaxHealth = GridEntityData.MaxHealth;
-                
+                FactionData = GridEntityData.FactionData;
+                MovementRange = GridEntityData.MovementRange;
+                VisionRange = GridEntityData.VisionRange;
             }
             
             public virtual void Select() => OnSelected?.Invoke(this);

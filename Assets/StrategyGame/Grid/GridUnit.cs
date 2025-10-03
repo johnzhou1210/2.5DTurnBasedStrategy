@@ -1,4 +1,6 @@
-namespace StrategyGame.Grid.GridData {
+using StrategyGame.Grid.GridData;
+
+namespace StrategyGame.Grid {
     public class GridUnit : GridEntity
     {
         public GridUnit(GridEntityData gridEntityData, GridUnitData gridUnitData) : base(gridEntityData) {

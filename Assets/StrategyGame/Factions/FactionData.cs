@@ -4,9 +4,10 @@ using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace StrategyGame.Factions {
-    public class Faction : ScriptableObject {
-        [FormerlySerializedAs("FactionName")] public string factionName;
-        [FormerlySerializedAs("FactionColor")] public Color factionColor;
+    [CreateAssetMenu(menuName = "Strategy Game/Faction")]
+    public class FactionData : ScriptableObject {
+        public string factionName;
+        public Color factionColor;
         public bool isPlayerControlled;
         public List<GridUnitData> allowedUnits;
     }

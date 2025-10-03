@@ -10,7 +10,7 @@ namespace StrategyGame.Grid.GridData {
     }
 
 
-    [CreateAssetMenu(fileName = "New Grid Unit Data", menuName = "Grid Unit Data")]
+    [CreateAssetMenu(menuName = "Strategy Game/Grid Unit")]
     public class GridUnitData : GridEntityData {
         [SerializeField] private WeaponType weaponType;
         
