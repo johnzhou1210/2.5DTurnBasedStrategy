@@ -11,7 +11,7 @@ namespace StrategyGame.Grid {
     }
     
      public struct StructureSpawnQuery {
-            public GridUnitData UnitData;
+            public GridStructureData StructureData;
             public Vector2Int SpawnPosition;
         }
     
@@ -25,11 +25,13 @@ namespace StrategyGame.Grid {
         private void OnEnable() {
             EntityDelegates.GetGridEntityByID = GetGridEntityById;
             EntityDelegates.SpawnUnits = SpawnUnits;
+            EntityDelegates.SpawnStructures = SpawnStructures;
         }
 
         private void OnDisable() {
             EntityDelegates.GetGridEntityByID = null;
             EntityDelegates.SpawnUnits = null;
+            EntityDelegates.SpawnStructures = null;
         }
         
         private GridEntity GetGridEntityById(int id) {
@@ -44,11 +46,26 @@ namespace StrategyGame.Grid {
             return spawnedUnits;
         }
         
+        private List<GridStructure> SpawnStructures(List<StructureSpawnQuery> query) {
+            List<GridStructure> spawnedStructures = new List<GridStructure>();
+            foreach (StructureSpawnQuery q in query) {
+                spawnedStructures.Add(SpawnStructure(q.StructureData, q.SpawnPosition));
+            }
+            return spawnedStructures;
+        }
+        
         private GridUnit SpawnUnit(GridUnitData unitData, Vector2Int position) {
             GridUnit newUnit = new GridUnit(unitData, unitData);
             Entities[newUnit.ID] = newUnit;
             GridDelegates.InvokeOnEntitySpawned(newUnit, position);
             return newUnit;
+        }
+        
+        private GridStructure SpawnStructure(GridStructureData structureData, Vector2Int position) {
+            GridStructure newStructure = new GridStructure(structureData, structureData);
+            Entities[newStructure.ID] = newStructure;
+            GridDelegates.InvokeOnEntitySpawned(newStructure, position);
+            return newStructure;
         }
     }
 }

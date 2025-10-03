@@ -15,4 +15,7 @@ MonoBehaviour:
   visualPrefab: {fileID: 374549065707966590, guid: 3b6ff466c8d5c4a47a81bd5f3851aae2, type: 3}
   health: 100
   maxHealth: 100
+  factionData: {fileID: 11400000, guid: f5e87dfeb9e124d96ad5b12a049afd7e, type: 2}
+  movementRange: 5
+  visionRange: 5
   weaponType: 3
