@@ -4,10 +4,10 @@ using StrategyGame.Grid.GridData;
 using UnityEngine;
 
 namespace StrategyGame.Grid {
-    public class GridManager : MonoBehaviour { 
-        private Tile[,] _tiles;
-        
-       [SerializeField] private Vector2Int size;
+    public class GridManager : MonoBehaviour {
+        public Tile[,] Tiles { get; private set; }
+
+        [SerializeField] private Vector2Int size;
 
        private void OnDisable() {
            GridDelegates.GetGridEntityByID = null;
@@ -19,20 +19,22 @@ namespace StrategyGame.Grid {
        
        
        public Tile GetTile(Vector2Int position) {
-            return _tiles[position.x, position.y];
+            return Tiles[position.x, position.y];
        }
 
        
        
        private void Start() {
+           TileData defaultTileData = Resources.Load<TileData>("ScriptableObjects/Tiles/DefaultTile");
          
-           _tiles = new Tile[size.x, size.y];
+           Tiles = new Tile[size.x, size.y];
            for (int x = 0; x < size.x; x++) {
                for (int y = 0; y < size.y; y++) {
-                   _tiles[x, y] = new Tile();
+                   Tiles[x, y] = new Tile(defaultTileData, new Vector2Int(x, y));
                }
            }
-           
+
+           GetComponent<GridRenderer>().OnGridRedraw();
            GameStateDelegates.InvokeOnGameStarted();
        }
        

@@ -2,7 +2,7 @@ using StrategyGame.Core.Delegates;
 using UnityEngine;
 
 namespace StrategyGame.UI.World {
-    public class BillboardCanvasController : MonoBehaviour
+    public class BillboardCanvasManager : MonoBehaviour
     {
         private void OnEnable() {
             BillboardDelegates.GetBillboardCanvasTransform = GetTransform;

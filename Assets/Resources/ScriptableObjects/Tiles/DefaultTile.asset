@@ -9,13 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aaa0f71e776547dba29b1e7e4cdbed7d, type: 3}
-  m_Name: Castle
+  m_Script: {fileID: 11500000, guid: 3fcfc754f78d4410a8487b008e98a31c, type: 3}
+  m_Name: DefaultTile
   m_EditorClassIdentifier: 
-  visualPrefab: {fileID: 0}
-  health: 100
-  maxHealth: 1001
-  factionData: {fileID: 11400000, guid: a0b59abac260b427e80dffda475e6fd6, type: 2}
-  movementRange: 0
-  visionRange: 5
-  structureType: 2
+  movementCost: 1
+  tilePrefab: {fileID: 6757841582718426177, guid: 444b9c800d0984f8ab0ab89d290373b1, type: 3}
