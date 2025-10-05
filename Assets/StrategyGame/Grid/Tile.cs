@@ -13,7 +13,7 @@ namespace StrategyGame.Grid {
         public TileData InitData { get; private set; }
         
         // Core data
-        public Vector2Int Position { get; private set; }
+        public Vector2Int Position { get; }
         public Dictionary<Direction, Tile> Neighbors { get; private set; }
         public int MovementCost { get; private set; }
         
@@ -23,7 +23,7 @@ namespace StrategyGame.Grid {
         
         // Visibility data
         public bool IsVisible { get; private set; }
-        public bool IsHighlighted { get; private set; }
+        public bool IsSelected { get; private set; }
         
         // For pathfinding
         public int DistanceFromStart { get; private set; }
@@ -34,6 +34,9 @@ namespace StrategyGame.Grid {
             MovementCost = tileData.MovementCost;
             Position = position;
         }
+        
+        public override bool Equals(object obj) => obj is Tile t && t.Position == Position;
+            public override int GetHashCode() => Position.GetHashCode();
 
         public bool AddOccupant(GridEntity entity) {
             if (Occupant != null) {
@@ -48,6 +51,11 @@ namespace StrategyGame.Grid {
 
         public void SetNeighbors(Dictionary<Direction, Tile> dict) {
             Neighbors = dict;
+        }
+
+        public void SetInitData(TileData newInitData) {
+            InitData = newInitData;
+            MovementCost = newInitData.MovementCost;
         }
 
     }

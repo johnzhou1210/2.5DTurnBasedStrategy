@@ -4,6 +4,7 @@ using StrategyGame.Core.Delegates;
 using StrategyGame.Grid;
 using StrategyGame.Grid.GridData;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace StrategyGame.Core.GameState {
     public class GameStateManager : MonoBehaviour {
@@ -21,11 +22,13 @@ namespace StrategyGame.Core.GameState {
             GameStateDelegates.OnGameStarted += StartGame;
             GridDelegates.OnSelectTile += SetSelectedTile;
             GridDelegates.GetSelectedTile = () => CurrentSelectedTile;
+            GameStateDelegates.GetCurrentSelectedEntity  = () => CurrentSelectedEntity;
         }
         private void OnDisable() {
             GameStateDelegates.OnGameStarted -= StartGame;
             GridDelegates.OnSelectTile -= SetSelectedTile;
             GridDelegates.GetSelectedTile = null;
+            GameStateDelegates.GetCurrentSelectedEntity = null;
         }
         public void AdvancePhase() {
             CurrentPhase = (TurnPhase)(((int)CurrentPhase + 1) % Enum.GetValues(typeof(TurnPhase)).Length);
@@ -39,6 +42,19 @@ namespace StrategyGame.Core.GameState {
             entities.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Archer"), SpawnPosition = new Vector2Int(2, 2) });
             entities.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Archer"), SpawnPosition = new Vector2Int(2, 2) });
             EntityDelegates.SpawnUnits(entities);
+
+            int placedMontains = 0;
+            Vector2Int gridDimensions = GridDelegates.GetGridDimensions();
+            while (placedMontains < 32) {
+                Vector2Int randomPosition = new Vector2Int(Random.Range(0, gridDimensions.x), Random.Range(0, gridDimensions.y));
+                while (GridDelegates.GetTileFromPosition(randomPosition).IsOccupied) {
+                    randomPosition = new Vector2Int(Random.Range(0, gridDimensions.x), Random.Range(0, gridDimensions.y));
+                }
+                GridDelegates.InvokeOnMountainifyTile(randomPosition);
+                placedMontains++;
+            }
+
+
         }
 
         private void SetSelectedTile(Vector2Int coordinates) {
@@ -49,6 +65,8 @@ namespace StrategyGame.Core.GameState {
 
             if (newTile.Occupant != null) {
                 Debug.Log("Tile has entity!");
+                CurrentSelectedEntity = newTile.Occupant;
+                GridDelegates.InvokeOnUpdatePathPreview(CurrentSelectedEntity.GridPosition, CurrentSelectedEntity.GridPosition);
             }
         }
     }

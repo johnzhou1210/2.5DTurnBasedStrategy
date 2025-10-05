@@ -12,10 +12,14 @@ namespace StrategyGame.Grid {
         private void OnEnable() {
             GridDelegates.GetTileFromPosition = GetTileFromPosition;
             GridDelegates.AddEntityToGridFirstTime = AddEntityToGridFirstTime;
+            GridDelegates.GetGridDimensions = GetSize;
+            GridDelegates.OnMountainifyTile += MountainifyTile;
         }
         private void OnDisable() {
             GridDelegates.GetTileFromPosition = null;
             GridDelegates.AddEntityToGridFirstTime = null;
+            GridDelegates.GetGridDimensions = null;
+            GridDelegates.OnMountainifyTile -= MountainifyTile;
         }
         public Vector2Int GetSize() {
             return size;
@@ -25,7 +29,7 @@ namespace StrategyGame.Grid {
         }
         private void Start() {
             TileData defaultTileData = Resources.Load<TileData>("ScriptableObjects/Tiles/DefaultTile");
-            TileData mountainTileData = Resources.Load<TileData>("ScriptableObjects/Tiles/MountainTile");
+            
             Tiles = new Tile[size.x, size.y];
             for (int x = 0; x < size.x; x++) {
                 for (int y = 0; y < size.y; y++) {
@@ -63,6 +67,14 @@ namespace StrategyGame.Grid {
                 return false;
             }
             return tileToAddTo.AddOccupant(entity);
+        }
+
+        private void MountainifyTile(Vector2Int position) {
+            TileData mountainTileData = Resources.Load<TileData>("ScriptableObjects/Tiles/MountainTile");
+            Tile tileToMountainify = GetTileFromPosition(position);
+            if (tileToMountainify == null) throw new Exception("Tile to mountainify is null");
+            tileToMountainify.SetInitData(mountainTileData);
+            GetComponent<GridRenderer>().OnTileRedraw(tileToMountainify);
         }
     }
 }

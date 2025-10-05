@@ -939,7 +939,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 64bbfed5c90ef4887bc6114a2cedd6fc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1019,6 +1019,7 @@ MonoBehaviour:
   routeStraightVisual: {fileID: 1963729382202531869}
   routeTurnVisual: {fileID: 4080809421530592584}
   renderer: {fileID: 3492415350565495656}
+  glowMaterial: {fileID: 2100000, guid: 706a86bdd0b43418687d67d16c163371, type: 2}
 --- !u!1 &8507925781291298540
 GameObject:
   m_ObjectHideFlags: 0

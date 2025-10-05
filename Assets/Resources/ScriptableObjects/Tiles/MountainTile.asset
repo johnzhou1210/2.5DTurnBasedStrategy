@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fcfc754f78d4410a8487b008e98a31c, type: 3}
   m_Name: MountainTile
   m_EditorClassIdentifier: 
-  movementCost: 1
+  movementCost: 999
   tilePrefab: {fileID: 6757841582718426177, guid: 444b9c800d0984f8ab0ab89d290373b1, type: 3}

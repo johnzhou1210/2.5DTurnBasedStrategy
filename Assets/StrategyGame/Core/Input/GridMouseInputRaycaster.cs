@@ -60,6 +60,9 @@ namespace StrategyGame.Core.Input {
             if (_currHighlight.TryGetComponent(out Renderer rend)) {
                 // rend.material.color = Color.yellow;
                 // Debug.Log($"Highlighting: {tile}");
+                // Show route if GameStateManager is currently selecting a Unit
+                GridEntity currentSelectedEntity = GameStateDelegates.GetCurrentSelectedEntity();
+                GridDelegates.InvokeOnUpdatePathPreview(currentSelectedEntity?.GridPosition ?? tile.GetComponent<TileSelectable>().GridCoordinates, tile.GetComponent<TileSelectable>().GridCoordinates);
             }
         }
 

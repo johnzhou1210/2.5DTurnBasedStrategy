@@ -1,5 +1,6 @@
 using System;
 using StrategyGame.Core.GameState;
+using StrategyGame.Grid;
 
 namespace StrategyGame.Core.Delegates {
     public static class GameStateDelegates {
@@ -20,6 +21,8 @@ namespace StrategyGame.Core.Delegates {
         #endregion
 
         #region Funcs
+
+        public static Func<GridEntity> GetCurrentSelectedEntity;
 
         #endregion
 
