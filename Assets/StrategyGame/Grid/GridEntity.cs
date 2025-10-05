@@ -1,9 +1,16 @@
 using System;
+using System.Collections.Generic;
+using StrategyGame.Core.Delegates;
 using StrategyGame.Factions;
 using StrategyGame.Grid.GridData;
 using UnityEngine;
 
 namespace StrategyGame.Grid {
+    struct FloodFillQueueEntry {
+        public Tile Tile;
+        public int RemainingMovementPoints;
+    }
+    
     public abstract class GridEntity {
             // Core
             public Vector2Int GridPosition { get; private set; }
@@ -62,7 +69,57 @@ namespace StrategyGame.Grid {
                 return GridEntityData.VisualPrefab;
             }
 
+            public virtual HashSet<Tile> GetWalkableTiles() {
+                HashSet<Tile> result = new HashSet<Tile>();
+                
+                // Start Tile
+                Tile startTile = GridDelegates.GetTileFromPosition(GridPosition);
+                
+                // BFS
+                Queue<FloodFillQueueEntry> tilesToVisit = new Queue<FloodFillQueueEntry>();
+                Dictionary<Tile, int> bestRemainingMovements = new Dictionary<Tile, int>();
+                
+                tilesToVisit.Enqueue(new FloodFillQueueEntry {
+                    Tile = startTile,
+                    RemainingMovementPoints = MovementRange,
+                });
+                bestRemainingMovements[startTile] = MovementRange;
+
+                while (tilesToVisit.Count > 0) {
+                    // take out next tile and its remaining points
+                    FloodFillQueueEntry poppedEntry = tilesToVisit.Dequeue();
+                    Tile poppedTile = poppedEntry.Tile;
+                    int poppedRemainingMovementPoints = poppedEntry.RemainingMovementPoints;
+                    
+                    foreach (var neighbor in poppedTile.Neighbors) {
+                        int newRemainingMovementPoints = poppedRemainingMovementPoints - neighbor.Value.MovementCost;
+                        if (newRemainingMovementPoints < 0) continue; // Skip (not enough movement points to enter)
+                        
+                        // If not seen, or if reached with more remaining movement points than before, update dictionary
+                        if (!bestRemainingMovements.ContainsKey(neighbor.Value) || newRemainingMovementPoints > bestRemainingMovements[neighbor.Value]) {
+                            bestRemainingMovements[neighbor.Value] = newRemainingMovementPoints;
+                            // Enqueue the neighbor with the newRemainingMovementPoints
+                            tilesToVisit.Enqueue(new FloodFillQueueEntry {
+                                Tile = neighbor.Value,
+                                RemainingMovementPoints = newRemainingMovementPoints
+                            } );
+                        }
+                    }
+                    
+                }
+
+                foreach (var entry in bestRemainingMovements) {
+                    if (entry.Key == startTile) continue;
+                    result.Add(entry.Key);
+                }
+                
+                return result;
+            }
+
         
     }
+    
+   
+    
 }
 

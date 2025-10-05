@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Grid.GridData;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace StrategyGame.Grid {
     public class GridManager : MonoBehaviour {
@@ -24,10 +25,11 @@ namespace StrategyGame.Grid {
         }
         private void Start() {
             TileData defaultTileData = Resources.Load<TileData>("ScriptableObjects/Tiles/DefaultTile");
+            TileData mountainTileData = Resources.Load<TileData>("ScriptableObjects/Tiles/MountainTile");
             Tiles = new Tile[size.x, size.y];
             for (int x = 0; x < size.x; x++) {
                 for (int y = 0; y < size.y; y++) {
-                    Tiles[x, y] = new Tile(defaultTileData, new Vector2Int(x, y));
+                    Tiles[x, y] = new Tile(Random.Range(0f,1f) < .33f ? mountainTileData : defaultTileData, new Vector2Int(x, y));
                 }
             }
 
