@@ -58,7 +58,7 @@ namespace StrategyGame.Core.Input {
         private void SetCurrentHighlight(GameObject tile) {
             _currHighlight = tile;
             if (_currHighlight.TryGetComponent(out Renderer rend)) {
-                rend.material.color = Color.yellow;
+                // rend.material.color = Color.yellow;
                 Debug.Log($"Highlighting: {tile}");
             }
         }
@@ -66,7 +66,7 @@ namespace StrategyGame.Core.Input {
         private void ClearHighlight() {
             if (_currHighlight != null) {
                 if (_currHighlight.TryGetComponent(out Renderer rend)) {
-                    rend.material.color = Color.white;
+                    // rend.material.color = Color.white;
                     Debug.Log($"Un-highlighting: {_currHighlight}");
                 }
                 _currHighlight = null;
