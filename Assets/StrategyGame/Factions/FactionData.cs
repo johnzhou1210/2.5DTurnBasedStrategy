@@ -6,10 +6,17 @@ using UnityEngine.Serialization;
 namespace StrategyGame.Factions {
     [CreateAssetMenu(menuName = "Strategy Game/Faction")]
     public class FactionData : ScriptableObject {
-        public string factionName;
-        public Color factionColor;
-        public bool isPlayerControlled;
-        public List<GridUnitData> allowedUnits;
+        [SerializeField] private Faction factionEnum;
+        [SerializeField] private string factionName;
+        [SerializeField] private Color factionColor;
+        [SerializeField] private bool isPlayerControlled;
+       
+        
+        public Faction FactionEnum {get => factionEnum; }
+        public string FactionName { get => factionName; }
+        public Color FactionColor {get => factionColor; }
+        public bool IsPlayerControlled {get => isPlayerControlled; }
+    
     }
     
 }

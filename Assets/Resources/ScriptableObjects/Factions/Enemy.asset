@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7141dc99b54404dc894776bff3c0818c, type: 3}
   m_Name: Enemy
   m_EditorClassIdentifier: 
+  factionEnum: 1
   factionName: Enemy
   factionColor: {r: 0.5283019, g: 0, b: 0, a: 0}
   isPlayerControlled: 0
-  allowedUnits:
-  - {fileID: 11400000, guid: 08d3dd6a86dee4ec6b804674ad4062e0, type: 2}

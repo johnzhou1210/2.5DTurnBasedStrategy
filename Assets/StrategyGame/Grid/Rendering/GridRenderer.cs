@@ -149,7 +149,8 @@ namespace StrategyGame.Grid {
                 IsDestination = nextTile == null,
                 IsTurn = isTurn,
                 Angle = angle,
-                IsFlipped = flip
+                IsFlipped = flip,
+                IsStart = previousTile == null,
             };
         }
         private void UpdatePathPreview(Vector2Int startPosition, Vector2Int endPosition) {

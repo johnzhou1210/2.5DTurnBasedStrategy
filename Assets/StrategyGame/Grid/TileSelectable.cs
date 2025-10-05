@@ -10,6 +10,7 @@ namespace StrategyGame.Grid {
         public bool IsTurn;
         public int Angle;
         public bool IsFlipped;
+        public bool IsStart;
     }
     
     public class TileSelectable : MonoBehaviour {
@@ -18,6 +19,7 @@ namespace StrategyGame.Grid {
         [SerializeField] private GameObject routeStraightVisual;
         [SerializeField] private GameObject routeTurnVisual;
         [SerializeField] private GameObject routeTurnFlippedVisual;
+        [SerializeField] private GameObject routeStartVisual;
 
         [SerializeField] private new Renderer renderer;
 
@@ -43,12 +45,19 @@ namespace StrategyGame.Grid {
             routeStraightVisual.SetActive(false);
             routeTurnVisual.SetActive(false);
             routeTurnFlippedVisual.SetActive(false);
+            routeStartVisual.SetActive(false);
             
             if (!val) return;
             if (!routeSegmentData.IsValid) return;
             
             GameObject activeVisual;
-            if (routeSegmentData.IsDestination) {
+            Tile tileOfSegment = GridDelegates.GetTileFromPosition(GridCoordinates);
+            
+            
+            if (routeSegmentData.IsStart ||  tileOfSegment.IsOccupied) {
+                routeStartVisual.SetActive(true);
+                activeVisual = routeStartVisual;
+            } else if (routeSegmentData.IsDestination) {
                 routeTipVisual.SetActive(true);
                 activeVisual = routeTipVisual;
             } else if (routeSegmentData is { IsTurn: true, IsFlipped: false }) {

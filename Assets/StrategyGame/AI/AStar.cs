@@ -41,6 +41,7 @@ namespace StrategyGame.AI {
                 tilesInOpenSet.Remove(dequeuedTile);
                 // Goal check
                 if (dequeuedTile.Position == targetPosition) {
+                    
                     // Stop and reconstruct path using parents dictionary
                     Stack<Tile> reversedPath = new Stack<Tile>();
                     Tile currentTile = dequeuedTile;
@@ -59,16 +60,23 @@ namespace StrategyGame.AI {
                 // Evaluate neighbors
                 foreach (var neighbor in dequeuedTile.Neighbors) {
                     if (neighbor.Value == null) continue;
-                    int neighborCost = neighbor.Value.MovementCost;
+                    
+                    Tile neighborTile = neighbor.Value;
+                    // Skip enemy tiles unless it's the target
+                    if (neighborTile.Occupant != null && neighborTile.Occupant.Faction != startTile.Occupant.Faction) {
+                        if (neighborTile.Position != targetPosition) continue;
+                    }
+                    
+                    int neighborCost = neighborTile.MovementCost;
                     int gCostAfterMovement = gCosts[dequeuedTile] + neighborCost;
-                    if (!gCosts.ContainsKey(neighbor.Value) || gCostAfterMovement < gCosts[neighbor.Value]) {
-                        gCosts[neighbor.Value] = gCostAfterMovement;
-                        hCosts[neighbor.Value] = ManhattanDistance(neighbor.Value.Position, targetPosition);
-                        fCosts[neighbor.Value] = gCosts[neighbor.Value] + hCosts[neighbor.Value];
-                        parents[neighbor.Value] = dequeuedTile;
-                        if (!tilesInOpenSet.Contains(neighbor.Value) && unitMovementRange - gCostAfterMovement >= 0) {
-                            openSet.Enqueue(neighbor.Value, fCosts[neighbor.Value]);
-                            tilesInOpenSet.Add(neighbor.Value);
+                    if (!gCosts.ContainsKey(neighborTile) || gCostAfterMovement < gCosts[neighborTile]) {
+                        gCosts[neighborTile] = gCostAfterMovement;
+                        hCosts[neighborTile] = ManhattanDistance(neighborTile.Position, targetPosition);
+                        fCosts[neighborTile] = gCosts[neighborTile] + hCosts[neighborTile];
+                        parents[neighborTile] = dequeuedTile;
+                        if (!tilesInOpenSet.Contains(neighborTile) && unitMovementRange - gCostAfterMovement >= 0) {
+                            openSet.Enqueue(neighborTile, fCosts[neighborTile]);
+                            tilesInOpenSet.Add(neighborTile);
                         }
                     }
                 }

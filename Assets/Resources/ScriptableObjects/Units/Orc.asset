@@ -16,6 +16,6 @@ MonoBehaviour:
   health: 20
   maxHealth: 50
   factionData: {fileID: 11400000, guid: a0b59abac260b427e80dffda475e6fd6, type: 2}
-  movementRange: 2
+  movementRange: 3
   visionRange: 5
   weaponType: 2
