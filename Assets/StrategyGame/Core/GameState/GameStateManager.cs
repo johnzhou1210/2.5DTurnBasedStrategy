@@ -62,12 +62,9 @@ namespace StrategyGame.Core.GameState {
             Tile oldTile = CurrentSelectedTile;
             CurrentSelectedTile = newTile ?? throw new ArgumentException("Tile does not exist at position {coordinates}!");
             GridDelegates.InvokeOnSetSelectedTile(oldTile, newTile);
-
-            if (newTile.Occupant != null) {
-                Debug.Log("Tile has entity!");
-                CurrentSelectedEntity = newTile.Occupant;
-                GridDelegates.InvokeOnUpdatePathPreview(CurrentSelectedEntity.GridPosition, CurrentSelectedEntity.GridPosition);
-            }
+            CurrentSelectedEntity = newTile.IsOccupied ? newTile.Occupant : null;
+            Vector2Int startPosition = CurrentSelectedEntity?.GridPosition ?? newTile.Position;
+            GridDelegates.InvokeOnUpdatePathPreview(startPosition, startPosition);
         }
     }
 }

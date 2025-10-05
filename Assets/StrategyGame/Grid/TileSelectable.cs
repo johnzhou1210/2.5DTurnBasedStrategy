@@ -4,17 +4,24 @@ using StrategyGame.Grid.GridData;
 using UnityEngine;
 
 namespace StrategyGame.Grid {
+    public struct RouteSegmentData {
+        public bool IsValid;
+        public bool IsDestination;
+        public bool IsTurn;
+        public int Angle;
+        public bool IsFlipped;
+    }
+    
     public class TileSelectable : MonoBehaviour {
         [SerializeField] private GameObject selectionVisual;
         [SerializeField] private GameObject routeTipVisual;
         [SerializeField] private GameObject routeStraightVisual;
         [SerializeField] private GameObject routeTurnVisual;
+        [SerializeField] private GameObject routeTurnFlippedVisual;
 
         [SerializeField] private new Renderer renderer;
-        [SerializeField] private Material glowMaterial;
 
         private Color _originalColor;
-        private Material _originalMaterial;
         
         public Vector2Int GridCoordinates { get; private set; }
         
@@ -22,7 +29,6 @@ namespace StrategyGame.Grid {
             GridCoordinates = position;
             gameObject.name = $"Tile {GridCoordinates}";
             _originalColor = GridDelegates.GetTileFromPosition(position).MovementCost > 100 ? Color.black : Color.gray;
-            _originalMaterial = renderer.material;
             renderer.material.color = _originalColor;
         }
 
@@ -31,8 +37,32 @@ namespace StrategyGame.Grid {
         }
         
         // testing
-        public void LightUp(bool val) {
-            renderer.material = val ? glowMaterial : _originalMaterial;
+        public void ShowRouteSegment(bool val, RouteSegmentData routeSegmentData) {
+            routeStraightVisual.SetActive(val);
+            routeTipVisual.SetActive(false);
+            routeStraightVisual.SetActive(false);
+            routeTurnVisual.SetActive(false);
+            routeTurnFlippedVisual.SetActive(false);
+            
+            if (!val) return;
+            if (!routeSegmentData.IsValid) return;
+            
+            GameObject activeVisual;
+            if (routeSegmentData.IsDestination) {
+                routeTipVisual.SetActive(true);
+                activeVisual = routeTipVisual;
+            } else if (routeSegmentData is { IsTurn: true, IsFlipped: false }) {
+                routeTurnVisual.SetActive(true);
+                activeVisual = routeTurnVisual;
+            } else if (routeSegmentData is { IsTurn: true, IsFlipped: true }) {
+                routeTurnFlippedVisual.SetActive(true);
+                activeVisual = routeTurnFlippedVisual;
+            } else {
+                routeStraightVisual.SetActive(true);
+                activeVisual = routeStraightVisual;
+            }
+            // Rotate visual based on RouteSegmentData
+            activeVisual.transform.localEulerAngles = new Vector3(90, routeSegmentData.Angle, 0);
         }
 
         // For when unit is selected

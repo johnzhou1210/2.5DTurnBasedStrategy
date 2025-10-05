@@ -75,7 +75,7 @@ namespace StrategyGame.AI {
             }
 
             // If here, then no path found.
-            Debug.LogWarning("A*: No path found!");
+            Debug.Log("A*: No path found!");
             return (false, new List<Tile>());
         }
 

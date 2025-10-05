@@ -62,6 +62,7 @@ namespace StrategyGame.Core.Input {
                 // Debug.Log($"Highlighting: {tile}");
                 // Show route if GameStateManager is currently selecting a Unit
                 GridEntity currentSelectedEntity = GameStateDelegates.GetCurrentSelectedEntity();
+                if (currentSelectedEntity == null) return;
                 GridDelegates.InvokeOnUpdatePathPreview(currentSelectedEntity?.GridPosition ?? tile.GetComponent<TileSelectable>().GridCoordinates, tile.GetComponent<TileSelectable>().GridCoordinates);
             }
         }
