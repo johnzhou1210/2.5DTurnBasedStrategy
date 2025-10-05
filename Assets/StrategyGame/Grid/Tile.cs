@@ -3,13 +3,18 @@ using StrategyGame.Grid.GridData;
 using UnityEngine;
 
 namespace StrategyGame.Grid {
+
+    public enum Direction {
+        North, East, South, West
+    }
+    
     public class Tile {
         // Blueprint data
         public TileData InitData { get; private set; }
         
         // Core data
         public Vector2Int Position { get; private set; }
-        public List<Tile> Neighbours { get; private set; }
+        public Dictionary<Direction, Tile> Neighbors { get; private set; }
         public int MovementCost { get; private set; }
         
         // Entity occupant data
@@ -29,7 +34,21 @@ namespace StrategyGame.Grid {
             MovementCost = tileData.MovementCost;
             Position = position;
         }
-        
+
+        public bool AddOccupant(GridEntity entity) {
+            if (Occupant != null) {
+                Debug.LogWarning($"Failed to set occupant {entity.GridEntityData.name} to tile {Position} because it is already occupied.");
+                return false;
+            }
+            Occupant = entity;
+            Debug.Log($"Added occupant to tile {Position}.");
+            return true;
+        }
+
+        public void SetNeighbors(Dictionary<Direction, Tile> dict) {
+            Neighbors = dict;
+        }
+
     }
 
 }

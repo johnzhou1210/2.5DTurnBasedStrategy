@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Grid.GridData;
@@ -11,7 +12,8 @@ namespace StrategyGame.Grid {
         
         private void OnEnable() {
             _tileVisuals = new GameObject[grid.GetSize().x, grid.GetSize().y];
-            OnGridRedraw();
+
+            GridDelegates.OnSetSelectedTile += UpdateSelectedTileVisuals;
         }
         
         public void OnGridRedraw() {
@@ -23,10 +25,37 @@ namespace StrategyGame.Grid {
                     GameObject newTile = Instantiate(tilePrefab, transform);
                     newTile.transform.position = position;
                     _tileVisuals[x, y] = newTile;
+                    if (newTile.TryGetComponent(out TileSelectable selectable)) {
+                        selectable.Initialize(new Vector2Int(x,y));
+                    }
                 }
             }
         }
-    
+
+        private void UpdateSelectedTileVisuals(Tile oldTile, Tile newTile) {
+            if (oldTile != null) {
+                // Hide old tile selection visual
+                GameObject oldTileVisual = _tileVisuals[oldTile.Position.x, oldTile.Position.y];
+                if (oldTileVisual == null) { throw new Exception("Old tile visual not found!");}
+                if (oldTileVisual.TryGetComponent(out TileSelectable oldSelectable)) {
+                    oldSelectable.SetSelectionVisualVisibility(false);
+                }
+            }
+            
+            // Show new tile selection visual
+            GameObject newTileVisual = _tileVisuals[newTile.Position.x, newTile.Position.y];
+            if (newTileVisual == null) { throw new Exception("New tile visual not found!"); }
+            if (newTileVisual.TryGetComponent(out TileSelectable newSelectable)) {
+                newSelectable.SetSelectionVisualVisibility(true);
+            }
+
+        }
+        
+        private void ClearActiveSelectionVisuals() {
+            
+        }
+        
+
     }
 }
 

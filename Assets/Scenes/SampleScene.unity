@@ -728,8 +728,9 @@ GameObject:
   m_Component:
   - component: {fileID: 172940115}
   - component: {fileID: 172940114}
-  m_Layer: 0
-  m_Name: GridHighlighter
+  - component: {fileID: 172940116}
+  m_Layer: 2
+  m_Name: GridRaycaster
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -750,6 +751,7 @@ MonoBehaviour:
   tileLayerMask:
     serializedVersion: 2
     m_Bits: 8
+  playerInput: {fileID: 172940116}
 --- !u!4 &172940115
 Transform:
   m_ObjectHideFlags: 0
@@ -759,12 +761,42 @@ Transform:
   m_GameObject: {fileID: 172940113}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.3546433, y: -6.897197, z: 8.306165}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &172940116
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 172940113}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  m_NotificationBehavior: 0
+  m_UIInputModule: {fileID: 0}
+  m_DeviceLostEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_DeviceRegainedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ControlsChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ActionEvents: []
+  m_NeverAutoSwitchControlSchemes: 0
+  m_DefaultControlScheme: 
+  m_DefaultActionMap: Player
+  m_SplitScreenIndex: -1
+  m_Camera: {fileID: 0}
 --- !u!1 &192576169
 GameObject:
   m_ObjectHideFlags: 0
@@ -911,7 +943,7 @@ GameObject:
   m_Component:
   - component: {fileID: 198717406}
   - component: {fileID: 198717405}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: GridEntitySpawner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1795,7 +1827,7 @@ GameObject:
   - component: {fileID: 1029370124}
   - component: {fileID: 1029370123}
   - component: {fileID: 1029370127}
-  m_Layer: 5
+  m_Layer: 2
   m_Name: BillboardCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2205,7 +2237,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6922b611826934194b425c5edc7fde22, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  size: {x: 5, y: 5}
+  size: {x: 10, y: 10}
 --- !u!1 &1373978099
 GameObject:
   m_ObjectHideFlags: 0

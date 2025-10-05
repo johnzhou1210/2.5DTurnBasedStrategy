@@ -25,14 +25,14 @@ namespace StrategyGame.UI.World {
                 Transform targetTransform = GridDelegates.GetEntityVisualTransformByID(unit.ID);
                 billboardFollow.SetTarget(targetTransform);
             }
-            weaponTypeFrame.color = GetColorFromWeaponType(unit.GridUnitData.WeaponType);
-            weaponTypeImage.sprite = GetSpriteFromWeaponType(unit.GridUnitData.WeaponType);
+            weaponTypeFrame.color = GetColorFromWeaponType(unit.GridUnitInitData.WeaponType);
+            weaponTypeImage.sprite = GetSpriteFromWeaponType(unit.GridUnitInitData.WeaponType);
         }
 
         private void UpdateUnitWeaponType(GridUnit unit) {
             if (_targetID != unit.ID) return;
-            weaponTypeFrame.color = GetColorFromWeaponType(unit.GridUnitData.WeaponType);
-            weaponTypeImage.sprite = GetSpriteFromWeaponType(unit.GridUnitData.WeaponType);
+            weaponTypeFrame.color = GetColorFromWeaponType(unit.GridUnitInitData.WeaponType);
+            weaponTypeImage.sprite = GetSpriteFromWeaponType(unit.GridUnitInitData.WeaponType);
         }
 
         private Color GetColorFromWeaponType(WeaponType weaponType) {

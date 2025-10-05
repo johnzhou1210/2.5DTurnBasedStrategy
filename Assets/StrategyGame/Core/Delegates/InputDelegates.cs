@@ -2,17 +2,19 @@ using System;
 using UnityEngine;
 
 namespace StrategyGame.Core.Delegates {
- public static class InputDelegates
- {
-  #region Events
- 
-  #endregion
- 
-  #region Funcs
+    public static class InputDelegates {
 
-  public static Func<Vector3> GetMouseRaycastPosition;
+        #region Events
 
-  #endregion
+        
 
- }
+        #endregion
+
+        #region Funcs
+
+        public static Func<Vector3> GetMouseRaycastPosition;
+
+        #endregion
+
+    }
 }

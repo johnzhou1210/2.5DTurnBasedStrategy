@@ -57,6 +57,11 @@ namespace StrategyGame.Grid {
         private GridUnit SpawnUnit(GridUnitData unitData, Vector2Int position) {
             GridUnit newUnit = new GridUnit(unitData, unitData);
             Entities[newUnit.ID] = newUnit;
+            bool success = GridDelegates.AddEntityToGridFirstTime(newUnit, position);
+            if (!success) {
+                Debug.LogWarning($"Failed to spawn {unitData.name} to {position}!");
+                return null;
+            }
             GridDelegates.InvokeOnEntitySpawned(newUnit, position);
             return newUnit;
         }
@@ -64,8 +69,16 @@ namespace StrategyGame.Grid {
         private GridStructure SpawnStructure(GridStructureData structureData, Vector2Int position) {
             GridStructure newStructure = new GridStructure(structureData, structureData);
             Entities[newStructure.ID] = newStructure;
+            bool success = GridDelegates.AddEntityToGridFirstTime(newStructure, position);
+            if (!success) {
+                Debug.LogWarning($"Failed to spawn {structureData.name} to {position}!");
+                return null;
+            }
             GridDelegates.InvokeOnEntitySpawned(newStructure, position);
             return newStructure;
         }
+        
+
+
     }
 }
