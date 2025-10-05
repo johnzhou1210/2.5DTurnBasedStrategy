@@ -60,9 +60,9 @@ namespace StrategyGame.Grid {
                         _walkableTiles.Add(_tileVisuals[tile.Position.x, tile.Position.y]);
                     }
                     
-                    foreach (GameObject neighbor in _walkableTiles) {
-                        if (neighbor.TryGetComponent(out TileSelectable neighborSelectable)) {
-                            neighborSelectable.SetNeighborMarkVisualVisibility(true);
+                    foreach (GameObject walkableTile in _walkableTiles) {
+                        if (walkableTile.TryGetComponent(out TileSelectable tileSelectable)) {
+                            tileSelectable.SetWalkableMarkVisualVisibility(true);
                         }
                     }
                 }
@@ -75,9 +75,9 @@ namespace StrategyGame.Grid {
         }
 
         private void ClearWalkableTiles() {
-            foreach (GameObject neighbor in _walkableTiles) {
-                if (neighbor.TryGetComponent(out TileSelectable neighborSelectable)) {
-                    neighborSelectable.SetNeighborMarkVisualVisibility(false);
+            foreach (GameObject walkableTile in _walkableTiles) {
+                if (walkableTile.TryGetComponent(out TileSelectable tileSelectable)) {
+                    tileSelectable.SetWalkableMarkVisualVisibility(false);
                 }
             }
             _walkableTiles.Clear();

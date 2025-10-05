@@ -73,6 +73,7 @@ namespace StrategyGame.Grid {
                 HashSet<Tile> result = new HashSet<Tile>();
                 
                 // Start Tile
+                Debug.Log(GridPosition);
                 Tile startTile = GridDelegates.GetTileFromPosition(GridPosition);
                 
                 // BFS
@@ -92,6 +93,7 @@ namespace StrategyGame.Grid {
                     int poppedRemainingMovementPoints = poppedEntry.RemainingMovementPoints;
                     
                     foreach (var neighbor in poppedTile.Neighbors) {
+                        if (neighbor.Value == null) continue;
                         int newRemainingMovementPoints = poppedRemainingMovementPoints - neighbor.Value.MovementCost;
                         if (newRemainingMovementPoints < 0) continue; // Skip (not enough movement points to enter)
                         
@@ -114,6 +116,10 @@ namespace StrategyGame.Grid {
                 }
                 
                 return result;
+            }
+            
+            public void SetGridPosition(Vector2Int newPosition) {
+                GridPosition = newPosition;
             }
 
         

@@ -41,6 +41,7 @@ namespace StrategyGame.Grid {
                 return false;
             }
             Occupant = entity;
+            entity.SetGridPosition(Position);
             Debug.Log($"Added occupant to tile {Position}.");
             return true;
         }

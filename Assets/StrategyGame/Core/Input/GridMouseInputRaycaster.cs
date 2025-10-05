@@ -44,7 +44,7 @@ namespace StrategyGame.Core.Input {
                 
                 // Check if player clicked while hovering over a tile
                 if (_selectAction.WasPressedThisFrame()) {
-                    if (hitTile.TryGetComponent<TileSelectable>(out TileSelectable selectable)) {
+                    if (hitTile.TryGetComponent(out TileSelectable selectable)) {
                         GridDelegates.InvokeOnSelectTile(selectable.GridCoordinates);
                     }
                 }
@@ -59,7 +59,7 @@ namespace StrategyGame.Core.Input {
             _currHighlight = tile;
             if (_currHighlight.TryGetComponent(out Renderer rend)) {
                 // rend.material.color = Color.yellow;
-                Debug.Log($"Highlighting: {tile}");
+                // Debug.Log($"Highlighting: {tile}");
             }
         }
 
@@ -67,7 +67,7 @@ namespace StrategyGame.Core.Input {
             if (_currHighlight != null) {
                 if (_currHighlight.TryGetComponent(out Renderer rend)) {
                     // rend.material.color = Color.white;
-                    Debug.Log($"Un-highlighting: {_currHighlight}");
+                    // Debug.Log($"Un-highlighting: {_currHighlight}");
                 }
                 _currHighlight = null;
             }

@@ -29,7 +29,7 @@ namespace StrategyGame.Grid {
             Tiles = new Tile[size.x, size.y];
             for (int x = 0; x < size.x; x++) {
                 for (int y = 0; y < size.y; y++) {
-                    Tiles[x, y] = new Tile(Random.Range(0f,1f) < .33f ? mountainTileData : defaultTileData, new Vector2Int(x, y));
+                    Tiles[x, y] = new Tile(defaultTileData, new Vector2Int(x, y));
                 }
             }
 
