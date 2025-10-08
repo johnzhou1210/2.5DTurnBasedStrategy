@@ -8,8 +8,15 @@ using Random = UnityEngine.Random;
 
 namespace StrategyGame.Grid {
     public class GridManager : MonoBehaviour {
+        // ==============================
+        // FIELDS & PROPERTIES
+        // ==============================
         public Tile[,] Tiles { get; private set; }
         [SerializeField] private Vector2Int size;
+        
+        // ==============================
+        // MONOBEHAVIOUR LIFECYCLE
+        // ==============================
         private void OnEnable() {
             GridDelegates.GetTileFromPosition = GetTileFromPosition;
             GridDelegates.AddEntityToGridFirstTime = AddEntityToGridFirstTime;
@@ -23,22 +30,14 @@ namespace StrategyGame.Grid {
             GridDelegates.OnMountainifyTile -= MountainifyTile;
             
         }
-        public Vector2Int GetSize() {
-            return size;
-        }
-        public Tile GetTile(Vector2Int position) {
-            return Tiles[position.x, position.y];
-        }
         private void Start() {
             TileData defaultTileData = Resources.Load<TileData>("ScriptableObjects/Tiles/DefaultTile");
-            
             Tiles = new Tile[size.x, size.y];
             for (int x = 0; x < size.x; x++) {
                 for (int y = 0; y < size.y; y++) {
                     Tiles[x, y] = new Tile(defaultTileData, new Vector2Int(x, y));
                 }
             }
-
             // Go through grid again to initialize neighbors
             for (int x = 0; x < size.x; x++) {
                 for (int y = 0; y < size.y; y++) {
@@ -54,13 +53,28 @@ namespace StrategyGame.Grid {
             GetComponent<GridRenderer>().OnGridRedraw();
             GameStateDelegates.InvokeOnGameStarted();
         }
-        private bool IsValidPosition(Vector2Int position) {
-            return position.x >= 0 && position.x < size.x && position.y >= 0 && position.y < size.y;
+        
+        
+        
+        // ==============================
+        // CORE METHODS
+        // ==============================
+        public Vector2Int GetSize() {
+            return size;
         }
+        
+        private void MountainifyTile(Vector2Int position) {
+            TileData mountainTileData = Resources.Load<TileData>("ScriptableObjects/Tiles/MountainTile");
+            Tile tileToMountainify = GetTileFromPosition(position);
+            if (tileToMountainify == null) throw new Exception("Tile to mountainify is null");
+            tileToMountainify.SetInitData(mountainTileData);
+            GetComponent<GridRenderer>().OnTileRedraw(tileToMountainify);
+        }
+        
         private Tile GetTileFromPosition(Vector2Int position) {
             return Tiles[position.x, position.y];
         }
-
+        
         // This function should only be called when adding an entity to the grid for the first time.
         private bool AddEntityToGridFirstTime(GridEntity entity, Vector2Int position) {
             Tile tileToAddTo = GetTile(position);
@@ -70,14 +84,24 @@ namespace StrategyGame.Grid {
             }
             return tileToAddTo.AddOccupant(entity);
         }
-
-        private void MountainifyTile(Vector2Int position) {
-            TileData mountainTileData = Resources.Load<TileData>("ScriptableObjects/Tiles/MountainTile");
-            Tile tileToMountainify = GetTileFromPosition(position);
-            if (tileToMountainify == null) throw new Exception("Tile to mountainify is null");
-            tileToMountainify.SetInitData(mountainTileData);
-            GetComponent<GridRenderer>().OnTileRedraw(tileToMountainify);
+        
+        
+        
+        // ==============================
+        // HELPERS
+        // ==============================
+        private Tile GetTile(Vector2Int position) {
+            return Tiles[position.x, position.y];
         }
+       
+        private bool IsValidPosition(Vector2Int position) {
+            return position.x >= 0 && position.x < size.x && position.y >= 0 && position.y < size.y;
+        }
+        
+
+        
+
+        
 
        
     }

@@ -6,7 +6,9 @@ using UnityEngine;
 namespace StrategyGame.Core.Delegates {
     public static class BillboardDelegates
     {
-        #region Events
+        // ==============================
+        // EVENTS
+        // ==============================
         public static event Action<int, int, int> OnHealthChanged;
         public static event Action<GridUnit> OnUnitWeaponTypeChanged;
 
@@ -16,13 +18,12 @@ namespace StrategyGame.Core.Delegates {
         public static void InvokeOnUnitWeaponTypeChanged(GridUnit unit) {
             OnUnitWeaponTypeChanged?.Invoke(unit);
         }
-        #endregion
+       
 
-        #region Funcs
-
+        // ==============================
+        // FUNCS
+        // ==============================
         public static Func<Transform> GetBillboardCanvasTransform;
-
-        #endregion
-
+        
     }
 }

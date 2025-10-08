@@ -14,6 +14,9 @@ namespace StrategyGame.Grid {
     }
     
     public class TileSelectable : MonoBehaviour {
+        // ==============================
+        // FIELDS & PROPERTIES
+        // ==============================
         [SerializeField] private GameObject selectionVisual;
         [SerializeField] private GameObject routeTipVisual;
         [SerializeField] private GameObject routeStraightVisual;
@@ -27,6 +30,11 @@ namespace StrategyGame.Grid {
         
         public Vector2Int GridCoordinates { get; private set; }
         
+        
+        
+        // ==============================
+        // INITIALIZATION
+        // ==============================
         public void Initialize(Vector2Int position) {
             GridCoordinates = position;
             gameObject.name = $"Tile {GridCoordinates}";
@@ -34,11 +42,15 @@ namespace StrategyGame.Grid {
             renderer.material.color = _originalColor;
         }
 
+        
+        
+        // ==============================
+        // CORE METHODS
+        // ==============================
         public void SetSelectionVisualVisibility(bool val) {
             selectionVisual.SetActive(val);
         }
         
-        // testing
         public void ShowRouteSegment(bool val, RouteSegmentData routeSegmentData) {
             routeStraightVisual.SetActive(val);
             routeTipVisual.SetActive(false);
@@ -73,7 +85,7 @@ namespace StrategyGame.Grid {
             // Rotate visual based on RouteSegmentData
             activeVisual.transform.localEulerAngles = new Vector3(90, routeSegmentData.Angle, 0);
         }
-
+        
         // For when unit is selected
         public void SetWalkableMarkVisualVisibility(bool val) {
             if (_originalColor == Color.black) return;

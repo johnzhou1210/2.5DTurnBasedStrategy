@@ -6,14 +6,19 @@ using StrategyGame.Utils;
 using UnityEngine;
 
 namespace StrategyGame.AI {
+    // ==============================
+    // STRUCTS
+    // ==============================
+    public struct PathItem {
+        public Tile Tile;
+        public bool Reachable;
+    }
     public class AStar {
+        // ==============================
+        // CORE METHODS
+        // ==============================
         private static int ManhattanDistance(Vector2Int coord1, Vector2Int coord2) {
             return Math.Abs(coord1.x - coord2.x) + Math.Abs(coord1.y - coord2.y);
-        }
-
-        public struct PathItem {
-            public Tile Tile;
-            public bool Reachable;
         }
         
         public static (bool reachable, List<Tile> path) CalculateBestPath(Vector2Int startPosition, Vector2Int targetPosition) {

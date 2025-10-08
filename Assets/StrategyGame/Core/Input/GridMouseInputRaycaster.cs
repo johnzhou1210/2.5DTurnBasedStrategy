@@ -6,6 +6,9 @@ using UnityEngine.InputSystem;
 
 namespace StrategyGame.Core.Input {
     public class GridMouseInputRaycaster : MonoBehaviour {
+        // ==============================
+        // FIELDS & PROPERTIES
+        // ==============================
         [SerializeField] private LayerMask tileLayerMask;
         [SerializeField] private PlayerInput playerInput;
         private GameObject _currHighlight;
@@ -13,6 +16,10 @@ namespace StrategyGame.Core.Input {
         private Camera _camera;
         private InputAction _selectAction;
 
+        
+        // ==============================
+        // MONOBEHAVIOUR LIFECYCLE
+        // ==============================
         private void Awake() {
             _selectAction = playerInput.actions["Select"];
         }
@@ -55,6 +62,10 @@ namespace StrategyGame.Core.Input {
             }
         }
 
+        
+        // ==============================
+        // CORE METHODS
+        // ==============================
         private void SetCurrentHighlight(GameObject tile) {
             _currHighlight = tile;
             if (_currHighlight.TryGetComponent(out Renderer rend)) {
@@ -76,7 +87,7 @@ namespace StrategyGame.Core.Input {
                 _currHighlight = null;
             }
         }
-
+        
         private Vector3 GetMouseRaycastPosition() {
             return _lastMouseRaycastPosition;
         }

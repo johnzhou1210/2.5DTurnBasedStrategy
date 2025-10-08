@@ -7,6 +7,9 @@ using UnityEngine.InputSystem;
 namespace StrategyGame.Core.Input {
     public class CameraRigController : MonoBehaviour
     {
+        // ==============================
+        // FIELDS & PROPERTIES
+        // ==============================
         [SerializeField] private PlayerInput playerInput;
         [SerializeField] private float rigMoveSpeed = 5f;
         [SerializeField] private float orbitalCameraZoomSpeed = 5f;
@@ -20,6 +23,10 @@ namespace StrategyGame.Core.Input {
         private float _targetZoom;
         private float _zoomVelocity;
 
+        
+        // ==============================
+        // MONOBEHAVIOUR LIFECYCLE
+        // ==============================
         private void Awake() {
             if (orbitalFollow == null) return;
         
@@ -62,11 +69,18 @@ namespace StrategyGame.Core.Input {
         
         }
 
+        // ==============================
+        // CORE METHODS
+        // ==============================
         private void SetPosition(Vector3 newPosition) {
             transform.position = newPosition + (Vector3.up * 2f);
             _targetZoom = 3f;
         }
 
+        
+        // ==============================
+        // HELPERS
+        // ==============================
 
     }
 }

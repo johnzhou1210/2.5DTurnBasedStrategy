@@ -10,6 +10,9 @@ using UnityEngine;
 
 namespace StrategyGame.Grid {
     public class GridRenderer : MonoBehaviour {
+        // ==============================
+        // FIELDS & PROPERTIES
+        // ==============================
         private static readonly Dictionary<(Direction, Direction), (int angle, bool flip)> CornerRotationMap = new() {
             { (Direction.North, Direction.East), (0, false) },
             { (Direction.East, Direction.South), (90, false) },
@@ -28,6 +31,10 @@ namespace StrategyGame.Grid {
         [SerializeField] private GridManager grid;
         private HashSet<GameObject> _walkableTiles;
         private List<GameObject> _pathTiles;
+
+        // ==============================
+        // MONOBEHAVIOUR LIFECYCLE
+        // ==============================
         private void OnEnable() {
             _tileVisuals = new GameObject[grid.GetSize().x, grid.GetSize().y];
             _walkableTiles = new HashSet<GameObject>();
@@ -40,30 +47,10 @@ namespace StrategyGame.Grid {
             GridDelegates.OnSetSelectedTile -= UpdateSelectedTileVisuals;
             GridDelegates.OnUpdatePathPreview -= UpdatePathPreview;
         }
-        public void OnGridRedraw() {
-            Vector2Int dimensions = grid.GetSize();
-            for (int y = 0; y < dimensions.y; y++) {
-                for (int x = 0; x < dimensions.x; x++) {
-                    Vector3 position = new Vector3(x, 0f, y);
-                    GameObject tilePrefab = grid.Tiles[x, y].InitData.TilePrefab;
-                    GameObject newTile = Instantiate(tilePrefab, transform);
-                    newTile.transform.position = position;
-                    _tileVisuals[x, y] = newTile;
-                    if (newTile.TryGetComponent(out TileSelectable selectable)) {
-                        selectable.Initialize(new Vector2Int(x, y));
-                    }
-                }
-            }
-        }
-        public void OnTileRedraw(Tile tileToRedraw) {
-            GameObject tileVisualToRedraw = _tileVisuals[tileToRedraw.Position.x, tileToRedraw.Position.y];
-            if (tileVisualToRedraw == null)
-                throw new Exception("Tile to redraw is null");
-            if (tileVisualToRedraw.TryGetComponent(out TileSelectable selectable)) {
-                Debug.Log($"Redrawing {tileToRedraw.Position}");
-                selectable.Redraw();
-            }
-        }
+
+        // ==============================
+        // CORE METHODS
+        // ==============================
         private void UpdateSelectedTileVisuals(Tile oldTile, Tile newTile) {
             if (oldTile != null) {
                 // Hide old tile selection visual
@@ -99,6 +86,68 @@ namespace StrategyGame.Grid {
                 }
             }
         }
+        private void UpdatePathPreview(Vector2Int startPosition, Vector2Int endPosition) {
+            // Clear all path tiles before rendering new ones
+            for (int i = 0; i < _pathTiles.Count; i++) {
+                GameObject visual = _pathTiles[i];
+                if (visual.TryGetComponent(out TileSelectable tileSelectable)) {
+                    tileSelectable.ShowRouteSegment(false, CreateRouteSegmentData(new List<Tile>(), i));
+                }
+            }
+            _pathTiles.Clear();
+            // If there is a Unit at startPosition tile, render path preview
+            Tile startTile = GridDelegates.GetTileFromPosition(startPosition);
+            if (startTile == null)
+                return;
+            if (!startTile.IsOccupied)
+                return;
+            if (startTile.Occupant is not GridUnit)
+                return;
+            // Assign new tiles
+            List<Tile> newPath = AStar.CalculateBestPath(startPosition, endPosition).path;
+            foreach (Tile tile in newPath) {
+                _pathTiles.Add(_tileVisuals[tile.Position.x, tile.Position.y]);
+            }
+            for (int i = 0; i < _pathTiles.Count; i++) {
+                GameObject visual = _pathTiles[i];
+                if (visual.TryGetComponent(out TileSelectable tileSelectable)) {
+                    tileSelectable.ShowRouteSegment(true, CreateRouteSegmentData(newPath, i));
+                }
+            }
+        }
+        private void RenderEntityMovementAlongPath(GridEntity entity, List<Tile> path) {
+            StartCoroutine(EntityMovementCoroutine(entity, path));
+        }
+        public void OnGridRedraw() {
+            Vector2Int dimensions = grid.GetSize();
+            for (int y = 0; y < dimensions.y; y++) {
+                for (int x = 0; x < dimensions.x; x++) {
+                    Vector3 position = new Vector3(x, 0f, y);
+                    GameObject tilePrefab = grid.Tiles[x, y].InitData.TilePrefab;
+                    GameObject newTile = Instantiate(tilePrefab, transform);
+                    newTile.transform.position = position;
+                    _tileVisuals[x, y] = newTile;
+                    if (newTile.TryGetComponent(out TileSelectable selectable)) {
+                        selectable.Initialize(new Vector2Int(x, y));
+                    }
+                }
+            }
+        }
+        public void OnTileRedraw(Tile tileToRedraw) {
+            GameObject tileVisualToRedraw = _tileVisuals[tileToRedraw.Position.x, tileToRedraw.Position.y];
+            if (tileVisualToRedraw == null)
+                throw new Exception("Tile to redraw is null");
+            if (tileVisualToRedraw.TryGetComponent(out TileSelectable selectable)) {
+                Debug.Log($"Redrawing {tileToRedraw.Position}");
+                selectable.Redraw();
+            }
+        }
+        
+        
+        
+        // ==============================
+        // HELPERS
+        // ==============================
         private (int angle, bool flip) GetCornerRotationAngleFromIncomingOutcoming(Direction incoming, Direction outcoming) =>
             CornerRotationMap.TryGetValue((incoming, outcoming), out var result) ? result : throw new Exception("Invalid corner directions");
         private int GetStraightRotationAngleFromIncomingOutcoming(Direction incoming, Direction outcoming) {
@@ -106,7 +155,6 @@ namespace StrategyGame.Grid {
                 throw new Exception("Not a straight segment");
             return StraightAngles[incoming];
         }
-        
         private RouteSegmentData CreateRouteSegmentData(List<Tile> pathTiles, int i) {
             if (pathTiles == null || pathTiles.Count == 0 || i < 0 || i >= pathTiles.Count) {
                 return new RouteSegmentData { IsValid = false };
@@ -156,37 +204,6 @@ namespace StrategyGame.Grid {
                 IsStart = previousTile == null,
             };
         }
-        private void UpdatePathPreview(Vector2Int startPosition, Vector2Int endPosition) {
-            // Clear all path tiles before rendering new ones
-            for (int i = 0; i < _pathTiles.Count; i++) {
-                GameObject visual = _pathTiles[i];
-                if (visual.TryGetComponent(out TileSelectable tileSelectable)) {
-                    tileSelectable.ShowRouteSegment(false, CreateRouteSegmentData(new List<Tile>(), i));
-                }
-            }
-            _pathTiles.Clear();
-
-            // If there is a Unit at startPosition tile, render path preview
-            Tile startTile = GridDelegates.GetTileFromPosition(startPosition);
-            if (startTile == null)
-                return;
-            if (!startTile.IsOccupied)
-                return;
-            if (startTile.Occupant is not GridUnit)
-                return;
-
-            // Assign new tiles
-            List<Tile> newPath = AStar.CalculateBestPath(startPosition, endPosition).path;
-            foreach (Tile tile in newPath) {
-                _pathTiles.Add(_tileVisuals[tile.Position.x, tile.Position.y]);
-            }
-            for (int i = 0; i < _pathTiles.Count; i++) {
-                GameObject visual = _pathTiles[i];
-                if (visual.TryGetComponent(out TileSelectable tileSelectable)) {
-                    tileSelectable.ShowRouteSegment(true, CreateRouteSegmentData(newPath, i));
-                }
-            }
-        }
         private void ClearWalkableTiles() {
             foreach (GameObject walkableTile in _walkableTiles) {
                 if (walkableTile.TryGetComponent(out TileSelectable tileSelectable)) {
@@ -196,10 +213,6 @@ namespace StrategyGame.Grid {
             _walkableTiles.Clear();
         }
         
-        private void RenderEntityMovementAlongPath(GridEntity entity, List<Tile> path) {
-            StartCoroutine(EntityMovementCoroutine(entity, path));
-        }
-
         private IEnumerator EntityMovementCoroutine(GridEntity entity, List<Tile> path) {
             // Get entity transform
             Transform entityTransform = EntityDelegates.GetEntityVisualTransformByID(entity.ID);

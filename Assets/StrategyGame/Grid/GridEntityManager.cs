@@ -4,40 +4,48 @@ using StrategyGame.Grid.GridData;
 using UnityEngine;
 
 namespace StrategyGame.Grid {
-
+    // ==============================
+    // STRUCTS
+    // ==============================
     public struct UnitSpawnQuery {
         public GridUnitData UnitData;
         public Vector2Int SpawnPosition;
     }
-    
-     public struct StructureSpawnQuery {
-            public GridStructureData StructureData;
-            public Vector2Int SpawnPosition;
-        }
-    
+
+    public struct StructureSpawnQuery {
+        public GridStructureData StructureData;
+        public Vector2Int SpawnPosition;
+    }
+
     public class GridEntityManager : MonoBehaviour {
+        // ==============================
+        // FIELDS & PROPERTIES
+        // ==============================
         public Dictionary<int, GridEntity> Entities { get; private set; }
         
+        // ==============================
+        // MONOBEHAVIOUR LIFECYCLE
+        // ==============================
         private void Awake() {
             Entities = new Dictionary<int, GridEntity>();
         }
-        
         private void OnEnable() {
             EntityDelegates.GetGridEntityByID = GetGridEntityById;
             EntityDelegates.SpawnUnits = SpawnUnits;
             EntityDelegates.SpawnStructures = SpawnStructures;
         }
-
         private void OnDisable() {
             EntityDelegates.GetGridEntityByID = null;
             EntityDelegates.SpawnUnits = null;
             EntityDelegates.SpawnStructures = null;
         }
         
+        // ==============================
+        // CORE METHODS
+        // ==============================
         private GridEntity GetGridEntityById(int id) {
             return Entities[id];
         }
-
         private List<GridUnit> SpawnUnits(List<UnitSpawnQuery> query) {
             List<GridUnit> spawnedUnits = new List<GridUnit>();
             foreach (UnitSpawnQuery q in query) {
@@ -45,7 +53,6 @@ namespace StrategyGame.Grid {
             }
             return spawnedUnits;
         }
-        
         private List<GridStructure> SpawnStructures(List<StructureSpawnQuery> query) {
             List<GridStructure> spawnedStructures = new List<GridStructure>();
             foreach (StructureSpawnQuery q in query) {
@@ -54,6 +61,10 @@ namespace StrategyGame.Grid {
             return spawnedStructures;
         }
         
+        
+        // ==============================
+        // HELPERS
+        // ==============================
         private GridUnit SpawnUnit(GridUnitData unitData, Vector2Int position) {
             GridUnit newUnit = new GridUnit(unitData, unitData);
             Entities[newUnit.ID] = newUnit;
@@ -65,7 +76,6 @@ namespace StrategyGame.Grid {
             GridDelegates.InvokeOnEntitySpawned(newUnit, position);
             return newUnit;
         }
-        
         private GridStructure SpawnStructure(GridStructureData structureData, Vector2Int position) {
             GridStructure newStructure = new GridStructure(structureData, structureData);
             Entities[newStructure.ID] = newStructure;
@@ -78,7 +88,5 @@ namespace StrategyGame.Grid {
             return newStructure;
         }
         
-
-
     }
 }

@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Grid;
 using StrategyGame.Grid.GridData;
@@ -8,6 +10,9 @@ using Random = UnityEngine.Random;
 
 namespace StrategyGame.Core.GameState {
     public class GameStateManager : MonoBehaviour {
+        // ==============================
+        // ENUMS
+        // ==============================
         public enum TurnPhase {
             Player,
             Enemy,
@@ -21,11 +26,19 @@ namespace StrategyGame.Core.GameState {
             UnitSelectTarget,
             UnitAttackCutscene
         }
-
+        
+        // ==============================
+        // FIELDS & PROPERTIES
+        // ==============================
         public TurnPhase CurrentPhase { get; private set; }
         public GridEntity CurrentSelectedEntity { get; private set; }
         public Tile CurrentSelectedTile {get; private set;}
+        private Coroutine _coreGameLoop;
         
+        
+        // ==============================
+        // MONOBEHAVIOUR LIFECYCLE
+        // ==============================
         private void OnEnable() {
             GameStateDelegates.OnGameStarted += StartGame;
             GridDelegates.OnSelectTile += SetSelectedTile;
@@ -38,6 +51,11 @@ namespace StrategyGame.Core.GameState {
             GridDelegates.GetSelectedTile = null;
             GameStateDelegates.GetCurrentSelectedEntity = null;
         }
+        
+        
+        // ==============================
+        // PUBLIC GAME CONTROL
+        // ==============================
         public void AdvancePhase() {
             CurrentPhase = (TurnPhase)(((int)CurrentPhase + 1) % Enum.GetValues(typeof(TurnPhase)).Length);
             GameStateDelegates.InvokeOnPhaseChanged(CurrentPhase);
@@ -52,20 +70,57 @@ namespace StrategyGame.Core.GameState {
             entities.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Orc"), SpawnPosition = new Vector2Int(3, 6) });
             EntityDelegates.SpawnUnits(entities);
 
-            int placedMontains = 0;
-            Vector2Int gridDimensions = GridDelegates.GetGridDimensions();
-            while (placedMontains < 32) {
-                Vector2Int randomPosition = new Vector2Int(Random.Range(0, gridDimensions.x), Random.Range(0, gridDimensions.y));
-                while (GridDelegates.GetTileFromPosition(randomPosition).IsOccupied) {
-                    randomPosition = new Vector2Int(Random.Range(0, gridDimensions.x), Random.Range(0, gridDimensions.y));
+           GenerateRandomMountains();
+            
+            // Start core game loop
+            _coreGameLoop = StartCoroutine(CoreGameLoop());
+        }
+        
+        
+        
+        // ==============================
+        // CORE GAME LOOP
+        // ==============================
+        private IEnumerator CoreGameLoop() {
+            while (true) {
+                switch (CurrentPhase) {
+                    case TurnPhase.Player:
+                        HandlePlayerPhaseState();
+                        break;
+                    case TurnPhase.Enemy:
+                        HandleEnemyPhaseState();
+                        break;
+                    case TurnPhase.Event:
+                        HandleEventPhaseState();
+                        break;
+                    default:
+                        throw new InvalidEnumArgumentException("Invalid turn phase!");
                 }
-                GridDelegates.InvokeOnMountainifyTile(randomPosition);
-                placedMontains++;
+                yield return new WaitForEndOfFrame();
             }
-
-
         }
 
+        
+        
+        // ==============================
+        // PHASE HANDLERS
+        // ==============================
+        private void HandlePlayerPhaseState() {
+            
+        }
+
+        private void HandleEnemyPhaseState() {
+            
+        }
+
+        private void HandleEventPhaseState() {
+            
+        }
+
+        
+        // ==============================
+        // HELPERS
+        // ==============================
         private void SetSelectedTile(Vector2Int coordinates) {
             Tile newTile = GridDelegates.GetTileFromPosition(coordinates);
             Tile oldTile = CurrentSelectedTile;
@@ -77,7 +132,19 @@ namespace StrategyGame.Core.GameState {
             if (CurrentSelectedEntity != null) {
                 // Focus camera rig onto unit
                 CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(CurrentSelectedEntity.GridPosition.x, 0, CurrentSelectedEntity.GridPosition.y));
-                
+            }
+        }
+
+        private void GenerateRandomMountains() {
+            int placedMountains = 0;
+            Vector2Int gridDimensions = GridDelegates.GetGridDimensions();
+            while (placedMountains < 32) {
+                Vector2Int randomPosition = new Vector2Int(Random.Range(0, gridDimensions.x), Random.Range(0, gridDimensions.y));
+                while (GridDelegates.GetTileFromPosition(randomPosition).IsOccupied) {
+                    randomPosition = new Vector2Int(Random.Range(0, gridDimensions.x), Random.Range(0, gridDimensions.y));
+                }
+                GridDelegates.InvokeOnMountainifyTile(randomPosition);
+                placedMountains++;
             }
         }
     }

@@ -1,18 +1,18 @@
 using System;
-using UnityEngine;
+using StrategyGame.UI;
 
 namespace StrategyGame.Core.Delegates {
-    public static class CameraDelegates {
+    public class UIDelegates {
         // ==============================
         // EVENTS
         // ==============================
-        public static event Action<Vector3> OnSetCameraRigPosition;
+        public static event Action<UICategory, bool> OnSetUIActive;
 
-        public static void InvokeOnSetCameraRigPosition(Vector3 position) {
-            OnSetCameraRigPosition?.Invoke(position);
+        public static void InvokeOnSetUIActive(UICategory category, bool active) {
+            OnSetUIActive?.Invoke(category, active);
         }
 
-       
+        
 
         // ==============================
         // FUNCS

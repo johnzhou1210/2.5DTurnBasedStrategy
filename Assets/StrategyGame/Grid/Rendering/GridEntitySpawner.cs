@@ -8,12 +8,18 @@ using UnityEngine;
 
 namespace StrategyGame.Grid.Rendering {
     public class GridEntitySpawner : MonoBehaviour {
+        // ==============================
+        // FIELDS & PROPERTIES
+        // ==============================
         [SerializeField] private GameObject entityPrefab;
         [SerializeField] private GameObject healthBillboardPrefab;
         [SerializeField] private GameObject unitWeaponTypeBillboardPrefab;
         private Dictionary<int, GameObject> _entityVisuals;
         
 
+        // ==============================
+        // MONOBEHAVIOUR LIFECYCLE
+        // ==============================
         private void Awake() {
             _entityVisuals = new Dictionary<int, GameObject>();
         }
@@ -22,11 +28,16 @@ namespace StrategyGame.Grid.Rendering {
             GridDelegates.OnEntitySpawned += OnEntitySpawned;
             EntityDelegates.GetEntityVisualTransformByID = GetEntityVisualTransformByID;
         }
-
+        
         private void OnDisable() {
             GridDelegates.OnEntitySpawned -= OnEntitySpawned;
         }
 
+        
+        
+        // ==============================
+        // CORE METHODS
+        // ==============================
         private Transform GetEntityVisualTransformByID(int id) {
             return _entityVisuals[id].transform;
         }
@@ -46,6 +57,9 @@ namespace StrategyGame.Grid.Rendering {
         }
         
         
+        // ==============================
+        // HELPERS
+        // ==============================
         private void AttachBillboards(GridEntity entity) {
             Transform billboardCanvasTransform = BillboardDelegates.GetBillboardCanvasTransform?.Invoke();
 
