@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Grid.GridData;
@@ -20,6 +21,7 @@ namespace StrategyGame.Grid {
             GridDelegates.AddEntityToGridFirstTime = null;
             GridDelegates.GetGridDimensions = null;
             GridDelegates.OnMountainifyTile -= MountainifyTile;
+            
         }
         public Vector2Int GetSize() {
             return size;
@@ -76,5 +78,7 @@ namespace StrategyGame.Grid {
             tileToMountainify.SetInitData(mountainTileData);
             GetComponent<GridRenderer>().OnTileRedraw(tileToMountainify);
         }
+
+       
     }
 }

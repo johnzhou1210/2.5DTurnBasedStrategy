@@ -1,3 +1,5 @@
+using System;
+using StrategyGame.Core.Delegates;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -26,7 +28,15 @@ namespace StrategyGame.Core.Input {
 
             _targetZoom = orbitalFollow.Radius;
         }
-    
+
+        private void OnEnable() {
+            CameraDelegates.OnSetCameraRigPosition += SetPosition;
+        }
+
+        private void OnDisable() {
+            CameraDelegates.OnSetCameraRigPosition -= SetPosition;
+        }
+
 
         private void Update() {
             if (orbitalFollow == null) return;
@@ -50,6 +60,11 @@ namespace StrategyGame.Core.Input {
                 zoomSmoothTime
             );
         
+        }
+
+        private void SetPosition(Vector3 newPosition) {
+            transform.position = newPosition + (Vector3.up * 2f);
+            _targetZoom = 3f;
         }
 
 

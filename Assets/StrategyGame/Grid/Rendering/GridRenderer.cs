@@ -1,7 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using DG.Tweening;
 using StrategyGame.AI;
 using StrategyGame.Core.Delegates;
 using UnityEngine;
@@ -32,6 +34,7 @@ namespace StrategyGame.Grid {
             _pathTiles = new List<GameObject>();
             GridDelegates.OnSetSelectedTile += UpdateSelectedTileVisuals;
             GridDelegates.OnUpdatePathPreview += UpdatePathPreview;
+            EntityDelegates.OnEntityMoveAlongPath += RenderEntityMovementAlongPath;
         }
         private void OnDisable() {
             GridDelegates.OnSetSelectedTile -= UpdateSelectedTileVisuals;
@@ -191,6 +194,19 @@ namespace StrategyGame.Grid {
                 }
             }
             _walkableTiles.Clear();
+        }
+        
+        private void RenderEntityMovementAlongPath(GridEntity entity, List<Tile> path) {
+            StartCoroutine(EntityMovementCoroutine(entity, path));
+        }
+
+        private IEnumerator EntityMovementCoroutine(GridEntity entity, List<Tile> path) {
+            // Get entity transform
+            Transform entityTransform = EntityDelegates.GetEntityVisualTransformByID(entity.ID);
+            foreach (Tile tile in path) {
+                entityTransform.DOMove(new Vector3(tile.Position.x, 0f, tile.Position.y), .33f);
+                yield return new WaitForSeconds(.33f);
+            }
         }
     }
 }

@@ -48,6 +48,19 @@ namespace StrategyGame.Grid {
             Debug.Log($"Added occupant to tile {Position}.");
             return true;
         }
+        
+        
+        
+
+        // Removes occupant from tile, but does not update removed occupant's position.
+        public GridEntity RemoveOccupant() {
+            if (IsOccupied) {
+                GridEntity removed = Occupant;
+                Occupant = null;
+                return Occupant;
+            }
+            return null;
+        }
 
         public void SetNeighbors(Dictionary<Direction, Tile> dict) {
             Neighbors = dict;

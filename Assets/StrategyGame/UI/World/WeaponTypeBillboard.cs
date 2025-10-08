@@ -22,7 +22,7 @@ namespace StrategyGame.UI.World {
         public void Initialize(GridUnit unit) {
             _targetID = unit.ID;
             if (TryGetComponent(out BillboardFollow billboardFollow)) {
-                Transform targetTransform = GridDelegates.GetEntityVisualTransformByID(unit.ID);
+                Transform targetTransform = EntityDelegates.GetEntityVisualTransformByID(unit.ID);
                 billboardFollow.SetTarget(targetTransform);
             }
             weaponTypeFrame.color = GetColorFromWeaponType(unit.GridUnitInitData.WeaponType);

@@ -12,6 +12,7 @@ namespace StrategyGame.Core.Delegates {
         public static event Action<Tile, Tile> OnSetSelectedTile;
         public static event Action<Vector2Int> OnMountainifyTile;
         public static event Action<Vector2Int, Vector2Int> OnUpdatePathPreview;
+    
 
         public static void InvokeOnEntitySpawned(GridEntity entity, Vector2Int position) {
             OnEntitySpawned?.Invoke(entity, position);
@@ -32,14 +33,12 @@ namespace StrategyGame.Core.Delegates {
         public static void InvokeOnUpdatePathPreview(Vector2Int start, Vector2Int end) {
             OnUpdatePathPreview?.Invoke(start, end);
         }
+
         
 
         #endregion
 
         #region Funcs
-
-        public static Func<int, Transform> GetEntityVisualTransformByID;
-        public static Func<int, GridEntity> GetGridEntityFromID;
         public static Func<Vector2Int, Tile> GetTileFromPosition;
         public static Func<Tile> GetSelectedTile;
         public static Func<GridEntity, Vector2Int, bool> AddEntityToGridFirstTime;

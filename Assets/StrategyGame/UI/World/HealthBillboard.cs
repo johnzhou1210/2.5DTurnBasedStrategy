@@ -23,7 +23,7 @@ namespace StrategyGame.UI.World {
         public void Initialize(GridEntity entity) {
             _targetID = entity.ID;
             if (TryGetComponent(out BillboardFollow billboardFollow)) {
-                Transform targetTransform = GridDelegates.GetEntityVisualTransformByID(entity.ID);
+                Transform targetTransform = EntityDelegates.GetEntityVisualTransformByID(entity.ID);
                 billboardFollow.SetTarget(targetTransform);
             }
             UpdateHealth(entity.ID, entity.Health, entity.MaxHealth);

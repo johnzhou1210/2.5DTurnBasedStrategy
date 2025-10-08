@@ -38,10 +38,6 @@ namespace StrategyGame.Grid {
         public int MovementRange { get; private set; }
         public int VisionRange { get; private set; }
 
-        // Events
-        public event Action<GridEntity> OnSelected;
-        public event Action<GridEntity, Vector2Int> OnMoved;
-
         // Constructor
         public GridEntity(GridEntityData gridEntityData) {
             ID = _nextID++;
@@ -55,13 +51,19 @@ namespace StrategyGame.Grid {
             MovementRange = GridEntityData.MovementRange;
             VisionRange = GridEntityData.VisionRange;
         }
-
-        public virtual void Select() => OnSelected?.Invoke(this);
-
-        public virtual void MoveTo(Vector2Int newPos) {
-            GridPosition = newPos;
-            OnMoved?.Invoke(this, newPos);
+        
+        // Call this if you want to move a unit on a path while respecting animations.
+        public virtual void MoveAlongPath(List<Tile> path) {
+            Tile startTile = GridDelegates.GetTileFromPosition(GridPosition);
+            Vector2Int endPosition = path[^1].Position;
+            Tile endTile = GridDelegates.GetTileFromPosition(endPosition);
+            SetGridPosition(endPosition);
+            startTile.RemoveOccupant();
+            endTile.AddOccupant(this);
+            
+            EntityDelegates.InvokeOnEntityMoveAlongPath(this, path);
         }
+        
         public virtual GameObject GetSpritePrefab() {
             return GridEntityData.VisualPrefab;
         }
@@ -111,5 +113,8 @@ namespace StrategyGame.Grid {
         public void SetGridPosition(Vector2Int newPosition) {
             GridPosition = newPosition;
         }
+
+        
+        
     }
 }

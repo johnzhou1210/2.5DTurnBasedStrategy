@@ -14,6 +14,14 @@ namespace StrategyGame.Core.GameState {
             Event
         }
 
+        public enum PlayerPhaseState {
+            SelectUnitToMove,
+            SelectUnitMoveDestination,
+            UnitActionMenu,
+            UnitSelectTarget,
+            UnitAttackCutscene
+        }
+
         public TurnPhase CurrentPhase { get; private set; }
         public GridEntity CurrentSelectedEntity { get; private set; }
         public Tile CurrentSelectedTile {get; private set;}
@@ -66,6 +74,11 @@ namespace StrategyGame.Core.GameState {
             CurrentSelectedEntity = newTile.IsOccupied ? newTile.Occupant : null;
             Vector2Int startPosition = CurrentSelectedEntity?.GridPosition ?? newTile.Position;
             GridDelegates.InvokeOnUpdatePathPreview(startPosition, startPosition);
+            if (CurrentSelectedEntity != null) {
+                // Focus camera rig onto unit
+                CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(CurrentSelectedEntity.GridPosition.x, 0, CurrentSelectedEntity.GridPosition.y));
+                
+            }
         }
     }
 }

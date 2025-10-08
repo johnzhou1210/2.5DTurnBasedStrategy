@@ -20,7 +20,7 @@ namespace StrategyGame.Grid.Rendering {
 
         private void OnEnable() {
             GridDelegates.OnEntitySpawned += OnEntitySpawned;
-            GridDelegates.GetEntityVisualTransformByID = GetEntityVisualTransformByID;
+            EntityDelegates.GetEntityVisualTransformByID = GetEntityVisualTransformByID;
         }
 
         private void OnDisable() {
