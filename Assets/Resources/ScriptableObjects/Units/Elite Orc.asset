@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dd5ff0ed0b7ed42c19af7c0619837e1b, type: 3}
-  m_Name: Archer
+  m_Name: Elite Orc
   m_EditorClassIdentifier: 
-  visualPrefab: {fileID: 374549065707966590, guid: 3b6ff466c8d5c4a47a81bd5f3851aae2, type: 3}
-  baseHealth: 12
-  factionData: {fileID: 11400000, guid: f5e87dfeb9e124d96ad5b12a049afd7e, type: 2}
-  movementRange: 5
-  visionRange: 5
-  baseAttack: 5
-  baseAccuracy: 6
-  baseDefense: 3
-  baseResistance: 3
-  baseAgility: 8
-  baseEvasion: 5
-  weaponType: 3
+  visualPrefab: {fileID: 374549065707966590, guid: 07653f7b51c73455ea9b4f609a6c4411, type: 3}
+  baseHealth: 310
+  factionData: {fileID: 11400000, guid: a0b59abac260b427e80dffda475e6fd6, type: 2}
+  movementRange: 4
+  visionRange: 7
+  baseAttack: 42
+  baseAccuracy: 30
+  baseDefense: 20
+  baseResistance: 20
+  baseAgility: 30
+  baseEvasion: 25
+  weaponType: 2

@@ -13,9 +13,14 @@ MonoBehaviour:
   m_Name: Soldier
   m_EditorClassIdentifier: 
   visualPrefab: {fileID: 9023742116720488871, guid: d03ecec5f173f479d9c5b2163e1a140f, type: 3}
-  health: 15
-  maxHealth: 40
+  baseHealth: 15
   factionData: {fileID: 11400000, guid: f5e87dfeb9e124d96ad5b12a049afd7e, type: 2}
-  movementRange: 2
+  movementRange: 3
   visionRange: 5
+  baseAttack: 6
+  baseAccuracy: 4
+  baseDefense: 6
+  baseResistance: 4
+  baseAgility: 5
+  baseEvasion: 4
   weaponType: 0

@@ -54,10 +54,10 @@ namespace StrategyGame.Core.GameState {
         
         
         // ==============================
-        // PUBLIC GAME CONTROL
+        // CORE METHODS
         // ==============================
         public void AdvancePhase() {
-            CurrentPhase = (TurnPhase)(((int)CurrentPhase + 1) % Enum.GetValues(typeof(TurnPhase)).Length);
+            SetTurnPhaseState((TurnPhase)(((int)CurrentPhase + 1) % Enum.GetValues(typeof(TurnPhase)).Length));
             GameStateDelegates.InvokeOnPhaseChanged(CurrentPhase);
         }
         private void StartGame() {
@@ -68,12 +68,17 @@ namespace StrategyGame.Core.GameState {
             entities.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Archer"), SpawnPosition = new Vector2Int(2, 2) });
             entities.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Soldier"), SpawnPosition = new Vector2Int(5, 1) });
             entities.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Orc"), SpawnPosition = new Vector2Int(3, 6) });
+            entities.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Elite Orc"), SpawnPosition = new Vector2Int(4, 4) });            
             EntityDelegates.SpawnUnits(entities);
 
            GenerateRandomMountains();
             
             // Start core game loop
             _coreGameLoop = StartCoroutine(CoreGameLoop());
+        }
+        private void SetTurnPhaseState(TurnPhase phase) {
+            if (phase == CurrentPhase) return;
+            CurrentPhase = phase;
         }
         
         
@@ -132,6 +137,7 @@ namespace StrategyGame.Core.GameState {
             if (CurrentSelectedEntity != null) {
                 // Focus camera rig onto unit
                 CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(CurrentSelectedEntity.GridPosition.x, 0, CurrentSelectedEntity.GridPosition.y));
+                UIDelegates.InvokeOnEntityHUDUpdate(CurrentSelectedEntity);
             }
         }
 

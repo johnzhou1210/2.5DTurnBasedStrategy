@@ -23,7 +23,10 @@ namespace StrategyGame.Grid {
 
         /* IDENTITY */
         private static int _nextID = 0;
+        private Dictionary<string, int> _entityNameCounts = new Dictionary<string, int>();
+        
         public string Name { get; private set; }
+        public string DisplayName { get; private set; }
         public int ID { get; private set; }
         public Faction Faction { get; private set; }
 
@@ -35,6 +38,12 @@ namespace StrategyGame.Grid {
         public int MaxHealth { get; private set; }
         public int MovementRange { get; private set; }
         public int VisionRange { get; private set; }
+        public int Attack { get; private set; }
+        public int Accuracy { get; private set; }
+        public int Defense { get; private set; }
+        public int Resistance { get; private set; }
+        public int Agility { get; private set; }
+        public int Evasion { get; private set; }
 
         /* VISUAL */
         public bool IsSelected { get; private set; } = false;
@@ -46,6 +55,7 @@ namespace StrategyGame.Grid {
         // ==============================
         protected GridEntity(GridEntityData gridEntityData) {
             ID = _nextID++;
+            _entityNameCounts[gridEntityData.name] = _entityNameCounts.TryGetValue(gridEntityData.name, out int count) ? count + 1 : 1;
             GridEntityData = gridEntityData;
             Initialize();
         }
@@ -54,11 +64,18 @@ namespace StrategyGame.Grid {
         // INITIALIZATION
         // ==============================
         private void Initialize() {
-            Health = GridEntityData.Health;
-            MaxHealth = GridEntityData.MaxHealth;
+            Health = GridEntityData.BaseHealth;
+            MaxHealth = GridEntityData.BaseHealth;
             Faction = GridEntityData.FactionData.FactionEnum;
             MovementRange = GridEntityData.MovementRange;
             VisionRange = GridEntityData.VisionRange;
+            DisplayName = GridEntityData.name;
+            Attack = GridEntityData.BaseAttack;
+            Accuracy = GridEntityData.BaseAccuracy;
+            Defense = GridEntityData.BaseDefense;
+            Resistance = GridEntityData.BaseResistance;
+            Agility = GridEntityData.BaseAgility;
+            Evasion = GridEntityData.BaseEvasion;
         }
         
         
