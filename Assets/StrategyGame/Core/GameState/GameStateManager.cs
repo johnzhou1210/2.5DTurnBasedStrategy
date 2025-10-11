@@ -5,6 +5,8 @@ using System.ComponentModel;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Grid;
 using StrategyGame.Grid.GridData;
+using StrategyGame.UI;
+using Unity.Android.Gradle.Manifest;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -16,7 +18,8 @@ namespace StrategyGame.Core.GameState {
         public enum TurnPhase {
             Player,
             Enemy,
-            Event
+            Event,
+            None
         }
 
         public enum PlayerPhaseState {
@@ -24,7 +27,14 @@ namespace StrategyGame.Core.GameState {
             SelectUnitMoveDestination,
             UnitActionMenu,
             UnitSelectTarget,
-            UnitAttackCutscene
+            UnitAttackCutscene,
+            None
+        }
+
+        public enum UnitMoveSelectionMode {
+            Manual,
+            Automatic,
+            None
         }
         
         // ==============================
@@ -33,6 +43,8 @@ namespace StrategyGame.Core.GameState {
         public TurnPhase CurrentPhase { get; private set; }
         public GridEntity CurrentSelectedEntity { get; private set; }
         public Tile CurrentSelectedTile {get; private set;}
+        public PlayerPhaseState CurrentPlayerPhaseState { get; private set; }
+        public UnitMoveSelectionMode CurrentUnitMoveSelectionMode { get; private set; }
         private Coroutine _coreGameLoop;
         
         
@@ -42,14 +54,22 @@ namespace StrategyGame.Core.GameState {
         private void OnEnable() {
             GameStateDelegates.OnGameStarted += StartGame;
             GridDelegates.OnSelectTile += SetSelectedTile;
+            GameStateDelegates.OnUnitMoveSelectionChanged += SetCurrentUnitMoveSelectionMode;
+           
+            
             GridDelegates.GetSelectedTile = () => CurrentSelectedTile;
             GameStateDelegates.GetCurrentSelectedEntity  = () => CurrentSelectedEntity;
+            GameStateDelegates.GetCurrentUnitMoveSelectionMode = () => CurrentUnitMoveSelectionMode;
         }
         private void OnDisable() {
             GameStateDelegates.OnGameStarted -= StartGame;
             GridDelegates.OnSelectTile -= SetSelectedTile;
+            GameStateDelegates.OnUnitMoveSelectionChanged -= SetCurrentUnitMoveSelectionMode;
+           
+            
             GridDelegates.GetSelectedTile = null;
             GameStateDelegates.GetCurrentSelectedEntity = null;
+            GameStateDelegates.GetCurrentUnitMoveSelectionMode = null;
         }
         
         
@@ -68,19 +88,20 @@ namespace StrategyGame.Core.GameState {
             entities.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Archer"), SpawnPosition = new Vector2Int(2, 2) });
             entities.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Soldier"), SpawnPosition = new Vector2Int(5, 1) });
             entities.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Orc"), SpawnPosition = new Vector2Int(3, 6) });
-            entities.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Elite Orc"), SpawnPosition = new Vector2Int(4, 4) });            
+            entities.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Elite Orc"), SpawnPosition = new Vector2Int(4, 4) });    
+            entities.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Elite Orc"), SpawnPosition = new Vector2Int(0, 1) });           
             EntityDelegates.SpawnUnits(entities);
 
            GenerateRandomMountains();
             
             // Start core game loop
+            SetSelectedTile(Vector2Int.zero);
             _coreGameLoop = StartCoroutine(CoreGameLoop());
         }
         private void SetTurnPhaseState(TurnPhase phase) {
             if (phase == CurrentPhase) return;
             CurrentPhase = phase;
         }
-        
         
         
         // ==============================
@@ -124,21 +145,59 @@ namespace StrategyGame.Core.GameState {
 
         
         // ==============================
+        // CORE METHODS
+        // ==============================
+        private void SetCurrentUnitMoveSelectionMode(UnitMoveSelectionMode mode) {
+            if (CurrentUnitMoveSelectionMode == mode) return;
+            CurrentUnitMoveSelectionMode = mode;
+            switch (CurrentUnitMoveSelectionMode) {
+                case UnitMoveSelectionMode.Manual:
+                    InputDelegates.InvokeOnSetMouseRaycastEnabled(false);
+                    break;
+                case UnitMoveSelectionMode.Automatic:
+                    InputDelegates.InvokeOnSetMouseRaycastEnabled(true);
+                    break;
+                case UnitMoveSelectionMode.None:
+                    InputDelegates.InvokeOnSetMouseRaycastEnabled(false);
+                    break;
+                default:
+                    throw new InvalidEnumArgumentException("Invalid unit move selection mode!");
+            }
+        }
+        
+        // ==============================
         // HELPERS
         // ==============================
         private void SetSelectedTile(Vector2Int coordinates) {
             Tile newTile = GridDelegates.GetTileFromPosition(coordinates);
             Tile oldTile = CurrentSelectedTile;
+            if (Equals(oldTile, newTile)) return;
             CurrentSelectedTile = newTile ?? throw new ArgumentException("Tile does not exist at position {coordinates}!");
             GridDelegates.InvokeOnSetSelectedTile(oldTile, newTile);
+            GridEntity previousSelectedEntity = CurrentSelectedEntity;
             CurrentSelectedEntity = newTile.IsOccupied ? newTile.Occupant : null;
             Vector2Int startPosition = CurrentSelectedEntity?.GridPosition ?? newTile.Position;
             GridDelegates.InvokeOnUpdatePathPreview(startPosition, startPosition);
-            if (CurrentSelectedEntity != null) {
+            
+            
+            if (CurrentUnitMoveSelectionMode == UnitMoveSelectionMode.Manual || CurrentSelectedEntity != null) {
                 // Focus camera rig onto unit
-                CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(CurrentSelectedEntity.GridPosition.x, 0, CurrentSelectedEntity.GridPosition.y));
-                UIDelegates.InvokeOnEntityHUDUpdate(CurrentSelectedEntity);
+                CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(CurrentSelectedTile.Position.x, 0, CurrentSelectedTile.Position.y));
+                if (CurrentSelectedEntity != null) {
+                    UIDelegates.InvokeOnEntityHUDUpdate(CurrentSelectedEntity);
+                }
+                
             }
+
+            if (previousSelectedEntity == null && CurrentSelectedEntity == null) return;
+            if (previousSelectedEntity != null && CurrentSelectedEntity != null) return;
+            
+            if (CurrentSelectedEntity != null) {
+                UIAnimationDelegates.InvokeOnPlayAnimation(AnimatorCategory.EntityHUD, "TweenIn");
+            } else if (CurrentSelectedEntity == null) {
+                UIAnimationDelegates.InvokeOnPlayAnimation(AnimatorCategory.EntityHUD, "TweenOut");
+            }
+            
         }
 
         private void GenerateRandomMountains() {
