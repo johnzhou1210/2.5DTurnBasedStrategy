@@ -21,17 +21,17 @@ namespace StrategyGame.Grid {
             GridDelegates.GetTileFromPosition = GetTileFromPosition;
             GridDelegates.AddEntityToGridFirstTime = AddEntityToGridFirstTime;
             GridDelegates.GetGridDimensions = GetSize;
-            GridDelegates.OnMountainifyTile += MountainifyTile;
+            GridDelegates.OnSetTileTerrainType += SetTileTerrainType;
         }
         private void OnDisable() {
             GridDelegates.GetTileFromPosition = null;
             GridDelegates.AddEntityToGridFirstTime = null;
             GridDelegates.GetGridDimensions = null;
-            GridDelegates.OnMountainifyTile -= MountainifyTile;
+            GridDelegates.OnSetTileTerrainType -= SetTileTerrainType;
             
         }
         private void Start() {
-            TileData defaultTileData = Resources.Load<TileData>("ScriptableObjects/Tiles/DefaultTile");
+            TileData defaultTileData = Resources.Load<TileData>("ScriptableObjects/Tiles/Grasslands");
             Tiles = new Tile[size.x, size.y];
             for (int x = 0; x < size.x; x++) {
                 for (int y = 0; y < size.y; y++) {
@@ -63,12 +63,11 @@ namespace StrategyGame.Grid {
             return size;
         }
         
-        private void MountainifyTile(Vector2Int position) {
-            TileData mountainTileData = Resources.Load<TileData>("ScriptableObjects/Tiles/MountainTile");
-            Tile tileToMountainify = GetTileFromPosition(position);
-            if (tileToMountainify == null) throw new Exception("Tile to mountainify is null");
-            tileToMountainify.SetInitData(mountainTileData);
-            GetComponent<GridRenderer>().OnTileRedraw(tileToMountainify);
+        private void SetTileTerrainType(Vector2Int position, TileData tileData) {
+            Tile tileToSetTerrain = GetTileFromPosition(position);
+            if (tileToSetTerrain == null) throw new Exception("Tile to set terrain is null");
+            tileToSetTerrain.SetInitData(tileData);
+            GetComponent<GridRenderer>().OnTileRedraw(tileToSetTerrain);
         }
         
         private Tile GetTileFromPosition(Vector2Int position) {

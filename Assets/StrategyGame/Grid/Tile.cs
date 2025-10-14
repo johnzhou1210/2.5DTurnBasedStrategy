@@ -16,6 +16,7 @@ namespace StrategyGame.Grid {
         public Vector2Int Position { get; }
         public Dictionary<Direction, Tile> Neighbors { get; private set; }
         public int MovementCost { get; private set; }
+        public TerrainStatModifier TerrainStatModifier { get; private set; }
         
         // Entity occupant data
         public GridEntity Occupant { get; private set; }
@@ -33,6 +34,7 @@ namespace StrategyGame.Grid {
             InitData = tileData;
             MovementCost = tileData.MovementCost;
             Position = position;
+            TerrainStatModifier = tileData.TerrainStatModifier;
         }
         
         public override bool Equals(object obj) => obj is Tile t && t.Position == Position;

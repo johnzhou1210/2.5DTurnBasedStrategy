@@ -92,7 +92,8 @@ namespace StrategyGame.Core.GameState {
             entities.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Elite Orc"), SpawnPosition = new Vector2Int(0, 1) });           
             EntityDelegates.SpawnUnits(entities);
 
-           GenerateRandomMountains();
+           GenerateRandomBiome(Resources.Load<TileData>("ScriptableObjects/Tiles/Mountains"));
+           GenerateRandomBiome(Resources.Load<TileData>("ScriptableObjects/Tiles/Forest"));
             
             // Start core game loop
             SetSelectedTile(Vector2Int.zero);
@@ -179,6 +180,8 @@ namespace StrategyGame.Core.GameState {
             Vector2Int startPosition = CurrentSelectedEntity?.GridPosition ?? newTile.Position;
             GridDelegates.InvokeOnUpdatePathPreview(startPosition, startPosition);
             
+            UIDelegates.InvokeOnTerrainUIUpdate(CurrentSelectedTile);
+            
             
             if (CurrentUnitMoveSelectionMode == UnitMoveSelectionMode.Manual || CurrentSelectedEntity != null) {
                 // Focus camera rig onto unit
@@ -200,15 +203,21 @@ namespace StrategyGame.Core.GameState {
             
         }
 
-        private void GenerateRandomMountains() {
+        private void GenerateRandomBiome(TileData tileData, bool overrideNonDefault = false) {
             int placedMountains = 0;
+            int numTries = 32;
             Vector2Int gridDimensions = GridDelegates.GetGridDimensions();
-            while (placedMountains < 32) {
+            while (placedMountains < numTries) {
                 Vector2Int randomPosition = new Vector2Int(Random.Range(0, gridDimensions.x), Random.Range(0, gridDimensions.y));
-                while (GridDelegates.GetTileFromPosition(randomPosition).IsOccupied) {
-                    randomPosition = new Vector2Int(Random.Range(0, gridDimensions.x), Random.Range(0, gridDimensions.y));
+                Tile randomTile = GridDelegates.GetTileFromPosition(randomPosition);
+                if (!overrideNonDefault && randomTile.InitData.name != "Grasslands") continue;
+                if (tileData.MovementCost > 99) {
+                    while (randomTile.IsOccupied) {
+                        randomPosition = new Vector2Int(Random.Range(0, gridDimensions.x), Random.Range(0, gridDimensions.y));
+                        randomTile = GridDelegates.GetTileFromPosition(randomPosition);
+                    }
                 }
-                GridDelegates.InvokeOnMountainifyTile(randomPosition);
+                GridDelegates.InvokeOnSetTileTerrainType(randomPosition, tileData);
                 placedMountains++;
             }
         }

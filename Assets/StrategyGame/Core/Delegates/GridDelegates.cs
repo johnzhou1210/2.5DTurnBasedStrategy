@@ -1,5 +1,6 @@
 using System;
 using StrategyGame.Grid;
+using StrategyGame.Grid.GridData;
 using UnityEngine;
 
 namespace StrategyGame.Core.Delegates {
@@ -11,7 +12,7 @@ namespace StrategyGame.Core.Delegates {
         public static event Action<GridEntity, Vector2Int> OnEntitySpawned;
         public static event Action<Vector2Int> OnSelectTile;
         public static event Action<Tile, Tile> OnSetSelectedTile;
-        public static event Action<Vector2Int> OnMountainifyTile;
+        public static event Action<Vector2Int, TileData> OnSetTileTerrainType;
         public static event Action<Vector2Int, Vector2Int> OnUpdatePathPreview;
     
 
@@ -24,8 +25,8 @@ namespace StrategyGame.Core.Delegates {
         public static void InvokeOnSetSelectedTile(Tile oldTile, Tile newTile) {
             OnSetSelectedTile?.Invoke(oldTile, newTile);
         }
-        public static void InvokeOnMountainifyTile(Vector2Int coords) {
-            OnMountainifyTile?.Invoke(coords);
+        public static void InvokeOnSetTileTerrainType(Vector2Int coords, TileData tileData) {
+            OnSetTileTerrainType?.Invoke(coords, tileData);
         }
         public static void InvokeOnUpdatePathPreview(Vector2Int start, Vector2Int end) {
             OnUpdatePathPreview?.Invoke(start, end);

@@ -9,6 +9,7 @@ namespace StrategyGame.Core.Delegates {
         // ==============================
         public static event Action<UICategory, bool> OnSetUIActive;
         public static event Action<GridEntity> OnEntityHUDUpdate;
+        public static event Action<Tile> OnTerrainUIUpdate;
 
         public static void InvokeOnSetUIActive(UICategory category, bool active) {
             OnSetUIActive?.Invoke(category, active);
@@ -16,6 +17,10 @@ namespace StrategyGame.Core.Delegates {
         public static void InvokeOnEntityHUDUpdate(GridEntity entity) {
             OnEntityHUDUpdate?.Invoke(entity);
         }
+        public static void InvokeOnTerrainUIUpdate(Tile tile) {
+            OnTerrainUIUpdate?.Invoke(tile);
+        }
+        
 
         
 

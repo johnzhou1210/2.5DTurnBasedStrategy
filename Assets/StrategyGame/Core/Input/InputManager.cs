@@ -53,31 +53,43 @@ namespace StrategyGame.Core.Input {
             // cameraRigController.SetZoomingEnabled(currentUnitMoveSelectionMode == GameStateManager.UnitMoveSelectionMode.Automatic);
         }
         
+        
+
         private void Update() {
-            _pathSelectionMoveActionTimer = Mathf.Clamp(_pathSelectionMoveActionTimer - Time.deltaTime, 0f, pathSelectionMoveActionCooldown);
+            _pathSelectionMoveActionTimer = Mathf.Max(0f, _pathSelectionMoveActionTimer - Time.deltaTime);
+
             Vector2 moveInput = _moveAction.ReadValue<Vector2>();
             Vector2Int moveDirection = new Vector2Int(
                 moveInput.x > .5f ? 1 : moveInput.x < -.5f ? -1 : 0,
                 moveInput.y > .5f ? 1 : moveInput.y < -.5f ? -1 : 0
             );
+
             if (moveDirection != Vector2.zero) {
                 _pathSelectionMoveActionHeldDuration += Time.deltaTime;
+
                 if (_pathSelectionMoveActionHeldDuration > pathSelectionMoveActionCooldownAccelerationThreshold) {
                     float extraHeldTime = _pathSelectionMoveActionHeldDuration - pathSelectionMoveActionCooldownAccelerationThreshold;
                     float acceleratedCooldown = _currentPathSelectionMoveActionCooldown - extraHeldTime * pathSelectionMoveActionCooldownAccelerationRate;
                     _currentPathSelectionMoveActionCooldown = Mathf.Max(pathSelectionMoveActionMinimumCooldown, acceleratedCooldown);
                 }
-                if (_pathSelectionMoveActionTimer > 0f) return;
+
+                if (_pathSelectionMoveActionTimer > 0f)
+                    return;
+
                 _pathSelectionMoveActionTimer = _currentPathSelectionMoveActionCooldown;
-                OnGridCursorMove(_gridCursorPosition + (_isDiagonalMoveEnabled ? moveDirection : new Vector2Int((int)moveInput.x, (int)moveInput.y)));
+
+                Vector2Int moveVector = _isDiagonalMoveEnabled ? moveDirection : new Vector2Int(moveDirection.x, moveDirection.y);
+                OnGridCursorMove(_gridCursorPosition + moveVector);
             } else {
                 _pathSelectionMoveActionHeldDuration = 0f;
                 _currentPathSelectionMoveActionCooldown = Mathf.Lerp(_currentPathSelectionMoveActionCooldown, pathSelectionMoveActionCooldown, Time.deltaTime * 5f);
-                if (_moveAction.WasReleasedThisFrame()) {
-                    _pathSelectionMoveActionTimer = 0f;
-                }
+            }
+
+            if (_moveAction.WasReleasedThisFrame()) {
+                _pathSelectionMoveActionTimer = 0f;
             }
         }
+
         
         private void OnDestroy() {
             gridMouseInputRaycaster.enabled = false;

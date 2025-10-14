@@ -100,7 +100,7 @@
                 {
                     "name": "",
                     "id": "978bfe49-cc26-4a3d-ab7b-7d7a29327403",
-                    "path": "<Gamepad>/leftStick",
+                    "path": "<Gamepad>/dpad",
                     "interactions": "",
                     "processors": "",
                     "groups": ";Gamepad",
@@ -225,6 +225,17 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "Joystick",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "29066427-59a1-43ac-9d0c-360d7ec612f2",
+                    "path": "<Gamepad>/leftStick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
                     "action": "Move",
                     "isComposite": false,
                     "isPartOfComposite": false

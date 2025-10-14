@@ -138,7 +138,6 @@ namespace StrategyGame.Grid {
             if (tileVisualToRedraw == null)
                 throw new Exception("Tile to redraw is null");
             if (tileVisualToRedraw.TryGetComponent(out TileSelectable selectable)) {
-                Debug.Log($"Redrawing {tileToRedraw.Position}");
                 selectable.Redraw();
             }
         }

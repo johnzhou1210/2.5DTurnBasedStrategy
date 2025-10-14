@@ -1035,6 +1035,7 @@ GameObject:
   - component: {fileID: 169028522}
   - component: {fileID: 169028521}
   - component: {fileID: 169028520}
+  - component: {fileID: 169028523}
   m_Layer: 5
   m_Name: TerrainIndicator
   m_TagString: Untagged
@@ -1251,6 +1252,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 169028518}
   m_CullTransparentMesh: 1
+--- !u!114 &169028523
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 169028518}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a61b6393ff41d4616bcb7804dc843eb2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  terrainText: {fileID: 436316664}
 --- !u!1 &169060007
 GameObject:
   m_ObjectHideFlags: 0
@@ -3221,7 +3235,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: -39.31888, y: 0, z: 17.499985, w: 0}
+  m_margin: {x: 0.046020508, y: 0, z: 17.499985, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -3943,8 +3957,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gridMouseInputRaycaster: {fileID: 663003846}
+  cameraRigController: {fileID: 169060010}
   playerInput: {fileID: 663003847}
-  pathSelectionMoveActionCooldown: 0.33
+  pathSelectionMoveActionCooldown: 0.2
+  pathSelectionMoveActionCooldownAccelerationThreshold: 0.5
+  pathSelectionMoveActionMinimumCooldown: 0.05
+  pathSelectionMoveActionCooldownAccelerationRate: 0.01
 --- !u!4 &663003849
 Transform:
   m_ObjectHideFlags: 0
