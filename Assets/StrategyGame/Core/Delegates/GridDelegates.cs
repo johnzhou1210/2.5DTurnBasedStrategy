@@ -1,4 +1,5 @@
 using System;
+using StrategyGame.Core.GameState;
 using StrategyGame.Grid;
 using StrategyGame.Grid.GridData;
 using UnityEngine;
@@ -10,26 +11,26 @@ namespace StrategyGame.Core.Delegates {
         // EVENTS
         // ==============================
         public static event Action<GridEntity, Vector2Int> OnEntitySpawned;
-        public static event Action<Vector2Int> OnSelectTile;
-        public static event Action<Tile, Tile> OnSetInspectedTile;
         public static event Action<Vector2Int, TileData> OnSetTileTerrainType;
-        public static event Action<Vector2Int, Vector2Int> OnUpdatePathPreview;
+        public static event Action<Vector2Int, Vector2Int> OnAStarPathPreview;
+        public static event Action<ManualPath> OnManualPathPreview;
+        public static event Action<Tile, Tile> OnInspectedTileChanged;
     
 
         public static void InvokeOnEntitySpawned(GridEntity entity, Vector2Int position) {
             OnEntitySpawned?.Invoke(entity, position);
         }
-        public static void InvokeOnSelectTile(Vector2Int coords) {
-            OnSelectTile?.Invoke(coords);
-        }
-        public static void InvokeOnSetInspectedTile(Tile oldTile, Tile newTile) {
-            OnSetInspectedTile?.Invoke(oldTile, newTile);
-        }
         public static void InvokeOnSetTileTerrainType(Vector2Int coords, TileData tileData) {
             OnSetTileTerrainType?.Invoke(coords, tileData);
         }
-        public static void InvokeOnUpdatePathPreview(Vector2Int start, Vector2Int end) {
-            OnUpdatePathPreview?.Invoke(start, end);
+        public static void InvokeOnAStarPathPreview(Vector2Int start, Vector2Int end) {
+            OnAStarPathPreview?.Invoke(start, end);
+        }
+        public static void InvokeOnManualPathPreview(ManualPath path) {
+            OnManualPathPreview?.Invoke(path);
+        }
+        public static void InvokeOnInspectedTileChanged(Tile oldTile, Tile newTile) {
+            OnInspectedTileChanged?.Invoke(oldTile, newTile);
         }
 
         
@@ -43,6 +44,7 @@ namespace StrategyGame.Core.Delegates {
         public static Func<Tile> GetInspectedTile;
         public static Func<GridEntity, Vector2Int, bool> AddEntityToGridFirstTime;
         public static Func<Vector2Int> GetGridDimensions;
+        public static Func<Vector2Int, bool> SetInspectedTile;
 
     }
 }

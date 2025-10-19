@@ -73,6 +73,10 @@ namespace StrategyGame.Grid {
             MovementCost = newInitData.MovementCost;
         }
 
+        public override string ToString() {
+            return $"({Position.x}, {Position.y})";
+        }
+
     }
 
 }

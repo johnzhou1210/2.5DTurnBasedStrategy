@@ -12,6 +12,42 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace StrategyGame.Core.GameState {
+    public class ManualPath {
+        public List<Tile> Tiles;
+        public HashSet<Tile> Unique;
+        public ManualPath() {
+            Tiles = new List<Tile>();
+            Unique = new HashSet<Tile>();
+        }
+        /// <summary>
+        /// Attempts to step to the given tile.
+        /// </summary>
+        /// <param name="tile">The tile to step to.</param>
+        /// <returns>If the step was successful.</returns>
+        public bool StepToTile(Tile tile) {
+            if (Tiles.Count >= 2 && Equals(Tiles[^2], tile)) {
+                // Simulate "stepback"
+                Tile tileToRemove = Tiles[^1];
+                Unique.Remove(tileToRemove);
+                Tiles.RemoveAt(Tiles.Count - 1);
+                return true;
+            }
+            if (Unique.Contains(tile)) {
+                return false;
+            }
+            Tiles.Add(tile);
+            Unique.Add(tile);
+            return true;
+        }
+        public void Clear() {
+            Tiles.Clear();
+            Unique.Clear();
+        }
+        public override string ToString() {
+            return string.Join(", ", Tiles);
+        }
+    }
+    
     public class GameStateManager : MonoBehaviour {
         // ==============================
         // STRUCTS
@@ -22,6 +58,8 @@ namespace StrategyGame.Core.GameState {
             public GameStateEnums.ManualMoveSelectionState  CurrentManualMoveSelectionState;
             public GameStateEnums.TurnPhase CurrentTurnPhase;
         }
+
+        
         
         // ==============================
         // FIELDS & PROPERTIES
@@ -34,7 +72,8 @@ namespace StrategyGame.Core.GameState {
         public GameStateEnums.UnitMoveSelectionMode CurrentUnitMoveSelectionMode { get; private set; } = GameStateEnums.UnitMoveSelectionMode.Manual;
         public GameStateEnums.ManualMoveSelectionState CurrentManualMoveSelectionState { get; private set; } = GameStateEnums.ManualMoveSelectionState.AwaitingUnitSelection;
 
-        public List<Tile> TilesAlongManualPath;
+        public ManualPath ManualPath;
+        
         
         
         private Coroutine _coreGameLoop;
@@ -44,8 +83,9 @@ namespace StrategyGame.Core.GameState {
         // MONOBEHAVIOUR LIFECYCLE
         // ==============================
         private void OnEnable() {
+            ManualPath = new ManualPath();
+            
             GameStateDelegates.OnGameStarted += StartGame;
-            GridDelegates.OnSelectTile += HandleOnSelectTile;
             GameStateDelegates.OnUnitMoveSelectionChanged += SetCurrentUnitMoveSelectionMode;
             GameStateDelegates.OnManualMoveSelectionChanged += SetCurrentManualMoveSelectionState;
            
@@ -54,11 +94,11 @@ namespace StrategyGame.Core.GameState {
             GameStateDelegates.GetCurrentInspectedEntity  = () => CurrentInspectedEntity;
             GameStateDelegates.GetCurrentSelectedEntity  = () => CurrentSelectedEntity;
             GameStateDelegates.GetCurrentGameStateSnapshot = GetCurrentGameStateSnapshot;
-            
+            GridDelegates.SetInspectedTile = HandleSetInspectedTile;
+
         }
         private void OnDisable() {
             GameStateDelegates.OnGameStarted -= StartGame;
-            GridDelegates.OnSelectTile -= HandleOnSelectTile;
             GameStateDelegates.OnUnitMoveSelectionChanged -= SetCurrentUnitMoveSelectionMode;
             GameStateDelegates.OnManualMoveSelectionChanged -= SetCurrentManualMoveSelectionState;
             
@@ -66,6 +106,7 @@ namespace StrategyGame.Core.GameState {
             GameStateDelegates.GetCurrentInspectedEntity = null;
             GameStateDelegates.GetCurrentSelectedEntity = null;
             GameStateDelegates.GetCurrentGameStateSnapshot = null;
+            GridDelegates.SetInspectedTile = null;
         }
         
         
@@ -165,10 +206,17 @@ namespace StrategyGame.Core.GameState {
         private void SetCurrentManualMoveSelectionState(GameStateEnums.ManualMoveSelectionState state) {
             if  (CurrentManualMoveSelectionState == state) return;
             CurrentManualMoveSelectionState = state;
+            ManualPath.Clear();
             switch (CurrentManualMoveSelectionState) {
                 case GameStateEnums.ManualMoveSelectionState.AwaitingUnitSelection:
                     break;
                 case GameStateEnums.ManualMoveSelectionState.FormingPath:
+                    bool stepSuccess = ManualPath.StepToTile(CurrentInspectedTile);
+                    if (!stepSuccess) {
+                        Debug.LogError($"Failed to step to {CurrentManualMoveSelectionState}");
+                    }
+                    Debug.Log($"Manual path is now: { ManualPath }");
+                    GridDelegates.InvokeOnManualPathPreview(ManualPath);
                     break;
                 case GameStateEnums.ManualMoveSelectionState.None:
                     break;
@@ -189,35 +237,37 @@ namespace StrategyGame.Core.GameState {
         // ==============================
         // HELPERS
         // ==============================
-        private void HandleOnSelectTile(Vector2Int coordinate) {
-            SetInspectedTile(coordinate);
+        private bool HandleSetInspectedTile(Vector2Int coordinate) {
+            
             switch (CurrentManualMoveSelectionState) {
                 case GameStateEnums.ManualMoveSelectionState.None:
-                    return;
+                    return false;
                 case GameStateEnums.ManualMoveSelectionState.AwaitingUnitSelection:
+                    SetInspectedTile(coordinate);
                     UpdateAutomaticPathPreview(coordinate);
-                    break;
+                    return true;
                 case GameStateEnums.ManualMoveSelectionState.FormingPath:
-                    AddCoordinateToManualPath(coordinate);
-                    break;
+                    return AddCoordinateToManualPath(coordinate);
                 default:
                     throw new InvalidEnumArgumentException("Invalid manual move selection state!");
             }
         }
-        private void AddCoordinateToManualPath(Vector2Int coordinate) {
-            Tile newTile = GridDelegates.GetTileFromPosition(coordinate);
-            Tile oldTile = CurrentInspectedTile;
-            if (Equals(oldTile, newTile)) {
-                Debug.LogWarning("Not adding coordinate to manual path because newTile and oldTile are the same!");
-                return;
+        private bool AddCoordinateToManualPath(Vector2Int coordinate) {
+            bool stepSuccess = ManualPath.StepToTile(GridDelegates.GetTileFromPosition(coordinate));
+            Debug.Log($"Manual path is now: { ManualPath }");
+            if (stepSuccess) {
+                SetInspectedTile(coordinate);
+                GridDelegates.InvokeOnManualPathPreview(ManualPath);
+            } else {
+                Debug.LogWarning($"Illegal path. Restricting cursor movement. Cursor position according to GameState: {CurrentInspectedTile.Position} | Cursor position according to InputManager: {InputDelegates.GetGridCursorPosition()}");
             }
-            TilesAlongManualPath.Add(GridDelegates.GetTileFromPosition(coordinate));
+            return stepSuccess;
         }
 
         private void UpdateAutomaticPathPreview(Vector2Int coordinate) {
             Tile newTile = GridDelegates.GetTileFromPosition(coordinate);
             Vector2Int startPosition = CurrentInspectedEntity?.GridPosition ?? newTile.Position;
-            GridDelegates.InvokeOnUpdatePathPreview(startPosition, startPosition);
+            GridDelegates.InvokeOnAStarPathPreview(startPosition, startPosition);
         }
         
         private void SetInspectedTile(Vector2Int coordinate) {
@@ -225,10 +275,10 @@ namespace StrategyGame.Core.GameState {
             Tile oldTile = CurrentInspectedTile;
             if (Equals(oldTile, newTile)) return;
             CurrentInspectedTile = newTile ?? throw new ArgumentException("Tile does not exist at position {coordinates}!");
-            GridDelegates.InvokeOnSetInspectedTile(oldTile, newTile);
+            GridDelegates.InvokeOnInspectedTileChanged(oldTile, newTile);
+            
             GridEntity previousSelectedEntity = CurrentInspectedEntity;
             CurrentInspectedEntity = newTile.IsOccupied ? newTile.Occupant : null;
-            Vector2Int startPosition = CurrentInspectedEntity?.GridPosition ?? newTile.Position;
             
             UIDelegates.InvokeOnTerrainUIUpdate(CurrentInspectedTile);
             

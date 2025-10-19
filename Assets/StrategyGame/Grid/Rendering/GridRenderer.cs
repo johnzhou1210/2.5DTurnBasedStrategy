@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using DG.Tweening;
 using StrategyGame.AI;
 using StrategyGame.Core.Delegates;
+using StrategyGame.Core.GameState;
 using UnityEngine;
 
 namespace StrategyGame.Grid.Rendering {
@@ -37,13 +38,16 @@ namespace StrategyGame.Grid.Rendering {
             _tileVisuals = new GameObject[grid.GetSize().x, grid.GetSize().y];
             _walkableTiles = new HashSet<GameObject>();
             _pathTiles = new List<GameObject>();
-            GridDelegates.OnSetInspectedTile += UpdateInspectedTileVisuals;
-            GridDelegates.OnUpdatePathPreview += UpdatePathPreview;
+            GridDelegates.OnAStarPathPreview += PreviewPathAStar;
+            GridDelegates.OnManualPathPreview += PreviewManualPath;
             EntityDelegates.OnEntityMoveAlongPath += RenderEntityMovementAlongPath;
+
+            GridDelegates.OnInspectedTileChanged += UpdateInspectedTileVisuals;
         }
         private void OnDisable() {
-            GridDelegates.OnSetInspectedTile -= UpdateInspectedTileVisuals;
-            GridDelegates.OnUpdatePathPreview -= UpdatePathPreview;
+            GridDelegates.OnAStarPathPreview -= PreviewPathAStar;
+            GridDelegates.OnManualPathPreview -= PreviewManualPath;
+            GridDelegates.OnInspectedTileChanged -= UpdateInspectedTileVisuals;
         }
 
         // ==============================
@@ -87,19 +91,12 @@ namespace StrategyGame.Grid.Rendering {
         
         /// <summary>
         /// Renders a visual route of a path.
-        /// This method is ONLY for Automatic Move Selection Mode.
+        /// This method is ONLY for Automatic Move Selection Mode (It uses A*).
         /// </summary>
         /// <param name="startPosition">The start position of the path (usually the selected unit)</param>
         /// <param name="endPosition">The end position of the path (target destination)</param>
-        private void UpdatePathPreview(Vector2Int startPosition, Vector2Int endPosition) {
-            // Clear all path tiles before rendering new ones
-            for (int i = 0; i < _pathTiles.Count; i++) {
-                GameObject visual = _pathTiles[i];
-                if (visual.TryGetComponent(out TileSelectable tileSelectable)) {
-                    tileSelectable.ShowRouteSegment(false, CreateRouteSegmentData(new List<Tile>(), i));
-                }
-            }
-            _pathTiles.Clear();
+        private void PreviewPathAStar(Vector2Int startPosition, Vector2Int endPosition) {
+           ClearAllPathTileVisuals();
             // If there is a Unit at startPosition tile, render path preview
             Tile startTile = GridDelegates.GetTileFromPosition(startPosition);
             if (startTile == null)
@@ -120,6 +117,32 @@ namespace StrategyGame.Grid.Rendering {
                 }
             }
         }
+
+        private void PreviewManualPath(ManualPath manualPath) {
+            Debug.Log("IN HERE");
+            ClearAllPathTileVisuals();
+            foreach (Tile tile in manualPath.Tiles) {
+                _pathTiles.Add(_tileVisuals[tile.Position.x, tile.Position.y]);
+            }
+            for (int i = 0; i < _pathTiles.Count; i++) {
+                GameObject visual = _pathTiles[i];
+                if (visual.TryGetComponent(out TileSelectable tileSelectable)) {
+                    tileSelectable.ShowRouteSegment(true, CreateRouteSegmentData(manualPath.Tiles, i));
+                }
+            }
+        }
+
+        private void ClearAllPathTileVisuals() {
+            // Clear all path tiles before rendering new ones
+            for (int i = 0; i < _pathTiles.Count; i++) {
+                GameObject visual = _pathTiles[i];
+                if (visual.TryGetComponent(out TileSelectable tileSelectable)) {
+                    tileSelectable.ShowRouteSegment(false, CreateRouteSegmentData(new List<Tile>(), i));
+                }
+            }
+            _pathTiles.Clear();
+        }
+        
         private void RenderEntityMovementAlongPath(GridEntity entity, List<Tile> path) {
             StartCoroutine(EntityMovementCoroutine(entity, path));
         }
@@ -216,7 +239,6 @@ namespace StrategyGame.Grid.Rendering {
             }
             _walkableTiles.Clear();
         }
-        
         private IEnumerator EntityMovementCoroutine(GridEntity entity, List<Tile> path) {
             // Get entity transform
             Transform entityTransform = EntityDelegates.GetEntityVisualTransformByID(entity.ID);

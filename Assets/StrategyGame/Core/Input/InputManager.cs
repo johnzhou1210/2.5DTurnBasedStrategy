@@ -45,11 +45,13 @@ namespace StrategyGame.Core.Input {
         private void OnEnable() {
             InputDelegates.OnSetMouseRaycastEnabled += SetMouseRaycastEnabled;
             InputDelegates.GetUIManager = () => this;
+            InputDelegates.GetGridCursorPosition = () => _gridCursorPosition;
         }
 
         private void OnDisable() {
             InputDelegates.OnSetMouseRaycastEnabled -= SetMouseRaycastEnabled;
             InputDelegates.GetUIManager = null;
+            InputDelegates.GetGridCursorPosition = null;
         }
 
         private void Start() {
@@ -99,14 +101,14 @@ namespace StrategyGame.Core.Input {
                 }
                 if (_pathSelectionMoveActionTimer > 0f) return;
                 _pathSelectionMoveActionTimer = _currentPathSelectionMoveActionCooldown;
-                Vector2Int moveVector = _isDiagonalMoveEnabled ? moveDirection : new Vector2Int(moveDirection.x, moveDirection.y);
+                Vector2Int moveVector = moveDirection;
+                if (!_isDiagonalMoveEnabled && moveVector.x != 0 && moveVector.y != 0) {
+                    moveVector.y = 0;
+                }
                 
-                GameStateManager.GameStateSnapshot stateSnapshot = GameStateDelegates.GetCurrentGameStateSnapshot();
+                
                 
                 OnGridCursorMove(_gridCursorPosition + moveVector);
-                
-                
-                
             } else {
                 _pathSelectionMoveActionHeldDuration = 0f;
                 _currentPathSelectionMoveActionCooldown = Mathf.Lerp(_currentPathSelectionMoveActionCooldown, pathSelectionMoveActionCooldown, Time.deltaTime * 5f);
@@ -123,10 +125,12 @@ namespace StrategyGame.Core.Input {
                     // In order to select, there must be an entity
                     if (GameStateDelegates.GetCurrentInspectedEntity() == null) return;
                     Debug.Log("START FORMING PATH");
+                    _isDiagonalMoveEnabled = false;
                     GameStateDelegates.InvokeOnManualMoveSelectionChanged(GameStateEnums.ManualMoveSelectionState.FormingPath);
                 } else if (stateSnapshot.CurrentManualMoveSelectionState == GameStateEnums.ManualMoveSelectionState.FormingPath) {
                     // TODO: Confirm chosen player path
                     Debug.Log("STOP FORMING PATH");
+                    _isDiagonalMoveEnabled = true;
                     GameStateDelegates.InvokeOnManualMoveSelectionChanged(GameStateEnums.ManualMoveSelectionState.AwaitingUnitSelection);
                 }
                 
@@ -141,8 +145,12 @@ namespace StrategyGame.Core.Input {
 
         public void OnGridCursorMove(Vector2Int newPosition) {
             Vector2Int gridDimensions = GridDelegates.GetGridDimensions();
+            Vector2Int oldGridCursorPosition = _gridCursorPosition;
             _gridCursorPosition = new Vector2Int(Math.Clamp(newPosition.x, 0, gridDimensions.x - 1), Math.Clamp(newPosition.y, 0, gridDimensions.y - 1));
-            GridDelegates.InvokeOnSelectTile(_gridCursorPosition);
+            bool success = GridDelegates.SetInspectedTile(_gridCursorPosition);
+            if (!success) {
+                _gridCursorPosition = oldGridCursorPosition;
+            }
         }
         
         

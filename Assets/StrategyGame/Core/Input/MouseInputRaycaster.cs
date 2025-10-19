@@ -58,7 +58,7 @@ namespace StrategyGame.Core.Input {
                 // Check if player clicked while hovering over a tile
                 if (_selectAction.WasPressedThisFrame()) {
                     if (hitTile.TryGetComponent(out TileSelectable selectable)) {
-                        GridDelegates.InvokeOnSelectTile(selectable.GridCoordinates);
+                        GridDelegates.SetInspectedTile(selectable.GridCoordinates);
                     }
                 }
                 
@@ -84,7 +84,7 @@ namespace StrategyGame.Core.Input {
                 if (stateSnapshot.CurrentUnitMoveSelectionMode != GameStateEnums.UnitMoveSelectionMode.Automatic) return;
                 GridEntity currentSelectedEntity = GameStateDelegates.GetCurrentSelectedEntity();
                 if (currentSelectedEntity == null) return;
-                GridDelegates.InvokeOnUpdatePathPreview(currentSelectedEntity?.GridPosition ?? tile.GetComponent<TileSelectable>().GridCoordinates, tile.GetComponent<TileSelectable>().GridCoordinates);
+                GridDelegates.InvokeOnAStarPathPreview(currentSelectedEntity?.GridPosition ?? tile.GetComponent<TileSelectable>().GridCoordinates, tile.GetComponent<TileSelectable>().GridCoordinates);
 
 
             }
