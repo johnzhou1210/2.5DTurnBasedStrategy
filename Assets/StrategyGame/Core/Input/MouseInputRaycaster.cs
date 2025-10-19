@@ -1,5 +1,7 @@
 using System;
 using StrategyGame.Core.Delegates;
+using StrategyGame.Core.Enums;
+using StrategyGame.Core.GameState;
 using StrategyGame.Grid;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -50,12 +52,16 @@ namespace StrategyGame.Core.Input {
                     SetCurrentHighlight(hitTile);
                 }
                 
+                // Everything below here runs if Move Selection Mode is automatic
+                if (GameStateDelegates.GetCurrentGameStateSnapshot().CurrentUnitMoveSelectionMode != GameStateEnums.UnitMoveSelectionMode.Automatic) return;
+                
                 // Check if player clicked while hovering over a tile
                 if (_selectAction.WasPressedThisFrame()) {
                     if (hitTile.TryGetComponent(out TileSelectable selectable)) {
                         GridDelegates.InvokeOnSelectTile(selectable.GridCoordinates);
                     }
                 }
+                
                 
             } else {
                 Debug.DrawRay(ray.origin, ray.direction * 100, Color.red);
@@ -72,10 +78,15 @@ namespace StrategyGame.Core.Input {
             if (_currHighlight.TryGetComponent(out Renderer rend)) {
                 // rend.material.color = Color.yellow;
                 // Debug.Log($"Highlighting: {tile}");
+                
                 // Show route if GameStateManager is currently selecting a Unit
+                GameStateManager.GameStateSnapshot stateSnapshot = GameStateDelegates.GetCurrentGameStateSnapshot();
+                if (stateSnapshot.CurrentUnitMoveSelectionMode != GameStateEnums.UnitMoveSelectionMode.Automatic) return;
                 GridEntity currentSelectedEntity = GameStateDelegates.GetCurrentSelectedEntity();
                 if (currentSelectedEntity == null) return;
                 GridDelegates.InvokeOnUpdatePathPreview(currentSelectedEntity?.GridPosition ?? tile.GetComponent<TileSelectable>().GridCoordinates, tile.GetComponent<TileSelectable>().GridCoordinates);
+
+
             }
         }
 

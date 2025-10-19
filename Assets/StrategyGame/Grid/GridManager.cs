@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Grid.GridData;
+using StrategyGame.Grid.Rendering;
 using UnityEngine;
 using Random = UnityEngine.Random;
 

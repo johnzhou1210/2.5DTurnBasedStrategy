@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using StrategyGame.Core.Delegates;
+using StrategyGame.Core.Enums;
 using StrategyGame.Core.GameState;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -14,11 +15,15 @@ namespace StrategyGame.Core.Input {
         [SerializeField] private MouseInputRaycaster gridMouseInputRaycaster;
         [SerializeField] private CameraRigController cameraRigController;
         [SerializeField] private PlayerInput playerInput;
+        
+        [Header("Path Selection Settings")]
         [SerializeField] private float pathSelectionMoveActionCooldown = 0.33f;
         [SerializeField] private float pathSelectionMoveActionCooldownAccelerationThreshold = 1f;
         [SerializeField] private float pathSelectionMoveActionMinimumCooldown = .08f;
         [SerializeField] private float pathSelectionMoveActionCooldownAccelerationRate = .05f;
+        
         private InputAction _moveAction;
+        private InputAction _selectAction;
         private float _pathSelectionMoveActionTimer;
         private float _currentPathSelectionMoveActionCooldown;
         private float _pathSelectionMoveActionHeldDuration;
@@ -34,6 +39,7 @@ namespace StrategyGame.Core.Input {
         // ==============================
         private void Awake() {
             _moveAction = playerInput.actions["Move"];
+            _selectAction = playerInput.actions["Select"];
         }
 
         private void OnEnable() {
@@ -47,47 +53,17 @@ namespace StrategyGame.Core.Input {
         }
 
         private void Start() {
-            GameStateManager.UnitMoveSelectionMode currentUnitMoveSelectionMode = GameStateDelegates.GetCurrentUnitMoveSelectionMode();
-            gridMouseInputRaycaster.enabled = currentUnitMoveSelectionMode == GameStateManager.UnitMoveSelectionMode.Automatic;
-            cameraRigController.SetPanningEnabled(currentUnitMoveSelectionMode == GameStateManager.UnitMoveSelectionMode.Automatic);
-            // cameraRigController.SetZoomingEnabled(currentUnitMoveSelectionMode == GameStateManager.UnitMoveSelectionMode.Automatic);
+            GameStateEnums.UnitMoveSelectionMode currentUnitMoveSelectionMode = GameStateDelegates.GetCurrentGameStateSnapshot().CurrentUnitMoveSelectionMode;
+            gridMouseInputRaycaster.enabled = currentUnitMoveSelectionMode == GameStateEnums.UnitMoveSelectionMode.Automatic;
+            cameraRigController.SetPanningEnabled(currentUnitMoveSelectionMode == GameStateEnums.UnitMoveSelectionMode.Automatic);
+            // cameraRigController.SetZoomingEnabled(currentUnitMoveSelectionMode == UnitMoveSelectionMode.Automatic);
         }
         
         
 
         private void Update() {
-            _pathSelectionMoveActionTimer = Mathf.Max(0f, _pathSelectionMoveActionTimer - Time.deltaTime);
-
-            Vector2 moveInput = _moveAction.ReadValue<Vector2>();
-            Vector2Int moveDirection = new Vector2Int(
-                moveInput.x > .5f ? 1 : moveInput.x < -.5f ? -1 : 0,
-                moveInput.y > .5f ? 1 : moveInput.y < -.5f ? -1 : 0
-            );
-
-            if (moveDirection != Vector2.zero) {
-                _pathSelectionMoveActionHeldDuration += Time.deltaTime;
-
-                if (_pathSelectionMoveActionHeldDuration > pathSelectionMoveActionCooldownAccelerationThreshold) {
-                    float extraHeldTime = _pathSelectionMoveActionHeldDuration - pathSelectionMoveActionCooldownAccelerationThreshold;
-                    float acceleratedCooldown = _currentPathSelectionMoveActionCooldown - extraHeldTime * pathSelectionMoveActionCooldownAccelerationRate;
-                    _currentPathSelectionMoveActionCooldown = Mathf.Max(pathSelectionMoveActionMinimumCooldown, acceleratedCooldown);
-                }
-
-                if (_pathSelectionMoveActionTimer > 0f)
-                    return;
-
-                _pathSelectionMoveActionTimer = _currentPathSelectionMoveActionCooldown;
-
-                Vector2Int moveVector = _isDiagonalMoveEnabled ? moveDirection : new Vector2Int(moveDirection.x, moveDirection.y);
-                OnGridCursorMove(_gridCursorPosition + moveVector);
-            } else {
-                _pathSelectionMoveActionHeldDuration = 0f;
-                _currentPathSelectionMoveActionCooldown = Mathf.Lerp(_currentPathSelectionMoveActionCooldown, pathSelectionMoveActionCooldown, Time.deltaTime * 5f);
-            }
-
-            if (_moveAction.WasReleasedThisFrame()) {
-                _pathSelectionMoveActionTimer = 0f;
-            }
+            HandleSelectionInput();
+            HandleMovementInput();
         }
 
         
@@ -103,12 +79,64 @@ namespace StrategyGame.Core.Input {
         private void SetMouseRaycastEnabled(bool value) {
             gridMouseInputRaycaster.enabled = value;
         }
-
+        private void HandleMovementInput() {
+            _pathSelectionMoveActionTimer = Mathf.Max(0f, _pathSelectionMoveActionTimer - Time.deltaTime);
+            Vector2 moveInput = _moveAction.ReadValue<Vector2>();
+            Vector2Int moveDirection = new Vector2Int(
+                moveInput.x > .5f ? 1 : moveInput.x < -.5f ? -1 : 0,
+                moveInput.y > .5f ? 1 : moveInput.y < -.5f ? -1 : 0
+            );
+            if (_moveAction.WasReleasedThisFrame()) {
+                _pathSelectionMoveActionTimer = 0f;
+            }
+            if (moveDirection != Vector2.zero) {
+                // GameStateDelegates.InvokeOnUnitMoveSelectionChanged(GameStateManager.UnitMoveSelectionMode.Manual);
+                _pathSelectionMoveActionHeldDuration += Time.deltaTime;
+                if (_pathSelectionMoveActionHeldDuration > pathSelectionMoveActionCooldownAccelerationThreshold) {
+                    float extraHeldTime = _pathSelectionMoveActionHeldDuration - pathSelectionMoveActionCooldownAccelerationThreshold;
+                    float acceleratedCooldown = _currentPathSelectionMoveActionCooldown - extraHeldTime * pathSelectionMoveActionCooldownAccelerationRate;
+                    _currentPathSelectionMoveActionCooldown = Mathf.Max(pathSelectionMoveActionMinimumCooldown, acceleratedCooldown);
+                }
+                if (_pathSelectionMoveActionTimer > 0f) return;
+                _pathSelectionMoveActionTimer = _currentPathSelectionMoveActionCooldown;
+                Vector2Int moveVector = _isDiagonalMoveEnabled ? moveDirection : new Vector2Int(moveDirection.x, moveDirection.y);
+                
+                GameStateManager.GameStateSnapshot stateSnapshot = GameStateDelegates.GetCurrentGameStateSnapshot();
+                
+                OnGridCursorMove(_gridCursorPosition + moveVector);
+                
+                
+                
+            } else {
+                _pathSelectionMoveActionHeldDuration = 0f;
+                _currentPathSelectionMoveActionCooldown = Mathf.Lerp(_currentPathSelectionMoveActionCooldown, pathSelectionMoveActionCooldown, Time.deltaTime * 5f);
+            }
+        }
+        private void HandleSelectionInput() {
+            if (GameStateDelegates.GetCurrentSelectedEntity() != null) {
+                Debug.Log("Entity already selected");
+                return;
+            }
+            if (_selectAction.WasPressedThisFrame()) {  
+                GameStateManager.GameStateSnapshot  stateSnapshot = GameStateDelegates.GetCurrentGameStateSnapshot();
+                if (stateSnapshot.CurrentManualMoveSelectionState == GameStateEnums.ManualMoveSelectionState.AwaitingUnitSelection) {
+                    // In order to select, there must be an entity
+                    if (GameStateDelegates.GetCurrentInspectedEntity() == null) return;
+                    Debug.Log("START FORMING PATH");
+                    GameStateDelegates.InvokeOnManualMoveSelectionChanged(GameStateEnums.ManualMoveSelectionState.FormingPath);
+                } else if (stateSnapshot.CurrentManualMoveSelectionState == GameStateEnums.ManualMoveSelectionState.FormingPath) {
+                    // TODO: Confirm chosen player path
+                    Debug.Log("STOP FORMING PATH");
+                    GameStateDelegates.InvokeOnManualMoveSelectionChanged(GameStateEnums.ManualMoveSelectionState.AwaitingUnitSelection);
+                }
+                
+            }
+        }
         // ==============================
         // IMPLEMENTED METHODS
         // ==============================
         public void OnPointerMove(PointerEventData eventData) {
-            GameStateDelegates.InvokeOnUnitMoveSelectionMode(GameStateManager.UnitMoveSelectionMode.Automatic);
+            // GameStateDelegates.InvokeOnUnitMoveSelectionChanged(GameStateManager.UnitMoveSelectionMode.Automatic);
         }
 
         public void OnGridCursorMove(Vector2Int newPosition) {

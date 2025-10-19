@@ -1,14 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
 using DG.Tweening;
 using StrategyGame.AI;
 using StrategyGame.Core.Delegates;
 using UnityEngine;
 
-namespace StrategyGame.Grid {
+namespace StrategyGame.Grid.Rendering {
     public class GridRenderer : MonoBehaviour {
         // ==============================
         // FIELDS & PROPERTIES
@@ -39,19 +37,19 @@ namespace StrategyGame.Grid {
             _tileVisuals = new GameObject[grid.GetSize().x, grid.GetSize().y];
             _walkableTiles = new HashSet<GameObject>();
             _pathTiles = new List<GameObject>();
-            GridDelegates.OnSetSelectedTile += UpdateSelectedTileVisuals;
+            GridDelegates.OnSetInspectedTile += UpdateInspectedTileVisuals;
             GridDelegates.OnUpdatePathPreview += UpdatePathPreview;
             EntityDelegates.OnEntityMoveAlongPath += RenderEntityMovementAlongPath;
         }
         private void OnDisable() {
-            GridDelegates.OnSetSelectedTile -= UpdateSelectedTileVisuals;
+            GridDelegates.OnSetInspectedTile -= UpdateInspectedTileVisuals;
             GridDelegates.OnUpdatePathPreview -= UpdatePathPreview;
         }
 
         // ==============================
         // CORE METHODS
         // ==============================
-        private void UpdateSelectedTileVisuals(Tile oldTile, Tile newTile) {
+        private void UpdateInspectedTileVisuals(Tile oldTile, Tile newTile) {
             if (oldTile != null) {
                 // Hide old tile selection visual
                 GameObject oldTileVisual = _tileVisuals[oldTile.Position.x, oldTile.Position.y];
@@ -86,6 +84,13 @@ namespace StrategyGame.Grid {
                 }
             }
         }
+        
+        /// <summary>
+        /// Renders a visual route of a path.
+        /// This method is ONLY for Automatic Move Selection Mode.
+        /// </summary>
+        /// <param name="startPosition">The start position of the path (usually the selected unit)</param>
+        /// <param name="endPosition">The end position of the path (target destination)</param>
         private void UpdatePathPreview(Vector2Int startPosition, Vector2Int endPosition) {
             // Clear all path tiles before rendering new ones
             for (int i = 0; i < _pathTiles.Count; i++) {

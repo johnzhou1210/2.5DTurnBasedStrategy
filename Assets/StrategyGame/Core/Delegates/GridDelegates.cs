@@ -11,7 +11,7 @@ namespace StrategyGame.Core.Delegates {
         // ==============================
         public static event Action<GridEntity, Vector2Int> OnEntitySpawned;
         public static event Action<Vector2Int> OnSelectTile;
-        public static event Action<Tile, Tile> OnSetSelectedTile;
+        public static event Action<Tile, Tile> OnSetInspectedTile;
         public static event Action<Vector2Int, TileData> OnSetTileTerrainType;
         public static event Action<Vector2Int, Vector2Int> OnUpdatePathPreview;
     
@@ -22,8 +22,8 @@ namespace StrategyGame.Core.Delegates {
         public static void InvokeOnSelectTile(Vector2Int coords) {
             OnSelectTile?.Invoke(coords);
         }
-        public static void InvokeOnSetSelectedTile(Tile oldTile, Tile newTile) {
-            OnSetSelectedTile?.Invoke(oldTile, newTile);
+        public static void InvokeOnSetInspectedTile(Tile oldTile, Tile newTile) {
+            OnSetInspectedTile?.Invoke(oldTile, newTile);
         }
         public static void InvokeOnSetTileTerrainType(Vector2Int coords, TileData tileData) {
             OnSetTileTerrainType?.Invoke(coords, tileData);
@@ -40,7 +40,7 @@ namespace StrategyGame.Core.Delegates {
         // EVENTS
         // ==============================
         public static Func<Vector2Int, Tile> GetTileFromPosition;
-        public static Func<Tile> GetSelectedTile;
+        public static Func<Tile> GetInspectedTile;
         public static Func<GridEntity, Vector2Int, bool> AddEntityToGridFirstTime;
         public static Func<Vector2Int> GetGridDimensions;
 
