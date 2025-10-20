@@ -3,7 +3,7 @@ using StrategyGame.Core.Delegates;
 using StrategyGame.Grid.GridData;
 using UnityEngine;
 
-namespace StrategyGame.Grid {
+namespace StrategyGame.Grid.Rendering {
     public struct RouteSegmentData {
         public bool IsValid;
         public bool IsDestination;
@@ -25,6 +25,7 @@ namespace StrategyGame.Grid {
         [SerializeField] private GameObject routeStartVisual;
 
         [SerializeField] private new Renderer renderer;
+        [SerializeField] private Animator selectionAnimator;
 
         private Color _originalColor;
         
@@ -50,25 +51,23 @@ namespace StrategyGame.Grid {
         public void SetSelectionVisualVisibility(bool val) {
             selectionVisual.SetActive(val);
         }
+
+        public void SetSelectionVisualIsAnimated(bool val) {
+            selectionAnimator.enabled = val;
+            if (!selectionAnimator.enabled) return;
+            selectionAnimator.Play(val ? "Select" : "Unselected");
+        }
         
         public void ShowRouteSegment(bool val, RouteSegmentData routeSegmentData) {
-            routeStraightVisual.SetActive(val);
-            routeTipVisual.SetActive(false);
-            routeStraightVisual.SetActive(false);
-            routeTurnVisual.SetActive(false);
-            routeTurnFlippedVisual.SetActive(false);
-            routeStartVisual.SetActive(false);
+            HideAllRouteVisuals();
             
             if (!val) return;
             if (!routeSegmentData.IsValid) return;
             
             GameObject activeVisual;
-            Tile tileOfSegment = GridDelegates.GetTileFromPosition(GridCoordinates);
-            
-            
-            if (routeSegmentData.IsStart ||  tileOfSegment.IsOccupied) {
-                routeStartVisual.SetActive(true);
-                activeVisual = routeStartVisual;
+            if (routeSegmentData.IsStart) { 
+                activeVisual = null;
+                HideAllRouteVisuals();
             } else if (routeSegmentData.IsDestination) {
                 routeTipVisual.SetActive(true);
                 activeVisual = routeTipVisual;
@@ -83,7 +82,16 @@ namespace StrategyGame.Grid {
                 activeVisual = routeStraightVisual;
             }
             // Rotate visual based on RouteSegmentData
+            if (activeVisual == null) return;
             activeVisual.transform.localEulerAngles = new Vector3(90, routeSegmentData.Angle, 0);
+        }
+
+        private void HideAllRouteVisuals() {
+            routeTipVisual.SetActive(false);
+            routeStraightVisual.SetActive(false);
+            routeTurnVisual.SetActive(false);
+            routeTurnFlippedVisual.SetActive(false);
+            routeStartVisual.SetActive(false);
         }
         
         // For when unit is selected

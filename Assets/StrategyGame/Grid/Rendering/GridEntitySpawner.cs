@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using StrategyGame.Core.Delegates;
+using StrategyGame.Factions;
 using StrategyGame.Grid.GridData;
 using StrategyGame.UI.World;
 using StrategyGame.Utils;
@@ -51,6 +52,10 @@ namespace StrategyGame.Grid.Rendering {
             _entityVisuals[entity.ID] = entityVisual;
             entityVisual.transform.position = VectorUtils.Vector2IntToVector3(newPosition);
 
+            if (entityVisual.TryGetComponent(out EntityVisual entityVisualScript)) {
+                entityVisualScript.SetColor(entity.Faction == Faction.PlayerFaction ? new Color(.05f,.05f,1,1) : new Color(1,.05f,.05f,1));
+            }
+            
             AttachBillboards(entity);
             
             Debug.Log(DictionaryUtils.FormatDictionary(_entityVisuals));

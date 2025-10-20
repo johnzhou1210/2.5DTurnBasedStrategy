@@ -238,7 +238,6 @@ namespace StrategyGame.Core.GameState {
         // HELPERS
         // ==============================
         private bool HandleSetInspectedTile(Vector2Int coordinate) {
-            
             switch (CurrentManualMoveSelectionState) {
                 case GameStateEnums.ManualMoveSelectionState.None:
                     return false;
@@ -259,7 +258,7 @@ namespace StrategyGame.Core.GameState {
                 SetInspectedTile(coordinate);
                 GridDelegates.InvokeOnManualPathPreview(ManualPath);
             } else {
-                Debug.LogWarning($"Illegal path. Restricting cursor movement. Cursor position according to GameState: {CurrentInspectedTile.Position} | Cursor position according to InputManager: {InputDelegates.GetGridCursorPosition()}");
+                Debug.LogWarning($"Illegal path. Restricting cursor movement. Cursor position according to GameState: {CurrentInspectedTile.Position}");
             }
             return stepSuccess;
         }

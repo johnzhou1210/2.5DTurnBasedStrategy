@@ -62,6 +62,7 @@ namespace StrategyGame.Grid.Rendering {
                 }
                 if (oldTileVisual.TryGetComponent(out TileSelectable oldSelectable)) {
                     oldSelectable.SetSelectionVisualVisibility(false);
+                    oldSelectable.SetSelectionVisualIsAnimated(false);
                 }
                 ClearWalkableTiles();
             }
@@ -76,6 +77,7 @@ namespace StrategyGame.Grid.Rendering {
 
                 // If selected tile has entity, show entity's walkable tiles
                 if (newTile.IsOccupied) {
+                    newSelectable.SetSelectionVisualIsAnimated(true);
                     HashSet<Tile> walkableTileObjects = newTile.Occupant.GetWalkableTiles();
                     foreach (Tile tile in walkableTileObjects) {
                         _walkableTiles.Add(_tileVisuals[tile.Position.x, tile.Position.y]);

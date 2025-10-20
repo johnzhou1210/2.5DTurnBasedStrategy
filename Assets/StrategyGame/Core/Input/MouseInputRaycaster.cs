@@ -3,6 +3,7 @@ using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
 using StrategyGame.Core.GameState;
 using StrategyGame.Grid;
+using StrategyGame.Grid.Rendering;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
