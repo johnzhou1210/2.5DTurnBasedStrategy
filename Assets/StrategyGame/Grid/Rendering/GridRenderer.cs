@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using DG.Tweening;
 using StrategyGame.AI;
 using StrategyGame.Core.Delegates;
+using StrategyGame.Core.Enums;
 using StrategyGame.Core.GameState;
 using UnityEngine;
 
@@ -256,7 +257,8 @@ namespace StrategyGame.Grid.Rendering {
                 Tween tween = entityTransform.DOMove(new Vector3(tile.Position.x, 0f, tile.Position.y), 0.33f).SetEase(Ease.Linear);
                 yield return tween.WaitForCompletion();
             }
-            
+            // Notify game state to change immediately to unit action menu
+            GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitToControl);
         }
     }
 }

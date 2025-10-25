@@ -152,7 +152,10 @@ namespace StrategyGame.Grid {
             GridPosition = newPosition;
         }
 
-        
-        
+        public override string ToString() {
+            return DisplayName;
+        }
+
+
     }
 }

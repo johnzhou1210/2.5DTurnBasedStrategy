@@ -140,7 +140,7 @@ namespace StrategyGame.Core.Input {
                         // Move unit to destination
                         ManualPath manualPath = GameStateDelegates.GetManualPath();
                         currentSelectedEntity.MoveAlongPath(manualPath.Tiles);
-                        GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitToControl);
+                        GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitMovingToDestination);
                     } else {
                         GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitToControl);
                     }

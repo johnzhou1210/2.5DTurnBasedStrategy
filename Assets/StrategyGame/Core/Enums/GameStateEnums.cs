@@ -10,6 +10,7 @@ namespace StrategyGame.Core.Enums {
         public enum PlayerPhaseState {
             SelectUnitToControl,
             SelectUnitMoveDestination,
+            UnitMovingToDestination,
             UnitActionMenu,
             UnitSelectTarget,
             UnitAttackCutscene,
