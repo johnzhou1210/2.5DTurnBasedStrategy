@@ -55,7 +55,6 @@ namespace StrategyGame.Core.GameState {
         public struct GameStateSnapshot {
             public GameStateEnums.PlayerPhaseState CurrentPlayerPhaseState;
             public GameStateEnums.UnitMoveSelectionMode CurrentUnitMoveSelectionMode;
-            public GameStateEnums.ManualMoveSelectionState  CurrentManualMoveSelectionState;
             public GameStateEnums.TurnPhase CurrentTurnPhase;
         }
 
@@ -68,9 +67,8 @@ namespace StrategyGame.Core.GameState {
         public GridEntity CurrentInspectedEntity { get; private set; }
         public GridEntity CurrentSelectedEntity { get; private set; }
         public Tile CurrentInspectedTile {get; private set;}
-        public GameStateEnums.PlayerPhaseState CurrentPlayerPhaseState { get; private set; } = GameStateEnums.PlayerPhaseState.SelectUnitToMove;
+        public GameStateEnums.PlayerPhaseState CurrentPlayerPhaseState { get; private set; } = GameStateEnums.PlayerPhaseState.SelectUnitToControl;
         public GameStateEnums.UnitMoveSelectionMode CurrentUnitMoveSelectionMode { get; private set; } = GameStateEnums.UnitMoveSelectionMode.Manual;
-        public GameStateEnums.ManualMoveSelectionState CurrentManualMoveSelectionState { get; private set; } = GameStateEnums.ManualMoveSelectionState.AwaitingUnitSelection;
 
         public ManualPath ManualPath;
         
@@ -87,7 +85,7 @@ namespace StrategyGame.Core.GameState {
             
             GameStateDelegates.OnGameStarted += StartGame;
             GameStateDelegates.OnUnitMoveSelectionChanged += SetCurrentUnitMoveSelectionMode;
-            GameStateDelegates.OnManualMoveSelectionChanged += SetCurrentManualMoveSelectionState;
+            GameStateDelegates.OnPlayerPhaseStateChanged += SetCurrentPlayerPhaseState;
            
             
             GridDelegates.GetInspectedTile = () => CurrentInspectedTile;
@@ -100,7 +98,7 @@ namespace StrategyGame.Core.GameState {
         private void OnDisable() {
             GameStateDelegates.OnGameStarted -= StartGame;
             GameStateDelegates.OnUnitMoveSelectionChanged -= SetCurrentUnitMoveSelectionMode;
-            GameStateDelegates.OnManualMoveSelectionChanged -= SetCurrentManualMoveSelectionState;
+            GameStateDelegates.OnPlayerPhaseStateChanged -= SetCurrentPlayerPhaseState;
             
             GridDelegates.GetInspectedTile = null;
             GameStateDelegates.GetCurrentInspectedEntity = null;
@@ -203,25 +201,31 @@ namespace StrategyGame.Core.GameState {
             }
         }
 
-        private void SetCurrentManualMoveSelectionState(GameStateEnums.ManualMoveSelectionState state) {
-            if  (CurrentManualMoveSelectionState == state) return;
-            CurrentManualMoveSelectionState = state;
+        private void SetCurrentPlayerPhaseState(GameStateEnums.PlayerPhaseState phase) {
+            if (CurrentPlayerPhaseState == phase) return;
+            CurrentPlayerPhaseState = phase;
             ManualPath.Clear();
-            switch (CurrentManualMoveSelectionState) {
-                case GameStateEnums.ManualMoveSelectionState.AwaitingUnitSelection:
+            switch (CurrentPlayerPhaseState) {
+                case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
                     break;
-                case GameStateEnums.ManualMoveSelectionState.FormingPath:
+                case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
+                    // Update tile visual at location to play selected animation
+                    GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentInspectedEntity.GridPosition, true);
                     bool stepSuccess = ManualPath.StepToTile(CurrentInspectedTile);
                     if (!stepSuccess) {
-                        Debug.LogError($"Failed to step to {CurrentManualMoveSelectionState}");
+                        Debug.LogError($"Failed to step to {CurrentInspectedTile.Position}");
                     }
                     Debug.Log($"Manual path is now: { ManualPath }");
                     GridDelegates.InvokeOnManualPathPreview(ManualPath);
                     break;
-                case GameStateEnums.ManualMoveSelectionState.None:
+                case GameStateEnums.PlayerPhaseState.UnitActionMenu:
                     break;
-                default:
-                    throw new InvalidEnumArgumentException("Invalid manual move selection state!");
+                case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
+                    break;
+                case GameStateEnums.PlayerPhaseState.UnitAttackCutscene:
+                    break;
+                case GameStateEnums.PlayerPhaseState.None:
+                    break;
             }
         }
         
@@ -229,7 +233,6 @@ namespace StrategyGame.Core.GameState {
             return new GameStateSnapshot {
                 CurrentPlayerPhaseState = CurrentPlayerPhaseState,
                 CurrentUnitMoveSelectionMode = CurrentUnitMoveSelectionMode,
-                CurrentManualMoveSelectionState = CurrentManualMoveSelectionState,
                 CurrentTurnPhase = CurrentTurnPhase,
             };
         }
@@ -238,14 +241,14 @@ namespace StrategyGame.Core.GameState {
         // HELPERS
         // ==============================
         private bool HandleSetInspectedTile(Vector2Int coordinate) {
-            switch (CurrentManualMoveSelectionState) {
-                case GameStateEnums.ManualMoveSelectionState.None:
+            switch (CurrentPlayerPhaseState) {
+                case GameStateEnums.PlayerPhaseState.None:
                     return false;
-                case GameStateEnums.ManualMoveSelectionState.AwaitingUnitSelection:
+                case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
                     SetInspectedTile(coordinate);
                     UpdateAutomaticPathPreview(coordinate);
                     return true;
-                case GameStateEnums.ManualMoveSelectionState.FormingPath:
+                case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
                     return AddCoordinateToManualPath(coordinate);
                 default:
                     throw new InvalidEnumArgumentException("Invalid manual move selection state!");

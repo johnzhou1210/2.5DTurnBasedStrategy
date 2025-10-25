@@ -121,17 +121,18 @@ namespace StrategyGame.Core.Input {
             }
             if (_selectAction.WasPressedThisFrame()) {  
                 GameStateManager.GameStateSnapshot  stateSnapshot = GameStateDelegates.GetCurrentGameStateSnapshot();
-                if (stateSnapshot.CurrentManualMoveSelectionState == GameStateEnums.ManualMoveSelectionState.AwaitingUnitSelection) {
+                if (stateSnapshot.CurrentPlayerPhaseState == GameStateEnums.PlayerPhaseState.SelectUnitToControl) {
                     // In order to select, there must be an entity
-                    if (GameStateDelegates.GetCurrentInspectedEntity() == null) return;
+                    if (GameStateDelegates.GetCurrentInspectedEntity() == null) { Debug.LogWarning("InputManager | HandleSelectionInput : Current inspected entity is null!");  return; }
                     Debug.Log("START FORMING PATH");
                     _isDiagonalMoveEnabled = false;
-                    GameStateDelegates.InvokeOnManualMoveSelectionChanged(GameStateEnums.ManualMoveSelectionState.FormingPath);
-                } else if (stateSnapshot.CurrentManualMoveSelectionState == GameStateEnums.ManualMoveSelectionState.FormingPath) {
+                    GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination);
+                } else if (stateSnapshot.CurrentPlayerPhaseState== GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination) {
                     // TODO: Confirm chosen player path
+                    
                     Debug.Log("STOP FORMING PATH");
                     _isDiagonalMoveEnabled = true;
-                    GameStateDelegates.InvokeOnManualMoveSelectionChanged(GameStateEnums.ManualMoveSelectionState.AwaitingUnitSelection);
+                    GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitToControl);
                 }
                 
             }

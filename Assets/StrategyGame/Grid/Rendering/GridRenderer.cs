@@ -41,8 +41,8 @@ namespace StrategyGame.Grid.Rendering {
             GridDelegates.OnAStarPathPreview += PreviewPathAStar;
             GridDelegates.OnManualPathPreview += PreviewManualPath;
             EntityDelegates.OnEntityMoveAlongPath += RenderEntityMovementAlongPath;
-
             GridDelegates.OnInspectedTileChanged += UpdateInspectedTileVisuals;
+            GridDelegates.OnSetTileVisualSelectionAnim += UpdateTileVisualSelection;
         }
         private void OnDisable() {
             GridDelegates.OnAStarPathPreview -= PreviewPathAStar;
@@ -77,7 +77,6 @@ namespace StrategyGame.Grid.Rendering {
 
                 // If selected tile has entity, show entity's walkable tiles
                 if (newTile.IsOccupied) {
-                    newSelectable.SetSelectionVisualIsAnimated(true);
                     HashSet<Tile> walkableTileObjects = newTile.Occupant.GetWalkableTiles();
                     foreach (Tile tile in walkableTileObjects) {
                         _walkableTiles.Add(_tileVisuals[tile.Position.x, tile.Position.y]);
@@ -143,6 +142,13 @@ namespace StrategyGame.Grid.Rendering {
                 }
             }
             _pathTiles.Clear();
+        }
+
+        private void UpdateTileVisualSelection(Vector2Int newPosition, bool animated) {
+            GameObject tileToUpdate = _tileVisuals[newPosition.x, newPosition.y];
+            if (tileToUpdate.TryGetComponent(out TileSelectable tileSelectable)) {
+                tileSelectable.SetSelectionVisualIsAnimated(animated);
+            }
         }
         
         private void RenderEntityMovementAlongPath(GridEntity entity, List<Tile> path) {

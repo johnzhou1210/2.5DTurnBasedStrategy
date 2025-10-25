@@ -12,7 +12,7 @@ namespace StrategyGame.Core.Delegates {
         public static event Action<GameStateEnums.TurnPhase> OnPhaseChanged;
         public static event Action<GameStateEnums.UnitMoveSelectionMode> OnUnitMoveSelectionChanged;
         public static event Action OnGameStarted;
-        public static event Action<GameStateEnums.ManualMoveSelectionState> OnManualMoveSelectionChanged;
+        public static event Action<GameStateEnums.PlayerPhaseState> OnPlayerPhaseStateChanged;
 
         public static void InvokeOnPhaseChanged(GameStateEnums.TurnPhase phase) {
             OnPhaseChanged?.Invoke(phase);
@@ -23,8 +23,8 @@ namespace StrategyGame.Core.Delegates {
         public static void InvokeOnUnitMoveSelectionChanged(GameStateEnums.UnitMoveSelectionMode mode) {
             OnUnitMoveSelectionChanged?.Invoke(mode);
         }
-        public static void InvokeOnManualMoveSelectionChanged(GameStateEnums.ManualMoveSelectionState state) {
-            OnManualMoveSelectionChanged?.Invoke(state);
+        public static void InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState state) {
+            OnPlayerPhaseStateChanged?.Invoke(state);
         }
 
         

@@ -8,7 +8,7 @@ namespace StrategyGame.Core.Enums {
         }
 
         public enum PlayerPhaseState {
-            SelectUnitToMove,
+            SelectUnitToControl,
             SelectUnitMoveDestination,
             UnitActionMenu,
             UnitSelectTarget,
@@ -21,11 +21,6 @@ namespace StrategyGame.Core.Enums {
             Automatic,
             None
         }
-
-        public enum ManualMoveSelectionState {
-            AwaitingUnitSelection,
-            FormingPath,
-            None
-        }
+        
     }
 }
