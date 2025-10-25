@@ -152,7 +152,7 @@ namespace StrategyGame.Grid.Rendering {
         }
         
         private void RenderEntityMovementAlongPath(GridEntity entity, List<Tile> path) {
-            StartCoroutine(EntityMovementCoroutine(entity, path));
+            StartCoroutine(EntityPathMovementCoroutine(entity, path));
         }
         public void OnGridRedraw() {
             Vector2Int dimensions = grid.GetSize();
@@ -247,13 +247,16 @@ namespace StrategyGame.Grid.Rendering {
             }
             _walkableTiles.Clear();
         }
-        private IEnumerator EntityMovementCoroutine(GridEntity entity, List<Tile> path) {
+        private IEnumerator EntityPathMovementCoroutine(GridEntity entity, List<Tile> path) {
             // Get entity transform
             Transform entityTransform = EntityDelegates.GetEntityVisualTransformByID(entity.ID);
-            foreach (Tile tile in path) {
-                entityTransform.DOMove(new Vector3(tile.Position.x, 0f, tile.Position.y), .33f);
-                yield return new WaitForSeconds(.33f);
+            List<Tile> pathCopy = new List<Tile>(path);
+            Debug.Log(string.Join(", ", pathCopy));
+            foreach (Tile tile in pathCopy) {
+                Tween tween = entityTransform.DOMove(new Vector3(tile.Position.x, 0f, tile.Position.y), 0.33f).SetEase(Ease.Linear);
+                yield return tween.WaitForCompletion();
             }
+            
         }
     }
 }

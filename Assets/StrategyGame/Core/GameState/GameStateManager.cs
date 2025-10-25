@@ -70,7 +70,7 @@ namespace StrategyGame.Core.GameState {
         public GameStateEnums.PlayerPhaseState CurrentPlayerPhaseState { get; private set; } = GameStateEnums.PlayerPhaseState.SelectUnitToControl;
         public GameStateEnums.UnitMoveSelectionMode CurrentUnitMoveSelectionMode { get; private set; } = GameStateEnums.UnitMoveSelectionMode.Manual;
 
-        public ManualPath ManualPath;
+        public ManualPath ManualPath { get; private set; }
         
         
         
@@ -91,6 +91,7 @@ namespace StrategyGame.Core.GameState {
             GridDelegates.GetInspectedTile = () => CurrentInspectedTile;
             GameStateDelegates.GetCurrentInspectedEntity  = () => CurrentInspectedEntity;
             GameStateDelegates.GetCurrentSelectedEntity  = () => CurrentSelectedEntity;
+            GameStateDelegates.GetManualPath = () => ManualPath;
             GameStateDelegates.GetCurrentGameStateSnapshot = GetCurrentGameStateSnapshot;
             GridDelegates.SetInspectedTile = HandleSetInspectedTile;
 
@@ -103,6 +104,7 @@ namespace StrategyGame.Core.GameState {
             GridDelegates.GetInspectedTile = null;
             GameStateDelegates.GetCurrentInspectedEntity = null;
             GameStateDelegates.GetCurrentSelectedEntity = null;
+            GameStateDelegates.GetManualPath = null;
             GameStateDelegates.GetCurrentGameStateSnapshot = null;
             GridDelegates.SetInspectedTile = null;
         }
@@ -209,6 +211,8 @@ namespace StrategyGame.Core.GameState {
                 case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
                     break;
                 case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
+                    // Selected current inspected entity
+                    CurrentSelectedEntity = CurrentInspectedEntity;
                     // Update tile visual at location to play selected animation
                     GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentInspectedEntity.GridPosition, true);
                     bool stepSuccess = ManualPath.StepToTile(CurrentInspectedTile);
@@ -242,14 +246,20 @@ namespace StrategyGame.Core.GameState {
         // ==============================
         private bool HandleSetInspectedTile(Vector2Int coordinate) {
             switch (CurrentPlayerPhaseState) {
-                case GameStateEnums.PlayerPhaseState.None:
-                    return false;
                 case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
                     SetInspectedTile(coordinate);
                     UpdateAutomaticPathPreview(coordinate);
                     return true;
                 case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
                     return AddCoordinateToManualPath(coordinate);
+                case GameStateEnums.PlayerPhaseState.UnitActionMenu:
+                    return false;
+                case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
+                    return false;
+                case GameStateEnums.PlayerPhaseState.UnitAttackCutscene:
+                    return false;
+                case GameStateEnums.PlayerPhaseState.None:
+                    return false;
                 default:
                     throw new InvalidEnumArgumentException("Invalid manual move selection state!");
             }

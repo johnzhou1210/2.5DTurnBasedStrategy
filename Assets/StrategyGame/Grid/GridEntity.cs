@@ -86,15 +86,20 @@ namespace StrategyGame.Grid {
         /// Call this if you want to move a unit on a path while respecting animations.
         /// </summary>
         /// <param name="path">The path the entity will move along.</param>
-        public virtual void MoveAlongPath(List<Tile> path) {
+        /// <param name="respectAnimations">Boolean indicating whether the movement through each individual tile will be animated</param>
+        public virtual void MoveAlongPath(List<Tile> path, bool respectAnimations = true) {
             Tile startTile = GridDelegates.GetTileFromPosition(GridPosition);
             Vector2Int endPosition = path[^1].Position;
             Tile endTile = GridDelegates.GetTileFromPosition(endPosition);
             SetGridPosition(endPosition);
             startTile.RemoveOccupant();
             endTile.AddOccupant(this);
+            if (respectAnimations) {
+                EntityDelegates.InvokeOnEntityMoveAlongPath(this, path);
+            } else {
+                // TODO: Implement version that instantly teleport without effects/animation
+            }
             
-            EntityDelegates.InvokeOnEntityMoveAlongPath(this, path);
         }
         
         public virtual GameObject GetSpritePrefab() {
