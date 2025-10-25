@@ -217,6 +217,7 @@ namespace StrategyGame.Core.GameState {
                     Debug.Log($"Manual path is now: {ManualPath}");
                     GridDelegates.InvokeOnManualPathPreview(ManualPath);
                     break;
+                case GameStateEnums.PlayerPhaseState.UnitMovingToDestination: break;
                 case GameStateEnums.PlayerPhaseState.UnitActionMenu: break;
                 case GameStateEnums.PlayerPhaseState.UnitSelectTarget: break;
                 case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: break;
@@ -237,6 +238,7 @@ namespace StrategyGame.Core.GameState {
                     UpdateAutomaticPathPreview(coordinate);
                     return true;
                 case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination: return AddCoordinateToManualPath(coordinate);
+                case GameStateEnums.PlayerPhaseState.UnitMovingToDestination: return false;
                 case GameStateEnums.PlayerPhaseState.UnitActionMenu: return false;
                 case GameStateEnums.PlayerPhaseState.UnitSelectTarget: return false;
                 case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: return false;
