@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
@@ -116,10 +117,6 @@ namespace StrategyGame.Core.Input {
             }
         }
         private void HandleSelectionInput() {
-            // if (GameStateDelegates.GetCurrentSelectedEntity() != null) {
-            //     Debug.Log("Entity already selected");
-            //     return;
-            // }
             if (_selectAction.WasPressedThisFrame()) {  
                 GameStateManager.GameStateSnapshot stateSnapshot = GameStateDelegates.GetCurrentGameStateSnapshot();
                 if (stateSnapshot.CurrentPlayerPhaseState == GameStateEnums.PlayerPhaseState.SelectUnitToControl) {
@@ -128,21 +125,31 @@ namespace StrategyGame.Core.Input {
                     Debug.Log("START FORMING PATH");
                     _isDiagonalMoveEnabled = false;
                     GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination);
-                } else if (stateSnapshot.CurrentPlayerPhaseState== GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination) {
-                    // TODO: Confirm chosen player path
-                    Debug.Log("STOP FORMING PATH");
-                    _isDiagonalMoveEnabled = true;
-                    
-                    bool isDestinationValid = true; // Change this later
+                } else if (stateSnapshot.CurrentPlayerPhaseState == GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination) {
                     GridEntity currentSelectedEntity = GameStateDelegates.GetCurrentSelectedEntity();
                     if (currentSelectedEntity == null) { Debug.LogWarning("InputManager | HandleSelectionInput : Current selected entity is null!"); return; }
+                    Debug.Log("STOP FORMING PATH");
+                    _isDiagonalMoveEnabled = true;
+                    /* To check if destination is valid: the following must be true:
+                     * 1) The length of the path must be less than or equal to unit's move stat
+                     * 2) Intersecting valid tiles set with path must result in just the path set.
+                     */ 
+                    ManualPath manualPath = GameStateDelegates.GetManualPath();
+                    HashSet<Tile> walkableTiles = currentSelectedEntity.GetWalkableTiles();
+                    HashSet<Tile> manualPathSet = manualPath.Unique;
+                    int manualPathSetOriginalSize = manualPathSet.Count;
+                    manualPathSet.IntersectWith(walkableTiles);
+                    manualPathSet.Add(GridDelegates.GetTileFromPosition(currentSelectedEntity.GridPosition));
+                    Debug.Log($"Walkable tiles: {string.Join(", ", walkableTiles)}");
+                    Debug.Log($"Manual path tiles: {string.Join(", ", manualPath.Tiles)} | Selected entity movement range: {currentSelectedEntity.MovementRange} | Manual path set: {string.Join(", ", manualPathSet)} | Original manual path set size: {manualPathSetOriginalSize}");
+                    bool isDestinationValid = manualPath.Tiles.Count - 1 <= currentSelectedEntity.MovementRange && manualPathSet.Count == manualPathSetOriginalSize;
                     if (isDestinationValid) {
                         // Move unit to destination
-                        ManualPath manualPath = GameStateDelegates.GetManualPath();
                         currentSelectedEntity.MoveAlongPath(manualPath.Tiles);
                         GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitMovingToDestination);
                     } else {
-                        GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitToControl);
+                        Debug.Log("InputManager | HandleSelectionInput : Current manual path is not allowed!");
+                        // GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitToControl);
                     }
                     
                 }

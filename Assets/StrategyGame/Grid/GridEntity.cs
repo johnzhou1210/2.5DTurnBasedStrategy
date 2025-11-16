@@ -122,10 +122,12 @@ namespace StrategyGame.Grid {
                     Tile neighbor = neighborPair.Value;
                     if (neighbor == null)
                         continue;
+                    bool isEnemy = neighbor.Occupant != null && neighbor.Occupant.Faction != Faction;
+                    if (isEnemy) continue;
                     int newRemainingMovement = remainingMovement - neighbor.MovementCost;
                     if (newRemainingMovement < 0)
                         continue; // Not enough movement points to enter
-                    bool isEnemy = neighbor.Occupant != null && neighbor.Occupant.Faction != this.Faction;
+                    
 
                     // Update bestRemainingMovements if better
                     if (!bestRemainingMovements.ContainsKey(neighbor) || newRemainingMovement > bestRemainingMovements[neighbor]) {
