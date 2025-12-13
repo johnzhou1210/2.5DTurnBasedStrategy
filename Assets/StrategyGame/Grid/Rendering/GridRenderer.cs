@@ -85,25 +85,50 @@ namespace StrategyGame.Grid.Rendering {
                 GameStateManager.GameStateSnapshot currentGameStateSnapshot = GameStateDelegates.GetCurrentGameStateSnapshot();
                 // GameStateDelegates.GetCurrentSelectedEntity != null || currentGameStateSnapshot.CurrentPlayerPhaseState == GameStateEnums.PlayerPhaseState.SelectUnitToControl
 
-                if (currentGameStateSnapshot.CurrentPlayerPhaseState != GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination) {
-                    if (!newTile.IsOccupied) {
-                        ClearWalkableTiles();
-                    }
+                // if (currentGameStateSnapshot.CurrentPlayerPhaseState != GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination) {
+                //     if (!newTile.IsOccupied) {
+                //         ClearWalkableTiles();
+                //     }
+                // }
+                ClearWalkableTiles();
+
+                if (currentGameStateSnapshot.CurrentPlayerPhaseState == GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination) {
+                    GridEntity currentSelectedEntity = GameStateDelegates.GetCurrentSelectedEntity();
+                    
+                    // To determine how many steps to look, take a look at GameStateManager's manual path
+                    int stepsAllowed = currentSelectedEntity.MovementRange - GameStateDelegates.GetManualPath().Tiles.Count + 1;
+                    Debug.Log($"StepsAllowed: {stepsAllowed}");
+                    HashSet<Tile> walkableTileObjects = currentSelectedEntity.GetWalkableTilesAtPosition(newTile.Position, stepsAllowed);
+                    MarkWalkableTiles(walkableTileObjects);  
+                    return;
                 }
-                
+
+                if (currentGameStateSnapshot.CurrentPlayerPhaseState != GameStateEnums.PlayerPhaseState.SelectUnitToControl) {
+                    return;
+                }
                 if (newTile.IsOccupied) {
                     HashSet<Tile> walkableTileObjects = newTile.Occupant.GetWalkableTiles();
-                    foreach (Tile tile in walkableTileObjects) {
-                        _walkableTiles.Add(_tileVisuals[tile.Position.x, tile.Position.y]);
-                    }
-                    foreach (GameObject walkableTile in _walkableTiles) {
-                        if (walkableTile.TryGetComponent(out TileSelectable tileSelectable)) {
-                            tileSelectable.SetWalkableMarkVisualVisibility(true);
-                        }
-                    }
+                    MarkWalkableTiles(walkableTileObjects);
                 }
             }
         }
+
+
+        /// <summary>
+        /// Visually marks walkable tiles.
+        /// </summary>
+        /// <param name="walkableTileObjects">The Tiles to mark as walkable.</param>
+        private void MarkWalkableTiles(HashSet<Tile> walkableTileObjects) {
+            foreach (Tile tile in walkableTileObjects) {
+                _walkableTiles.Add(_tileVisuals[tile.Position.x, tile.Position.y]);
+            }
+            foreach (GameObject walkableTile in _walkableTiles) {
+                if (walkableTile.TryGetComponent(out TileSelectable tileSelectable)) {
+                    tileSelectable.SetWalkableMarkVisualVisibility(true);
+                }
+            }
+        }
+        
         
         /// <summary>
         /// Renders a visual route of a path.

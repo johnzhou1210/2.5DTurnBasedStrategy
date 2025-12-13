@@ -106,14 +106,18 @@ namespace StrategyGame.Grid {
             return GridEntityData.VisualPrefab;
         }
         public virtual HashSet<Tile> GetWalkableTiles() {
-            HashSet<Tile> result = new HashSet<Tile>();
-            Tile startTile = GridDelegates.GetTileFromPosition(GridPosition);
+            return GetWalkableTilesAtPosition(GridPosition, MovementRange);
+        }
 
+        public HashSet<Tile> GetWalkableTilesAtPosition(Vector2Int position, int stepsAllowed) {
+            HashSet<Tile> result = new HashSet<Tile>();
+            Tile startTile = GridDelegates.GetTileFromPosition(position);
+            
             // BFS / flood fill
             Queue<FloodFillQueueEntry> tilesToVisit = new Queue<FloodFillQueueEntry>();
             Dictionary<Tile, int> bestRemainingMovements = new Dictionary<Tile, int>();
-            tilesToVisit.Enqueue(new FloodFillQueueEntry { Tile = startTile, RemainingMovementPoints = MovementRange, });
-            bestRemainingMovements[startTile] = MovementRange;
+            tilesToVisit.Enqueue(new FloodFillQueueEntry { Tile = startTile, RemainingMovementPoints = stepsAllowed, });
+            bestRemainingMovements[startTile] = stepsAllowed;
             while (tilesToVisit.Count > 0) {
                 FloodFillQueueEntry entry = tilesToVisit.Dequeue();
                 Tile currentTile = entry.Tile;
@@ -144,12 +148,14 @@ namespace StrategyGame.Grid {
 
             // Collect all reachable tiles (except the start tile)
             foreach (var entry in bestRemainingMovements) {
-                if (entry.Key == startTile)
+                if (Equals(entry.Key, startTile))
                     continue;
                 result.Add(entry.Key);
             }
+            
             return result;
         }
+        
         public void SetGridPosition(Vector2Int newPosition) {
             GridPosition = newPosition;
         }
