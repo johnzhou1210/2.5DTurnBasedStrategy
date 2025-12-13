@@ -59,24 +59,38 @@ namespace StrategyGame.Grid.Rendering {
                 // Hide old tile selection visual
                 GameObject oldTileVisual = _tileVisuals[oldTile.Position.x, oldTile.Position.y];
                 if (oldTileVisual == null) {
-                    throw new Exception("Old tile visual not found!");
+                    throw new Exception("GridRenderer.UpdateInspectedTileVisuals: Old tile visual not found!");
                 }
                 if (oldTileVisual.TryGetComponent(out TileSelectable oldSelectable)) {
                     oldSelectable.SetSelectionVisualVisibility(false);
                     oldSelectable.SetSelectionVisualIsAnimated(false);
                 }
-                ClearWalkableTiles();
+                // ClearWalkableTiles();
             }
 
+            if (newTile == null) {
+                throw new Exception("GridRenderer.UpdateInspectedTileVisuals: New tile is null!");
+            }
+            
             // Show new tile selection visual
             GameObject newTileVisual = _tileVisuals[newTile.Position.x, newTile.Position.y];
             if (newTileVisual == null) {
-                throw new Exception("New tile visual not found!");
+                throw new Exception("GridRenderer.UpdateInspectedTileVisuals: New tile visual not found!");
             }
             if (newTileVisual.TryGetComponent(out TileSelectable newSelectable)) {
                 newSelectable.SetSelectionVisualVisibility(true);
 
-                // If selected tile has entity, show entity's walkable tiles
+                // If currently selecting an entity or hovering over an entity outside of path selection mode, show entity's walkable tiles
+                // Do not update walkable tiles if currently selecting a unit's movement path
+                GameStateManager.GameStateSnapshot currentGameStateSnapshot = GameStateDelegates.GetCurrentGameStateSnapshot();
+                // GameStateDelegates.GetCurrentSelectedEntity != null || currentGameStateSnapshot.CurrentPlayerPhaseState == GameStateEnums.PlayerPhaseState.SelectUnitToControl
+
+                if (currentGameStateSnapshot.CurrentPlayerPhaseState != GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination) {
+                    if (!newTile.IsOccupied) {
+                        ClearWalkableTiles();
+                    }
+                }
+                
                 if (newTile.IsOccupied) {
                     HashSet<Tile> walkableTileObjects = newTile.Occupant.GetWalkableTiles();
                     foreach (Tile tile in walkableTileObjects) {
