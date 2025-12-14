@@ -36,6 +36,7 @@ namespace StrategyGame.Core.Delegates {
         public static Func<GridEntity> GetCurrentSelectedEntity;
         public static Func<GameStateManager.GameStateSnapshot> GetCurrentGameStateSnapshot;
         public static Func<ManualPath> GetManualPath;
+        public static Func<int> ManualPathSelectionGetSpentMovementCost;
 
     }
 }

@@ -90,16 +90,19 @@ namespace StrategyGame.Grid.Rendering {
                 //         ClearWalkableTiles();
                 //     }
                 // }
-                ClearWalkableTiles();
 
+                
+                ClearWalkableTiles();
+                
                 if (currentGameStateSnapshot.CurrentPlayerPhaseState == GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination) {
                     GridEntity currentSelectedEntity = GameStateDelegates.GetCurrentSelectedEntity();
-                    
                     // To determine how many steps to look, take a look at GameStateManager's manual path
-                    int stepsAllowed = currentSelectedEntity.MovementRange - GameStateDelegates.GetManualPath().Tiles.Count + 1;
-                    Debug.Log($"StepsAllowed: {stepsAllowed}");
-                    HashSet<Tile> walkableTileObjects = currentSelectedEntity.GetWalkableTilesAtPosition(newTile.Position, stepsAllowed);
-                    MarkWalkableTiles(walkableTileObjects);  
+                    int movementCostRemaining = currentSelectedEntity.MovementRange - GameStateDelegates.ManualPathSelectionGetSpentMovementCost();
+                    Debug.Log($"GridRenderer.UpdateInspectedTileVisuals: Movement cost remaining: {movementCostRemaining}");
+                    HashSet<Tile> walkableTileObjects = currentSelectedEntity.GetWalkableTilesAtPosition(newTile.Position, movementCostRemaining);
+                    walkableTileObjects.UnionWith(GameStateDelegates.GetManualPath().Unique);
+                    MarkWalkableTiles(walkableTileObjects);
+                    
                     return;
                 }
 
@@ -160,7 +163,6 @@ namespace StrategyGame.Grid.Rendering {
         }
 
         private void PreviewManualPath(ManualPath manualPath) {
-            Debug.Log("IN HERE");
             ClearAllPathTileVisuals();
             foreach (Tile tile in manualPath.Tiles) {
                 _pathTiles.Add(_tileVisuals[tile.Position.x, tile.Position.y]);

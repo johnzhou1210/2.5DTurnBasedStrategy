@@ -121,13 +121,13 @@ namespace StrategyGame.Core.Input {
                 GameStateManager.GameStateSnapshot stateSnapshot = GameStateDelegates.GetCurrentGameStateSnapshot();
                 if (stateSnapshot.CurrentPlayerPhaseState == GameStateEnums.PlayerPhaseState.SelectUnitToControl) {
                     // In order to select, there must be an entity
-                    if (GameStateDelegates.GetCurrentInspectedEntity() == null) { Debug.LogWarning("InputManager | HandleSelectionInput : Current selected entity is null!");  return; }
+                    if (GameStateDelegates.GetCurrentInspectedEntity() == null) { Debug.LogWarning("InputManager.HandleSelectionInput : Current selected entity is null!");  return; }
                     Debug.Log("START FORMING PATH");
                     _isDiagonalMoveEnabled = false;
                     GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination);
                 } else if (stateSnapshot.CurrentPlayerPhaseState == GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination) {
                     GridEntity currentSelectedEntity = GameStateDelegates.GetCurrentSelectedEntity();
-                    if (currentSelectedEntity == null) { Debug.LogWarning("InputManager | HandleSelectionInput : Current selected entity is null!"); return; }
+                    if (currentSelectedEntity == null) { Debug.LogWarning("InputManager.HandleSelectionInput : Current selected entity is null!"); return; }
                     Debug.Log("STOP FORMING PATH");
                     _isDiagonalMoveEnabled = true;
                     /* To check if destination is valid: the following must be true:
@@ -140,15 +140,15 @@ namespace StrategyGame.Core.Input {
                     int manualPathSetOriginalSize = manualPathSet.Count;
                     manualPathSet.IntersectWith(walkableTiles);
                     manualPathSet.Add(GridDelegates.GetTileFromPosition(currentSelectedEntity.GridPosition));
-                    Debug.Log($"Walkable tiles: {string.Join(", ", walkableTiles)}");
-                    Debug.Log($"Manual path tiles: {string.Join(", ", manualPath.Tiles)} | Selected entity movement range: {currentSelectedEntity.MovementRange} | Manual path set: {string.Join(", ", manualPathSet)} | Original manual path set size: {manualPathSetOriginalSize}");
+                    Debug.Log($"InputManager.HandleSelectionInput: Walkable tiles: {string.Join(", ", walkableTiles)}");
+                    Debug.Log($"InputManager.HandleSelectionInput: Manual path tiles: {string.Join(", ", manualPath.Tiles)} | Selected entity movement range: {currentSelectedEntity.MovementRange} | Manual path set: {string.Join(", ", manualPathSet)} | Original manual path set size: {manualPathSetOriginalSize}");
                     bool isDestinationValid = manualPath.Tiles.Count - 1 <= currentSelectedEntity.MovementRange && manualPathSet.Count == manualPathSetOriginalSize;
                     if (isDestinationValid) {
                         // Move unit to destination
                         currentSelectedEntity.MoveAlongPath(manualPath.Tiles);
                         GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitMovingToDestination);
                     } else {
-                        Debug.Log("InputManager | HandleSelectionInput : Current manual path is not allowed!");
+                        Debug.Log("InputManager.HandleSelectionInput: Current manual path is not allowed!");
                         // GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitToControl);
                     }
                     

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
 using StrategyGame.Grid;
@@ -84,6 +85,7 @@ namespace StrategyGame.Core.GameState {
             GameStateDelegates.GetManualPath = () => ManualPath;
             GameStateDelegates.GetCurrentGameStateSnapshot = GetCurrentGameStateSnapshot;
             GridDelegates.SetInspectedTile = HandleSetInspectedTile;
+            GameStateDelegates.ManualPathSelectionGetSpentMovementCost = GetManualPathUsedMovementCost;
         }
         private void OnDisable() {
             GameStateDelegates.OnGameStarted -= StartGame;
@@ -95,6 +97,7 @@ namespace StrategyGame.Core.GameState {
             GameStateDelegates.GetManualPath = null;
             GameStateDelegates.GetCurrentGameStateSnapshot = null;
             GridDelegates.SetInspectedTile = null;
+            GameStateDelegates.ManualPathSelectionGetSpentMovementCost = null;
         }
 
         // ==============================
@@ -137,7 +140,7 @@ namespace StrategyGame.Core.GameState {
                     case GameStateEnums.TurnPhase.Player: HandlePlayerPhaseState(); break;
                     case GameStateEnums.TurnPhase.Enemy: HandleEnemyPhaseState(); break;
                     case GameStateEnums.TurnPhase.Event: HandleEventPhaseState(); break;
-                    default: throw new InvalidEnumArgumentException("Invalid turn phase!");
+                    default: throw new InvalidEnumArgumentException("GameStateManager.CoreGameLoop: Invalid turn phase!");
                 }
                 yield return new WaitForEndOfFrame();
             }
@@ -158,7 +161,7 @@ namespace StrategyGame.Core.GameState {
                     break;
                 case GameStateEnums.PlayerPhaseState.UnitMovingToDestination:
                     if (CurrentSelectedEntity == null) {
-                        Debug.LogWarning("GameStateManager | HandlePlayerPhaseState: CurrentSelectedEntity is null");
+                        Debug.LogWarning("GameStateManager.HandlePlayerPhaseState: CurrentSelectedEntity is null");
                         return;
                     }
                     // Focus camera rig onto position
@@ -175,7 +178,7 @@ namespace StrategyGame.Core.GameState {
                 case GameStateEnums.PlayerPhaseState.None:
                     break;
                 default:
-                    throw new InvalidEnumArgumentException("GameStateManager | HandlePlayerPhaseState | Invalid CurrentPlayerPhaseState!");
+                    throw new InvalidEnumArgumentException("GameStateManager.HandlePlayerPhaseState: Invalid CurrentPlayerPhaseState!");
             }
           
         }
@@ -195,7 +198,7 @@ namespace StrategyGame.Core.GameState {
                 case GameStateEnums.UnitMoveSelectionMode.Manual: InputDelegates.InvokeOnSetMouseRaycastEnabled(false); break;
                 case GameStateEnums.UnitMoveSelectionMode.Automatic: InputDelegates.InvokeOnSetMouseRaycastEnabled(true); break;
                 case GameStateEnums.UnitMoveSelectionMode.None: InputDelegates.InvokeOnSetMouseRaycastEnabled(false); break;
-                default: throw new InvalidEnumArgumentException("Invalid unit move selection mode!");
+                default: throw new InvalidEnumArgumentException("GameStateManager.SetCurrentUnitMoveSelectionMode: Invalid unit move selection mode!");
             }
         }
         private void SetCurrentPlayerPhaseState(GameStateEnums.PlayerPhaseState phase) {
@@ -212,9 +215,9 @@ namespace StrategyGame.Core.GameState {
                     GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentInspectedEntity.GridPosition, true);
                     bool stepSuccess = ManualPath.StepToTile(CurrentInspectedTile);
                     if (!stepSuccess) {
-                        Debug.LogError($"Failed to step to {CurrentInspectedTile.Position}");
+                        Debug.LogError($"GameStateManager.SetCurrentPlayerPhaseState: Failed to step to {CurrentInspectedTile.Position}");
                     }
-                    Debug.Log($"Manual path is now: {ManualPath}");
+                    Debug.Log($"GameStateManager.SetCurrentPlayerPhaseState: Manual path is now: {ManualPath}");
                     GridDelegates.InvokeOnManualPathPreview(ManualPath);
                     break;
                 case GameStateEnums.PlayerPhaseState.UnitMovingToDestination: break;
@@ -243,20 +246,42 @@ namespace StrategyGame.Core.GameState {
                 case GameStateEnums.PlayerPhaseState.UnitSelectTarget: return false;
                 case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: return false;
                 case GameStateEnums.PlayerPhaseState.None: return false;
-                default: throw new InvalidEnumArgumentException("Invalid manual move selection state!");
+                default: throw new InvalidEnumArgumentException("GameStateManager.HandleSetInspectedTile: Invalid manual move selection state!");
             }
         }
         private bool AddCoordinateToManualPath(Vector2Int coordinate) {
+            // Get terrain data at coordinate
+            Tile tileAtCoordinate = GridDelegates.GetTileFromPosition(coordinate);
+            
+            // Forbid adding coordinate to manual path if out of movement range
+            if (ManualPath.Unique.FirstOrDefault(tile => tile.Position == coordinate) == null) {
+                int movementCostUsed = GetManualPathUsedMovementCost();
+                if (CurrentSelectedEntity.MovementRange - movementCostUsed - tileAtCoordinate.MovementCost < 0) {
+                    Debug.LogWarning($"GameStateManager.AddCoordinateToManualPath: Not enough movement cost. Not adding coordinate to manual path. {string.Join(",", ManualPath.Tiles)}");
+                    return false;
+                }
+            }
+            
             bool stepSuccess = ManualPath.StepToTile(GridDelegates.GetTileFromPosition(coordinate));
-            Debug.Log($"Manual path is now: {ManualPath}");
+            Debug.Log($"GameStateManager.AddCoordinateToManualPath: Manual path is now: {ManualPath}");
             if (stepSuccess) {
                 SetInspectedTile(coordinate);
                 GridDelegates.InvokeOnManualPathPreview(ManualPath);
             } else {
-                Debug.LogWarning($"Illegal path. Restricting cursor movement. Cursor position according to GameState: {CurrentInspectedTile.Position}");
+                Debug.LogWarning($"GameStateManager.AddCoordinateToManualPath: Illegal path. Restricting cursor movement. Cursor position according to GameState: {CurrentInspectedTile.Position}");
             }
             return stepSuccess;
         }
+
+        private int GetManualPathUsedMovementCost() {
+            int totalCost = 0;
+            // Skip the starting tile
+            for (int i = 1; i < ManualPath.Tiles.Count; i++) {
+                totalCost += ManualPath.Tiles[i].MovementCost;
+            }
+            return totalCost;
+        }
+        
         private void UpdateAutomaticPathPreview(Vector2Int coordinate) {
             Tile newTile = GridDelegates.GetTileFromPosition(coordinate);
             Vector2Int startPosition = CurrentInspectedEntity?.GridPosition ?? newTile.Position;
@@ -265,9 +290,21 @@ namespace StrategyGame.Core.GameState {
         private void SetInspectedTile(Vector2Int coordinate) {
             Tile newTile = GridDelegates.GetTileFromPosition(coordinate);
             Tile oldTile = CurrentInspectedTile;
+            
+            // Forbid the change if player is currently in manual path selection mode and the new tile is not walkable from the old tile
+            if (CurrentPlayerPhaseState == GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination && CurrentUnitMoveSelectionMode == GameStateEnums.UnitMoveSelectionMode.Manual) {
+                int movementCostUsed = GetManualPathUsedMovementCost();
+                Debug.Log($"GameStateManager.SetInspectedTile: MovementCostUsed: {movementCostUsed}");
+                // if (CurrentSelectedEntity.MovementRange - movementCostUsed - newTile.MovementCost < 1) {
+                //     Debug.LogWarning($"GameStateManager.SetInspectedTile: Not enough movement cost. Not adding coordinate to manual path. {string.Join(",", ManualPath.Tiles)}");
+                //     return;
+                // }
+            }
+            
+            
             if (Equals(oldTile, newTile))
                 return;
-            CurrentInspectedTile = newTile ?? throw new ArgumentException("Tile does not exist at position {coordinates}!");
+            CurrentInspectedTile = newTile ?? throw new ArgumentException("GameStateManager.SetInspectedTile: Tile does not exist at position {coordinates}!");
             GridDelegates.InvokeOnInspectedTileChanged(oldTile, newTile);
             GridEntity previousSelectedEntity = CurrentInspectedEntity;
             CurrentInspectedEntity = newTile.IsOccupied ? newTile.Occupant : null;
