@@ -23,6 +23,7 @@ namespace StrategyGame.Grid.Rendering {
         [SerializeField] private GameObject routeTurnVisual;
         [SerializeField] private GameObject routeTurnFlippedVisual;
         [SerializeField] private GameObject routeStartVisual;
+        [SerializeField] private GameObject routeHalfStraightVisual;
 
         [SerializeField] private new Renderer renderer;
         [SerializeField] private Animator selectionAnimator;
@@ -65,9 +66,12 @@ namespace StrategyGame.Grid.Rendering {
             if (!routeSegmentData.IsValid) return;
             
             GameObject activeVisual;
-            if (routeSegmentData.IsStart) { 
+            if (GameStateDelegates.GetManualPath().Unique.Count <= 1) {
                 activeVisual = null;
                 HideAllRouteVisuals();
+            } else if (routeSegmentData.IsStart) {
+                routeHalfStraightVisual.SetActive(true);
+                activeVisual = routeHalfStraightVisual;
             } else if (routeSegmentData.IsDestination) {
                 routeTipVisual.SetActive(true);
                 activeVisual = routeTipVisual;
@@ -92,6 +96,7 @@ namespace StrategyGame.Grid.Rendering {
             routeTurnVisual.SetActive(false);
             routeTurnFlippedVisual.SetActive(false);
             routeStartVisual.SetActive(false);
+            routeHalfStraightVisual.SetActive(false);
         }
         
         // For when unit is selected

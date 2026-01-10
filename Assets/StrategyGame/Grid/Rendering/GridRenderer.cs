@@ -44,11 +44,13 @@ namespace StrategyGame.Grid.Rendering {
             EntityDelegates.OnEntityMoveAlongPath += RenderEntityMovementAlongPath;
             GridDelegates.OnInspectedTileChanged += UpdateInspectedTileVisuals;
             GridDelegates.OnSetTileVisualSelectionAnim += UpdateTileVisualSelection;
+            GridDelegates.OnClearPath += ClearAllPathTileVisuals;
         }
         private void OnDisable() {
             GridDelegates.OnAStarPathPreview -= PreviewPathAStar;
             GridDelegates.OnManualPathPreview -= PreviewManualPath;
             GridDelegates.OnInspectedTileChanged -= UpdateInspectedTileVisuals;
+            GridDelegates.OnClearPath -= ClearAllPathTileVisuals;
         }
 
         // ==============================
@@ -102,7 +104,6 @@ namespace StrategyGame.Grid.Rendering {
                     HashSet<Tile> walkableTileObjects = currentSelectedEntity.GetWalkableTilesAtPosition(newTile.Position, movementCostRemaining);
                     walkableTileObjects.UnionWith(GameStateDelegates.GetManualPath().Unique);
                     MarkWalkableTiles(walkableTileObjects);
-                    
                     return;
                 }
 
@@ -214,7 +215,7 @@ namespace StrategyGame.Grid.Rendering {
         public void OnTileRedraw(Tile tileToRedraw) {
             GameObject tileVisualToRedraw = _tileVisuals[tileToRedraw.Position.x, tileToRedraw.Position.y];
             if (tileVisualToRedraw == null)
-                throw new Exception("Tile to redraw is null");
+                throw new Exception("GridRenderer.OnTileRedraw: Tile to redraw is null");
             if (tileVisualToRedraw.TryGetComponent(out TileSelectable selectable)) {
                 selectable.Redraw();
             }
@@ -226,10 +227,10 @@ namespace StrategyGame.Grid.Rendering {
         // HELPERS
         // ==============================
         private (int angle, bool flip) GetCornerRotationAngleFromIncomingOutcoming(Direction incoming, Direction outcoming) =>
-            CornerRotationMap.TryGetValue((incoming, outcoming), out var result) ? result : throw new Exception("Invalid corner directions");
+            CornerRotationMap.TryGetValue((incoming, outcoming), out var result) ? result : throw new Exception("GridRenderer.GetCornerRotationAngleFromIncomingOutcoming: Invalid corner directions");
         private int GetStraightRotationAngleFromIncomingOutcoming(Direction incoming, Direction outcoming) {
             if (incoming != outcoming)
-                throw new Exception("Not a straight segment");
+                throw new Exception("GridRenderer.GetStraightRotationAngleFromIncomingOutcoming: Not a straight segment");
             return StraightAngles[incoming];
         }
         private RouteSegmentData CreateRouteSegmentData(List<Tile> pathTiles, int i) {
@@ -244,14 +245,14 @@ namespace StrategyGame.Grid.Rendering {
             if (previousTile != null) {
                 Vector2Int incomingOffset = currentTile.Position - previousTile.Position;
                 if (!OffsetToDirection.TryGetValue(incomingOffset, out Direction dirIn)) {
-                    throw new Exception($"Invalid incoming offset: {incomingOffset}");
+                    throw new Exception($"GridRenderer.CreateRouteSegmentData: Invalid incoming offset: {incomingOffset}");
                 }
                 incomingDirection = dirIn;
             }
             if (nextTile != null) {
                 Vector2Int outcomingOffset = nextTile.Position - currentTile.Position;
                 if (!OffsetToDirection.TryGetValue(outcomingOffset, out Direction dirOut)) {
-                    throw new Exception($"Invalid outcoming offset: {outcomingOffset}");
+                    throw new Exception($"GridRenderer.CreateRouteSegmentData: Invalid outcoming offset: {outcomingOffset}");
                 }
                 outcomingDirection = dirOut;
             }
