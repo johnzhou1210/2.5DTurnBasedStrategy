@@ -300,7 +300,7 @@ namespace StrategyGame.Grid.Rendering {
                 yield return tween.WaitForCompletion();
             }
             // Notify game state to change immediately to unit action menu
-            GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitToControl);
+            GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitActionMenu);
         }
     }
 }

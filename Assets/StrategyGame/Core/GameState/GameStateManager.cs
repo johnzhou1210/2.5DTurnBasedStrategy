@@ -271,6 +271,7 @@ public class GameStateManager : MonoBehaviour {
             break;
             case GameStateEnums.PlayerPhaseState.UnitActionMenu: 
                 ManualPath.Clear();
+                UIDelegates.InvokeOnSetCombatActionMenuVisibility(true);
             break;
             case GameStateEnums.PlayerPhaseState.UnitSelectTarget: break;
             case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: break;

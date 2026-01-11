@@ -23,6 +23,10 @@ ShaderVariantCollection:
         passType: 0
       - keywords: DETAIL_MASKING
         passType: 0
+      - keywords: EDGE_PLAIN
+        passType: 0
+      - keywords: EDGE_SHINY
+        passType: 0
       - keywords: GRADATION_COLOR2
         passType: 0
       - keywords: GRADATION_COLOR4
