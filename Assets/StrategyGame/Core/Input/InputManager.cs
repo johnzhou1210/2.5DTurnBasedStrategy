@@ -24,11 +24,19 @@ namespace StrategyGame.Core.Input {
         [SerializeField] private float pathSelectionMoveActionMinimumCooldown = .08f;
         [SerializeField] private float pathSelectionMoveActionCooldownAccelerationRate = .05f;
         
+        [Header("UI Selection Settings")]
+        [SerializeField] private float uiSelectionMoveActionCooldown = 0.33f;
+
+        [SerializeField] private float uiSelectionHoldInitialDelay = .33f;
+        [SerializeField] private float uiSelectionHoldRepeatRate = .1f;
+        
         private InputAction _moveAction;
         private InputAction _selectAction;
         private float _pathSelectionMoveActionTimer;
         private float _currentPathSelectionMoveActionCooldown;
         private float _pathSelectionMoveActionHeldDuration;
+        private float _uiSelectionHoldTimer;
+        private float _uiSelectionNextRepeatTimer;
         private bool _isDiagonalMoveEnabled = true;
         private Vector2Int _gridCursorPosition;
         
@@ -66,8 +74,8 @@ namespace StrategyGame.Core.Input {
         
 
         private void Update() {
-            HandleSelectionInput();
-            HandleMovementInput();
+            HandleInteractionInput();
+            HandleAxisInput();
         }
 
         
@@ -83,40 +91,33 @@ namespace StrategyGame.Core.Input {
         private void SetMouseRaycastEnabled(bool value) {
             gridMouseInputRaycaster.enabled = value;
         }
-        private void HandleMovementInput() {
+        private void HandleAxisInput() {
             _pathSelectionMoveActionTimer = Mathf.Max(0f, _pathSelectionMoveActionTimer - Time.deltaTime);
             Vector2 moveInput = _moveAction.ReadValue<Vector2>();
-            Vector2Int moveDirection = new Vector2Int(
-                moveInput.x > .5f ? 1 : moveInput.x < -.5f ? -1 : 0,
-                moveInput.y > .5f ? 1 : moveInput.y < -.5f ? -1 : 0
-            );
-            if (_moveAction.WasReleasedThisFrame()) {
-                _pathSelectionMoveActionTimer = 0f;
-            }
-            if (moveDirection != Vector2.zero) {
-                // GameStateDelegates.InvokeOnUnitMoveSelectionChanged(GameStateManager.UnitMoveSelectionMode.Manual);
-                _pathSelectionMoveActionHeldDuration += Time.deltaTime;
-                if (_pathSelectionMoveActionHeldDuration > pathSelectionMoveActionCooldownAccelerationThreshold) {
-                    float extraHeldTime = _pathSelectionMoveActionHeldDuration - pathSelectionMoveActionCooldownAccelerationThreshold;
-                    float acceleratedCooldown = _currentPathSelectionMoveActionCooldown - extraHeldTime * pathSelectionMoveActionCooldownAccelerationRate;
-                    _currentPathSelectionMoveActionCooldown = Mathf.Max(pathSelectionMoveActionMinimumCooldown, acceleratedCooldown);
-                }
-                if (_pathSelectionMoveActionTimer > 0f) return;
-                _pathSelectionMoveActionTimer = _currentPathSelectionMoveActionCooldown;
-                Vector2Int moveVector = moveDirection;
-                if (!_isDiagonalMoveEnabled && moveVector.x != 0 && moveVector.y != 0) {
-                    moveVector.y = 0;
-                }
-                
-                
-                
-                OnGridCursorMove(_gridCursorPosition + moveVector);
-            } else {
-                _pathSelectionMoveActionHeldDuration = 0f;
-                _currentPathSelectionMoveActionCooldown = Mathf.Lerp(_currentPathSelectionMoveActionCooldown, pathSelectionMoveActionCooldown, Time.deltaTime * 5f);
+            GameStateManager.GameStateSnapshot currentGameStateSnapshot = GameStateDelegates.GetCurrentGameStateSnapshot();
+            switch (currentGameStateSnapshot.CurrentPlayerPhaseState) {
+                case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
+                    HandleGridNavigationInput(moveInput);
+                break;
+                case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
+                    HandleGridNavigationInput(moveInput);
+                break;
+                case GameStateEnums.PlayerPhaseState.UnitMovingToDestination:
+                break;
+                case GameStateEnums.PlayerPhaseState.UnitActionMenu:
+                    HandleActionMenuInput(moveInput);
+                break;
+                case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
+                break;
+                case GameStateEnums.PlayerPhaseState.UnitAttackCutscene:
+                break;
+                case GameStateEnums.PlayerPhaseState.None:
+                break;
+                default:
+                    throw new Exception("InputManager.HandleAxisInput: Invalid player phase state enum!");
             }
         }
-        private void HandleSelectionInput() {
+        private void HandleInteractionInput() {
             if (_selectAction.WasPressedThisFrame()) {  
                 GameStateManager.GameStateSnapshot stateSnapshot = GameStateDelegates.GetCurrentGameStateSnapshot();
                 if (stateSnapshot.CurrentPlayerPhaseState == GameStateEnums.PlayerPhaseState.SelectUnitToControl) {
@@ -177,7 +178,70 @@ namespace StrategyGame.Core.Input {
         // ==============================
         // HELPERS
         // ==============================
-       
+        private void HandleGridNavigationInput(Vector2 moveInput) {
+            Vector2Int moveDirection = new Vector2Int(
+                moveInput.x > .5f ? 1 : moveInput.x < -.5f ? -1 : 0,
+                moveInput.y > .5f ? 1 : moveInput.y < -.5f ? -1 : 0
+            );
+            if (_moveAction.WasReleasedThisFrame()) {
+                _pathSelectionMoveActionTimer = 0f;
+            }
+            if (moveDirection != Vector2.zero) {
+                _pathSelectionMoveActionHeldDuration += Time.deltaTime;
+                if (_pathSelectionMoveActionHeldDuration > pathSelectionMoveActionCooldownAccelerationThreshold) {
+                    float extraHeldTime = _pathSelectionMoveActionHeldDuration - pathSelectionMoveActionCooldownAccelerationThreshold;
+                    float acceleratedCooldown = _currentPathSelectionMoveActionCooldown - extraHeldTime * pathSelectionMoveActionCooldownAccelerationRate;
+                    _currentPathSelectionMoveActionCooldown = Mathf.Max(pathSelectionMoveActionMinimumCooldown, acceleratedCooldown);
+                }
+                if (_pathSelectionMoveActionTimer > 0f) return;
+                _pathSelectionMoveActionTimer = _currentPathSelectionMoveActionCooldown;
+                Vector2Int moveVector = moveDirection;
+                if (!_isDiagonalMoveEnabled && moveVector.x != 0 && moveVector.y != 0) {
+                    moveVector.y = 0;
+                }
+                OnGridCursorMove(_gridCursorPosition + moveVector);
+            } else {
+                _pathSelectionMoveActionHeldDuration = 0f;
+                _currentPathSelectionMoveActionCooldown = Mathf.Lerp(_currentPathSelectionMoveActionCooldown, pathSelectionMoveActionCooldown, Time.deltaTime * 5f);
+            }
+        }
+
+        private void HandleActionMenuInput(Vector2 moveInput) {
+            int vertical = 0;
+            if (moveInput.y > 0.5f) vertical = 1;
+            if (moveInput.y < -0.5f) vertical = -1;
+            
+            void Move() {
+                if (vertical == 1) {
+                    InputDelegates.InvokeOnUpPressed();
+                } else if (vertical == -1) {
+                    InputDelegates.InvokeOnDownPressed();
+                }
+            }
+            
+            // No direction -> reset
+            if (vertical == 0) {
+                _uiSelectionHoldTimer = 0f;
+                _uiSelectionNextRepeatTimer = uiSelectionHoldInitialDelay;
+                return;
+            }
+
+            // New press (axis went from 0 -> non-zero)
+            if (_moveAction.WasPressedThisFrame()) {
+                Move();
+                _uiSelectionHoldTimer = 0f;
+                _uiSelectionNextRepeatTimer = uiSelectionHoldInitialDelay;
+                return;
+            }
+
+            // Held
+            _uiSelectionHoldTimer += Time.unscaledDeltaTime;
+            if (_uiSelectionHoldTimer >= _uiSelectionNextRepeatTimer) {
+                Move();
+                _uiSelectionNextRepeatTimer += uiSelectionHoldRepeatRate;
+            }
+        }
+        
         
 
        

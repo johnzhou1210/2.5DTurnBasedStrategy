@@ -9,9 +9,29 @@ namespace StrategyGame.Core.Delegates {
         // EVENTS
         // ==============================
         public static event Action<bool> OnSetMouseRaycastEnabled;
+        public static event Action OnDownPressed;
+        public static event Action OnUpPressed;
+        public static event Action OnLeftPressed;
+        public static event Action OnRightPressed;
 
         public static void InvokeOnSetMouseRaycastEnabled(bool value) {
             OnSetMouseRaycastEnabled?.Invoke(value);
+        }
+
+        public static void InvokeOnDownPressed() {
+            OnDownPressed?.Invoke();
+        }
+
+        public static void InvokeOnUpPressed() {
+            OnUpPressed?.Invoke();
+        }
+
+        public static void InvokeOnLeftPressed() {
+            OnLeftPressed?.Invoke();
+        }
+
+        public static void InvokeOnRightPressed() {
+            OnRightPressed?.Invoke();
         }
 
         // ==============================
