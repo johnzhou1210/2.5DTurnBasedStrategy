@@ -13,6 +13,7 @@ namespace StrategyGame.Core.Delegates {
         public static event Action OnUpPressed;
         public static event Action OnLeftPressed;
         public static event Action OnRightPressed;
+        public static event Action OnConfirmPressed;
 
         public static void InvokeOnSetMouseRaycastEnabled(bool value) {
             OnSetMouseRaycastEnabled?.Invoke(value);
@@ -32,6 +33,10 @@ namespace StrategyGame.Core.Delegates {
 
         public static void InvokeOnRightPressed() {
             OnRightPressed?.Invoke();
+        }
+
+        public static void InvokeOnConfirmPressed() {
+            OnConfirmPressed?.Invoke();
         }
 
         // ==============================

@@ -1,4 +1,6 @@
+using System;
 using StrategyGame.Core.Delegates;
+using StrategyGame.Core.Enums;
 using UnityEngine;
 
 namespace StrategyGame.UI.Menus {
@@ -9,21 +11,31 @@ public class CombatActionMenuController : MonoBehaviour {
     private int _currentSelectedIndex = 0;
     private int _previousSelectedIndex = 0;
 
+    private enum ActionType {
+        Attack,
+        Skills,
+        Item,
+        Wait
+    }
 
     private void OnEnable() {
         UIDelegates.OnSetCombatActionMenuVisibility += SetVisible;
         InputDelegates.OnDownPressed += SelectNextAction;
         InputDelegates.OnUpPressed += SelectPreviousAction;
-        SelectAction(_currentSelectedIndex);
+        InputDelegates.OnConfirmPressed += ConfirmAction;
     }
 
     private void OnDisable() {
         UIDelegates.OnSetCombatActionMenuVisibility -= SetVisible;
         InputDelegates.OnDownPressed -= SelectNextAction;
         InputDelegates.OnUpPressed -= SelectPreviousAction;
+        InputDelegates.OnConfirmPressed -= ConfirmAction;
     }
 
-    private void SetVisible(bool visible) { actionMenuRoot.SetActive(visible); }
+    private void SetVisible(bool visible) {
+        actionMenuRoot.SetActive(visible);
+        SelectAction(_currentSelectedIndex);
+    }
 
     private void SelectAction(int actionIndex) {
         _previousSelectedIndex = _currentSelectedIndex;
@@ -46,6 +58,24 @@ public class CombatActionMenuController : MonoBehaviour {
 
     private void SelectPreviousAction() {
         SelectAction((_currentSelectedIndex - 1 + actionMenuItems.transform.childCount) % actionMenuItems.transform.childCount);
+    }
+
+    private void ConfirmAction() {
+        switch (_currentSelectedIndex) {
+            case (int)ActionType.Attack:
+            break;
+            case (int)ActionType.Skills:
+            break;
+            case (int)ActionType.Item:
+            break;
+            case (int)ActionType.Wait:
+                GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitToControl);
+                SetVisible(false);
+                SelectAction(0);
+            break;
+            default:
+                throw new Exception("CombatActionMenuController.ConfirmAction: Invalid Action Type!");
+        }
     }
 }
 }
