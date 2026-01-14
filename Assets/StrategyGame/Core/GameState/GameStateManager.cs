@@ -254,6 +254,7 @@ public class GameStateManager : MonoBehaviour {
         switch (CurrentPlayerPhaseState) {
             case GameStateEnums.PlayerPhaseState.SelectUnitToControl: 
                 ManualPath.Clear();
+                GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentInspectedTile.Position, false);
             break;
             case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
                 // Selected current inspected entity
@@ -272,6 +273,9 @@ public class GameStateManager : MonoBehaviour {
             case GameStateEnums.PlayerPhaseState.UnitActionMenu: 
                 ManualPath.Clear();
                 UIDelegates.InvokeOnSetCombatActionMenuVisibility(true);
+                Debug.Log($"GameStateManager.SetCurrentPlayerPhaseState: CurrentSelectedEntity is {CurrentSelectedEntity}");
+                SetInspectedTile(CurrentInspectedTile.Position);
+                GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentInspectedTile.Position, true);
             break;
             case GameStateEnums.PlayerPhaseState.UnitSelectTarget: break;
             case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: break;
@@ -360,15 +364,11 @@ public class GameStateManager : MonoBehaviour {
             CurrentUnitMoveSelectionMode == GameStateEnums.UnitMoveSelectionMode.Manual) {
             int movementCostUsed = GetManualPathUsedMovementCost();
             Debug.Log($"GameStateManager.SetInspectedTile: MovementCostUsed: {movementCostUsed}");
-            // if (CurrentSelectedEntity.MovementRange - movementCostUsed - newTile.MovementCost < 1) {
-            //     Debug.LogWarning($"GameStateManager.SetInspectedTile: Not enough movement cost. Not adding coordinate to manual path. {string.Join(",", ManualPath.Tiles)}");
-            //     return;
-            // }
         }
 
 
-        if (Equals(oldTile, newTile))
-            return;
+        // if (Equals(oldTile, newTile))
+        //     return;
         
         // Clear any visual selection on old tile
         // GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentInspectedTile.Position, false); 
@@ -379,6 +379,7 @@ public class GameStateManager : MonoBehaviour {
         GridDelegates.InvokeOnInspectedTileChanged(oldTile, newTile);
         GridEntity previousSelectedEntity = CurrentInspectedEntity;
         CurrentInspectedEntity = newTile.IsOccupied ? newTile.Occupant : null;
+        Debug.Log($"GameStateManager.SetInspectedTile: Set CurrentInspectedEntity to {CurrentInspectedEntity}");
         UIDelegates.InvokeOnTerrainUIUpdate(CurrentInspectedTile);
         if (CurrentUnitMoveSelectionMode == GameStateEnums.UnitMoveSelectionMode.Manual ||
             CurrentInspectedEntity != null) {
