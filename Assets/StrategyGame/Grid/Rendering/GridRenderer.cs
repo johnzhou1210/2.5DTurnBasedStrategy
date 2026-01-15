@@ -64,8 +64,8 @@ namespace StrategyGame.Grid.Rendering {
                     throw new Exception("GridRenderer.UpdateInspectedTileVisuals: Old tile visual not found!");
                 }
                 if (oldTileVisual.TryGetComponent(out TileSelectable oldSelectable)) {
-                    oldSelectable.SetSelectionVisualVisibility(false);
                     oldSelectable.SetSelectionVisualIsAnimated(false);
+                    oldSelectable.SetSelectionVisualVisibility(false);
                 }
                 // ClearWalkableTiles();
             }
@@ -189,6 +189,7 @@ namespace StrategyGame.Grid.Rendering {
 
         private void UpdateTileVisualSelection(Vector2Int newPosition, bool animated) {
             GameObject tileToUpdate = _tileVisuals[newPosition.x, newPosition.y];
+            if (!tileToUpdate.activeInHierarchy) return;
             if (tileToUpdate.TryGetComponent(out TileSelectable tileSelectable)) {
                 tileSelectable.SetSelectionVisualIsAnimated(animated);
             }

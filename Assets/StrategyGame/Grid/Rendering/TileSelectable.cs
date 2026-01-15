@@ -50,12 +50,11 @@ namespace StrategyGame.Grid.Rendering {
         // CORE METHODS
         // ==============================
         public void SetSelectionVisualVisibility(bool val) {
+            if (!val) SetSelectionVisualIsAnimated(false);
             selectionVisual.SetActive(val);
         }
 
         public void SetSelectionVisualIsAnimated(bool val) {
-            selectionAnimator.enabled = val;
-            if (!selectionAnimator.enabled) return;
             selectionAnimator.Play(val ? "Select" : "Unselected");
         }
         

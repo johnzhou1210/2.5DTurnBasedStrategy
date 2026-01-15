@@ -7,6 +7,7 @@ namespace StrategyGame.UI.Menus {
 public class CombatActionMenuController : MonoBehaviour {
     [SerializeField] private GameObject actionMenuItems;
     [SerializeField] private GameObject actionMenuRoot;
+    [SerializeField] private CanvasGroup canvasGroup;
 
     private int _currentSelectedIndex = 0;
     private int _previousSelectedIndex = 0;
@@ -33,7 +34,9 @@ public class CombatActionMenuController : MonoBehaviour {
     }
 
     private void SetVisible(bool visible) {
-        actionMenuRoot.SetActive(visible);
+        canvasGroup.alpha = visible ? 1 : 0;
+        canvasGroup.interactable = visible;
+        canvasGroup.blocksRaycasts = visible;
         SelectAction(_currentSelectedIndex);
     }
 
@@ -44,12 +47,12 @@ public class CombatActionMenuController : MonoBehaviour {
             GameObject previousSelectedActionItem =
                 actionMenuItems.transform.GetChild(_previousSelectedIndex).gameObject;
             Animator previousActionItemAnimator = previousSelectedActionItem.GetComponent<Animator>();
-            previousActionItemAnimator.Play("ActionDeselect");
+            if (previousActionItemAnimator.enabled) previousActionItemAnimator.Play("ActionDeselect");
         }
 
         GameObject selectedActionItem = actionMenuItems.transform.GetChild(actionIndex).gameObject;
         Animator actionItemAnimator = selectedActionItem.GetComponent<Animator>();
-        actionItemAnimator.Play("ActionSelect");
+       if (actionItemAnimator.enabled) actionItemAnimator.Play("ActionSelect");
     }
 
     private void SelectNextAction() {
