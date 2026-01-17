@@ -112,6 +112,11 @@ namespace StrategyGame.Grid {
         public HashSet<Tile> GetWalkableTilesAtPosition(Vector2Int position, int availableMovementCost) {
             HashSet<Tile> result = new HashSet<Tile>();
             Tile startTile = GridDelegates.GetTileFromPosition(position);
+
+            if (startTile.Occupant != null && startTile.Occupant.Faction != Faction) {
+                Debug.LogWarning("GridEntity.GetWalkableTilesAtPosition: Start tile is blocked by an opposing faction!");
+                return result;
+            }
             
             // BFS / flood fill
             Queue<FloodFillQueueEntry> tilesToVisit = new Queue<FloodFillQueueEntry>();
@@ -132,7 +137,6 @@ namespace StrategyGame.Grid {
                     if (newRemainingMovement < 0)
                         continue; // Not enough movement points to enter
                     
-
                     // Update bestRemainingMovements if better
                     if (!bestRemainingMovements.ContainsKey(neighbor) || newRemainingMovement > bestRemainingMovements[neighbor]) {
                         bestRemainingMovements[neighbor] = newRemainingMovement;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
@@ -263,21 +264,23 @@ public class InputManager : MonoBehaviour, IPointerMoveHandler {
                 ManualPath manualPath = GameStateDelegates.GetManualPath();
                 HashSet<Tile> walkableTiles = currentSelectedEntity.GetWalkableTiles();
                 HashSet<Tile> manualPathSet = manualPath.Unique;
-                int manualPathSetOriginalSize = manualPathSet.Count;
+                List<Tile> manualPathList = manualPath.Tiles;
                 manualPathSet.IntersectWith(walkableTiles);
                 manualPathSet.Add(GridDelegates.GetTileFromPosition(currentSelectedEntity.GridPosition));
                 Debug.Log($"InputManager.HandleSelectionInput: Walkable tiles: {string.Join(", ", walkableTiles)}");
                 Debug.Log(
-                    $"InputManager.HandleSelectionInput: Manual path tiles: {string.Join(", ", manualPath.Tiles)} | Selected entity movement range: {currentSelectedEntity.MovementRange} | Manual path set: {string.Join(", ", manualPathSet)} | Original manual path set size: {manualPathSetOriginalSize}");
-                bool isDestinationValid = manualPath.Tiles.Count - 1 <= currentSelectedEntity.MovementRange &&
-                                          manualPathSet.Count == manualPathSetOriginalSize;
+                    $"InputManager.HandleSelectionInput: Manual path tiles: {string.Join(", ", manualPathList)} | Selected entity movement range: {currentSelectedEntity.MovementRange} | Manual path set: {string.Join(", ", manualPathSet)}");
+                bool isDestinationValid = manualPathList.Count - 1 <= currentSelectedEntity.MovementRange &&
+                                          manualPathList.ToHashSet().IsSubsetOf(manualPathSet) && 
+                                          manualPathList[^1].Occupant == null || manualPathList[^1].Occupant == currentSelectedEntity;
+                Debug.Log($"Condition1: {manualPathList.Count - 1 <= currentSelectedEntity.MovementRange}, Condition2: {manualPathList.ToHashSet().IsSubsetOf(manualPathSet)}, Condition3: {manualPathList[^1].Occupant == null || manualPathList[^1].Occupant == currentSelectedEntity}");
                 if (isDestinationValid) {
                     // Move unit to destination
-                    currentSelectedEntity.MoveAlongPath(manualPath.Tiles);
+                    currentSelectedEntity.MoveAlongPath(manualPathList);
                     GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState
                         .UnitMovingToDestination);
                 } else {
-                    Debug.Log("InputManager.HandleSelectionInput: Current manual path is not allowed!");
+                    Debug.Log($"InputManager.HandleSelectionInput: Current manual path is not allowed!");
                     // GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitToControl);
                 }
                 break;

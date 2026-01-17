@@ -85,34 +85,36 @@ namespace StrategyGame.Grid.Rendering {
                 // If currently selecting an entity or hovering over an entity outside of path selection mode, show entity's walkable tiles
                 // Do not update walkable tiles if currently selecting a unit's movement path
                 GameStateManager.GameStateSnapshot currentGameStateSnapshot = GameStateDelegates.GetCurrentGameStateSnapshot();
-                // GameStateDelegates.GetCurrentSelectedEntity != null || currentGameStateSnapshot.CurrentPlayerPhaseState == GameStateEnums.PlayerPhaseState.SelectUnitToControl
-
-                // if (currentGameStateSnapshot.CurrentPlayerPhaseState != GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination) {
-                //     if (!newTile.IsOccupied) {
-                //         ClearWalkableTiles();
-                //     }
-                // }
-
                 
                 ClearWalkableTiles();
-                
-                if (currentGameStateSnapshot.CurrentPlayerPhaseState == GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination) {
-                    GridEntity currentSelectedEntity = GameStateDelegates.GetCurrentSelectedEntity();
-                    // To determine how many steps to look, take a look at GameStateManager's manual path
-                    int movementCostRemaining = currentSelectedEntity.MovementRange - GameStateDelegates.ManualPathSelectionGetSpentMovementCost();
-                    Debug.Log($"GridRenderer.UpdateInspectedTileVisuals: Movement cost remaining: {movementCostRemaining}");
-                    HashSet<Tile> walkableTileObjects = currentSelectedEntity.GetWalkableTilesAtPosition(newTile.Position, movementCostRemaining);
-                    walkableTileObjects.UnionWith(GameStateDelegates.GetManualPath().Unique);
-                    MarkWalkableTiles(walkableTileObjects);
-                    return;
-                }
 
-                if (currentGameStateSnapshot.CurrentPlayerPhaseState != GameStateEnums.PlayerPhaseState.SelectUnitToControl) {
-                    return;
-                }
-                if (newTile.IsOccupied) {
-                    HashSet<Tile> walkableTileObjects = newTile.Occupant.GetWalkableTiles();
-                    MarkWalkableTiles(walkableTileObjects);
+                switch (currentGameStateSnapshot.CurrentPlayerPhaseState) {
+                    case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
+                        if (newTile.IsOccupied) {
+                            MarkWalkableTiles(newTile.Occupant.GetWalkableTiles());
+                        }
+                        break;
+                    case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
+                        GridEntity currentSelectedEntity = GameStateDelegates.GetCurrentSelectedEntity();
+                        // To determine how many steps to look, take a look at GameStateManager's manual path
+                        int movementCostRemaining = currentSelectedEntity.MovementRange - GameStateDelegates.ManualPathSelectionGetSpentMovementCost();
+                        Debug.Log($"GridRenderer.UpdateInspectedTileVisuals: Movement cost remaining: {movementCostRemaining}");
+                        HashSet<Tile> walkableTileObjects = currentSelectedEntity.GetWalkableTilesAtPosition(newTile.Position, movementCostRemaining);
+                        walkableTileObjects.UnionWith(GameStateDelegates.GetManualPath().Unique);
+                        MarkWalkableTiles(walkableTileObjects);
+                        break;
+                    case GameStateEnums.PlayerPhaseState.UnitMovingToDestination:
+                        break;
+                    case GameStateEnums.PlayerPhaseState.UnitActionMenu:
+                        break;
+                    case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
+                        break;
+                    case GameStateEnums.PlayerPhaseState.UnitAttackCutscene:
+                        break;
+                    case GameStateEnums.PlayerPhaseState.None:
+                        break;
+                    default:
+                        throw new Exception("GridRenderer.UpdateInspectedTileVisuals: Invalid PlayerPhaseState!");
                 }
             }
         }

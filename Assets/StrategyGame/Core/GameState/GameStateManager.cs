@@ -41,7 +41,9 @@ public class ManualPath {
         }
 
         Tiles.Add(tile);
+        Debug.Log($"GameStateManager.StepToTile: Added {tile} to Tiles list");
         Unique.Add(tile);
+        Debug.Log($"GameStateManager.StepToTile: Added {tile} to Unique list");
         return true;
     }
 
@@ -202,7 +204,7 @@ public class GameStateManager : MonoBehaviour {
                 // Remove selection
                 
                 // Focus camera rig onto position
-                Debug.Log("Current selected entity: " + CurrentSelectedEntity);
+                // Debug.Log("Current selected entity: " + CurrentSelectedEntity);
                 Vector3 visualPosition =
                     EntityDelegates.GetEntityVisualTransformByID(CurrentSelectedEntity.ID).position;
                 CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y,
@@ -315,13 +317,16 @@ public class GameStateManager : MonoBehaviour {
     private bool AddCoordinateToManualPath(Vector2Int coordinate) {
         // Get terrain data at coordinate
         Tile tileAtCoordinate = GridDelegates.GetTileFromPosition(coordinate);
-
         // Forbid adding coordinate to manual path if out of movement range
-        if (ManualPath.Unique.FirstOrDefault(tile => tile.Position == coordinate) == null) {
+        // Forbid adding coordinate to manual path if currently inspecting an entity of an enemy faction
+        if (ManualPath.Tiles.FirstOrDefault(tile => tile.Position == coordinate) == null) {
+            if (CurrentInspectedEntity != null && CurrentInspectedEntity.Faction != CurrentSelectedEntity.Faction) {
+                Debug.LogWarning("GameStateManager.AddCoordinateToManualPath: An entity of an opposing faction is blocking movement to this tile.");
+                return false;
+            }
             int movementCostUsed = GetManualPathUsedMovementCost();
             if (CurrentSelectedEntity.MovementRange - movementCostUsed - tileAtCoordinate.MovementCost < 0) {
-                Debug.LogWarning(
-                    $"GameStateManager.AddCoordinateToManualPath: Not enough movement cost. Not adding coordinate to manual path. {string.Join(",", ManualPath.Tiles)}");
+                Debug.LogWarning($"GameStateManager.AddCoordinateToManualPath: Not enough movement cost (need {tileAtCoordinate.MovementCost} but have {CurrentSelectedEntity.MovementRange - movementCostUsed} left: used {movementCostUsed}). Not adding coordinate {coordinate} to manual path. {string.Join(",", ManualPath.Tiles)}");
                 return false;
             }
         }
