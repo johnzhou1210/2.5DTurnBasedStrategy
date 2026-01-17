@@ -65,7 +65,7 @@ public class InputManager : MonoBehaviour, IPointerMoveHandler {
 
     private void Start() {
         GameStateEnums.UnitMoveSelectionMode currentUnitMoveSelectionMode =
-            GameStateDelegates.GetCurrentGameStateSnapshot().CurrentUnitMoveSelectionMode;
+            GameStateDelegates.GetCurrentGameState().Combat.UnitMoveSelectionMode;
         gridMouseInputRaycaster.enabled =
             currentUnitMoveSelectionMode == GameStateEnums.UnitMoveSelectionMode.Automatic;
         cameraRigController.SetPanningEnabled(currentUnitMoveSelectionMode ==
@@ -91,8 +91,8 @@ public class InputManager : MonoBehaviour, IPointerMoveHandler {
     private void HandleAxisInput() {
         _pathSelectionMoveActionTimer = Mathf.Max(0f, _pathSelectionMoveActionTimer - Time.deltaTime);
         Vector2 moveInput = _moveAction.ReadValue<Vector2>();
-        GameStateManager.GameStateSnapshot currentGameStateSnapshot = GameStateDelegates.GetCurrentGameStateSnapshot();
-        switch (currentGameStateSnapshot.CurrentPlayerPhaseState) {
+        GameStateData currentGameState = GameStateDelegates.GetCurrentGameState();
+        switch (currentGameState.Combat.PlayerPhase) {
             case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
                 HandleGridNavigationInput(moveInput);
             break;
@@ -116,8 +116,8 @@ public class InputManager : MonoBehaviour, IPointerMoveHandler {
     }
 
     private void HandleInteractionInput() {
-        GameStateManager.GameStateSnapshot currentGameStateSnapshot = GameStateDelegates.GetCurrentGameStateSnapshot();
-        switch (currentGameStateSnapshot.CurrentPlayerPhaseState) {
+        GameStateData currentGameState = GameStateDelegates.GetCurrentGameState();
+        switch (currentGameState.Combat.PlayerPhase) {
             case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
                 HandleEntityTileSelection();
             break;
@@ -237,8 +237,8 @@ public class InputManager : MonoBehaviour, IPointerMoveHandler {
 
     private void HandleEntityTileSelection() {
         if (!_selectAction.WasPressedThisFrame()) return;
-        GameStateManager.GameStateSnapshot stateSnapshot = GameStateDelegates.GetCurrentGameStateSnapshot();
-        switch (stateSnapshot.CurrentPlayerPhaseState) {
+        GameStateData state = GameStateDelegates.GetCurrentGameState();
+        switch (state.Combat.PlayerPhase) {
             // In order to select, there must be an entity
             case GameStateEnums.PlayerPhaseState.SelectUnitToControl when GameStateDelegates.GetCurrentInspectedEntity() == null:
                 Debug.LogWarning("InputManager.HandleSelectionInput : Current selected entity is null!");
@@ -288,7 +288,7 @@ public class InputManager : MonoBehaviour, IPointerMoveHandler {
             case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
             break;
             default:
-                throw new Exception($"InputManager.HandleSelectionInput : Unexpected player phase state for entity tile selection : {stateSnapshot.CurrentPlayerPhaseState}");
+                throw new Exception($"InputManager.HandleSelectionInput : Unexpected player phase state for entity tile selection : {state.Combat.PlayerPhase}");
         }
     }
 

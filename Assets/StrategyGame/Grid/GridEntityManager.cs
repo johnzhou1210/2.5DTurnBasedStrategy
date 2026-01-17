@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using StrategyGame.Core.Delegates;
+using StrategyGame.Factions;
 using StrategyGame.Grid.GridData;
 using UnityEngine;
 
@@ -33,11 +34,13 @@ namespace StrategyGame.Grid {
             EntityDelegates.GetGridEntityByID = GetGridEntityById;
             EntityDelegates.SpawnUnits = SpawnUnits;
             EntityDelegates.SpawnStructures = SpawnStructures;
+            EntityDelegates.GetAllGridEntitiesByFaction = GetAllGridEntitiesByFaction;
         }
         private void OnDisable() {
             EntityDelegates.GetGridEntityByID = null;
             EntityDelegates.SpawnUnits = null;
             EntityDelegates.SpawnStructures = null;
+            EntityDelegates.GetAllGridEntitiesByFaction = null;
         }
         
         // ==============================
@@ -87,6 +90,15 @@ namespace StrategyGame.Grid {
             GridDelegates.InvokeOnEntitySpawned(newStructure, position);
             return newStructure;
         }
-        
+        private List<GridEntity> GetAllGridEntitiesByFaction(Faction faction) {
+            List<GridEntity> result = new List<GridEntity>();
+            foreach (GridEntity entity in Entities.Values) {
+                if (entity.Faction == faction) {
+                    result.Add(entity);
+                }
+            }
+            return result;
+        }
+
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using StrategyGame.Factions;
 using StrategyGame.Grid;
 using UnityEngine;
 
@@ -23,7 +24,7 @@ namespace StrategyGame.Core.Delegates {
         public static Func<List<UnitSpawnQuery>, List<GridUnit>> SpawnUnits;
         public static Func<List<StructureSpawnQuery>, List<GridStructure>> SpawnStructures;
         public static Func<int, Transform> GetEntityVisualTransformByID;
-        public static Func<int, GridEntity> GetGridEntityFromID;
+        public static Func<Faction, List<GridEntity>> GetAllGridEntitiesByFaction;
 
     }
 }

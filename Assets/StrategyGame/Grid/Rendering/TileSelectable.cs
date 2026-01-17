@@ -112,6 +112,5 @@ namespace StrategyGame.Grid.Rendering {
         }
         
         
-        
     }
 }

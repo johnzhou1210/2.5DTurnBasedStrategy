@@ -5,10 +5,10 @@ using System.ComponentModel;
 using System.Linq;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
+using StrategyGame.Factions;
 using StrategyGame.Grid;
 using StrategyGame.Grid.GridData;
 using StrategyGame.UI;
-using Unity.Android.Gradle.Manifest;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -58,28 +58,14 @@ public class ManualPath {
 
 public class GameStateManager : MonoBehaviour {
     // ==============================
-    // STRUCTS
-    // ==============================
-    public struct GameStateSnapshot {
-        public GameStateEnums.PlayerPhaseState CurrentPlayerPhaseState;
-        public GameStateEnums.UnitMoveSelectionMode CurrentUnitMoveSelectionMode;
-        public GameStateEnums.TurnPhase CurrentTurnPhase;
-    }
-
-    // ==============================
     // FIELDS & PROPERTIES
     // ==============================
-    public GameStateEnums.TurnPhase CurrentTurnPhase { get; private set; } = GameStateEnums.TurnPhase.Player;
+   
     public GridEntity CurrentInspectedEntity { get; private set; }
     public GridEntity CurrentSelectedEntity { get; private set; }
     public Tile CurrentInspectedTile { get; private set; }
-
-    public GameStateEnums.PlayerPhaseState CurrentPlayerPhaseState { get; private set; } =
-        GameStateEnums.PlayerPhaseState.SelectUnitToControl;
-
-    public GameStateEnums.UnitMoveSelectionMode CurrentUnitMoveSelectionMode { get; private set; } =
-        GameStateEnums.UnitMoveSelectionMode.Manual;
-
+    public GameStateData CurrentState { get; private set; }
+    
     public ManualPath ManualPath { get; private set; }
     private Coroutine _coreGameLoop;
 
@@ -88,6 +74,13 @@ public class GameStateManager : MonoBehaviour {
     // ==============================
     private void OnEnable() {
         ManualPath = new ManualPath();
+        CurrentState = new GameStateData {
+            Combat = new CombatStateData {
+                TurnPhase = GameStateEnums.TurnPhase.Player,
+                PlayerPhase =  GameStateEnums.PlayerPhaseState.SelectUnitToControl,
+                UnitMoveSelectionMode = GameStateEnums.UnitMoveSelectionMode.Manual,
+            }
+        };
         GameStateDelegates.OnGameStarted += StartGame;
         GameStateDelegates.OnUnitMoveSelectionChanged += SetCurrentUnitMoveSelectionMode;
         GameStateDelegates.OnPlayerPhaseStateChanged += SetCurrentPlayerPhaseState;
@@ -95,7 +88,7 @@ public class GameStateManager : MonoBehaviour {
         GameStateDelegates.GetCurrentInspectedEntity = () => CurrentInspectedEntity;
         GameStateDelegates.GetCurrentSelectedEntity = () => CurrentSelectedEntity;
         GameStateDelegates.GetManualPath = () => ManualPath;
-        GameStateDelegates.GetCurrentGameStateSnapshot = GetCurrentGameStateSnapshot;
+        GameStateDelegates.GetCurrentGameState = GetCurrentGameState;
         GridDelegates.SetInspectedTile = HandleSetInspectedTile;
         GameStateDelegates.ManualPathSelectionGetSpentMovementCost = GetManualPathUsedMovementCost;
     }
@@ -108,7 +101,7 @@ public class GameStateManager : MonoBehaviour {
         GameStateDelegates.GetCurrentInspectedEntity = null;
         GameStateDelegates.GetCurrentSelectedEntity = null;
         GameStateDelegates.GetManualPath = null;
-        GameStateDelegates.GetCurrentGameStateSnapshot = null;
+        GameStateDelegates.GetCurrentGameState = null;
         GridDelegates.SetInspectedTile = null;
         GameStateDelegates.ManualPathSelectionGetSpentMovementCost = null;
     }
@@ -117,9 +110,8 @@ public class GameStateManager : MonoBehaviour {
     // CORE METHODS
     // ==============================
     public void AdvancePhase() {
-        SetTurnPhaseState((GameStateEnums.TurnPhase)(((int)CurrentTurnPhase + 1) %
-                                                     Enum.GetValues(typeof(GameStateEnums.TurnPhase)).Length));
-        GameStateDelegates.InvokeOnPhaseChanged(CurrentTurnPhase);
+        SetTurnPhaseState((GameStateEnums.TurnPhase)(((int)CurrentState.Combat.TurnPhase + 1) % Enum.GetValues(typeof(GameStateEnums.TurnPhase)).Length));
+        GameStateDelegates.InvokeOnPhaseChanged(CurrentState.Combat.TurnPhase);
     }
 
     private void StartGame() {
@@ -151,6 +143,7 @@ public class GameStateManager : MonoBehaviour {
             UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Elite Orc"),
             SpawnPosition = new Vector2Int(0, 1)
         });
+        
         EntityDelegates.SpawnUnits(entities);
         GenerateRandomBiome(Resources.Load<TileData>("ScriptableObjects/Tiles/Mountains"));
         GenerateRandomBiome(Resources.Load<TileData>("ScriptableObjects/Tiles/Forest"));
@@ -161,9 +154,28 @@ public class GameStateManager : MonoBehaviour {
     }
 
     private void SetTurnPhaseState(GameStateEnums.TurnPhase phase) {
-        if (phase == CurrentTurnPhase)
+        if (phase == CurrentState.Combat.TurnPhase)
             return;
-        CurrentTurnPhase = phase;
+        CurrentState.Combat.TurnPhase = phase;
+        
+        // Play ui animations
+        // Depending on turn phase, fill ActorsRemaining with the entities from the current phase.
+        
+        switch (CurrentState.Combat.TurnPhase) {
+            case GameStateEnums.TurnPhase.Player:
+                CurrentState.Combat.ActorsRemaining = EntityDelegates.GetAllGridEntitiesByFaction(Faction.PlayerFaction);
+                break;
+            case GameStateEnums.TurnPhase.Enemy:
+                CurrentState.Combat.ActorsRemaining = EntityDelegates.GetAllGridEntitiesByFaction(Faction.EnemyFaction);
+                // Automate enemy actions
+                break;
+            case GameStateEnums.TurnPhase.Event:
+                break;
+            case GameStateEnums.TurnPhase.None:
+                break;
+            default:
+                throw new Exception("GameStateManager.HandleOnTurnPhaseChange: Invalid turn phase!");
+        }
     }
 
     // ==============================
@@ -171,7 +183,7 @@ public class GameStateManager : MonoBehaviour {
     // ==============================
     private IEnumerator CoreGameLoop() {
         while (true) {
-            switch (CurrentTurnPhase) {
+            switch (CurrentState.Combat.TurnPhase) {
                 case GameStateEnums.TurnPhase.Player: HandlePlayerPhaseState(); break;
                 case GameStateEnums.TurnPhase.Enemy: HandleEnemyPhaseState(); break;
                 case GameStateEnums.TurnPhase.Event: HandleEventPhaseState(); break;
@@ -190,7 +202,7 @@ public class GameStateManager : MonoBehaviour {
     /// </summary>
     /// <exception cref="InvalidEnumArgumentException">Occurs if the current player phase state is an invalid one.</exception>
     private void HandlePlayerPhaseState() {
-        switch (CurrentPlayerPhaseState) {
+        switch (CurrentState.Combat.PlayerPhase) {
             case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
             break;
             case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
@@ -229,14 +241,16 @@ public class GameStateManager : MonoBehaviour {
 
     private void HandleEventPhaseState() { }
 
+ 
+
     // ==============================
     // CORE METHODS
     // ==============================
     private void SetCurrentUnitMoveSelectionMode(GameStateEnums.UnitMoveSelectionMode mode) {
-        if (CurrentUnitMoveSelectionMode == mode)
+        if (CurrentState.Combat.UnitMoveSelectionMode == mode)
             return;
-        CurrentUnitMoveSelectionMode = mode;
-        switch (CurrentUnitMoveSelectionMode) {
+        CurrentState.Combat.UnitMoveSelectionMode = mode;
+        switch (CurrentState.Combat.UnitMoveSelectionMode) {
             case GameStateEnums.UnitMoveSelectionMode.Manual:
                 InputDelegates.InvokeOnSetMouseRaycastEnabled(false); break;
             case GameStateEnums.UnitMoveSelectionMode.Automatic:
@@ -249,11 +263,11 @@ public class GameStateManager : MonoBehaviour {
     }
 
     private void SetCurrentPlayerPhaseState(GameStateEnums.PlayerPhaseState phase) {
-        if (CurrentPlayerPhaseState == phase)
+        if (CurrentState.Combat.PlayerPhase == phase)
             return;
-        CurrentPlayerPhaseState = phase;
+        CurrentState.Combat.PlayerPhase = phase;
         
-        switch (CurrentPlayerPhaseState) {
+        switch (CurrentState.Combat.PlayerPhase) {
             case GameStateEnums.PlayerPhaseState.SelectUnitToControl: 
                 ManualPath.Clear();
                 GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentInspectedTile.Position, false);
@@ -285,18 +299,15 @@ public class GameStateManager : MonoBehaviour {
         }
     }
 
-    private GameStateSnapshot GetCurrentGameStateSnapshot() {
-        return new GameStateSnapshot {
-            CurrentPlayerPhaseState = CurrentPlayerPhaseState,
-            CurrentUnitMoveSelectionMode = CurrentUnitMoveSelectionMode, CurrentTurnPhase = CurrentTurnPhase,
-        };
+    private GameStateData GetCurrentGameState() {
+        return CurrentState;
     }
 
     // ==============================
     // HELPERS
     // ==============================
     private bool HandleSetInspectedTile(Vector2Int coordinate) {
-        switch (CurrentPlayerPhaseState) {
+        switch (CurrentState.Combat.PlayerPhase) {
             case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
                 SetInspectedTile(coordinate);
                 UpdateAutomaticPathPreview(coordinate);
@@ -365,8 +376,8 @@ public class GameStateManager : MonoBehaviour {
         Tile oldTile = CurrentInspectedTile;
 
         // Forbid the change if player is currently in manual path selection mode and the new tile is not walkable from the old tile
-        if (CurrentPlayerPhaseState == GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination &&
-            CurrentUnitMoveSelectionMode == GameStateEnums.UnitMoveSelectionMode.Manual) {
+        if (CurrentState.Combat.PlayerPhase == GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination &&
+            CurrentState.Combat.UnitMoveSelectionMode == GameStateEnums.UnitMoveSelectionMode.Manual) {
             int movementCostUsed = GetManualPathUsedMovementCost();
             Debug.Log($"GameStateManager.SetInspectedTile: MovementCostUsed: {movementCostUsed}");
         }
@@ -386,7 +397,7 @@ public class GameStateManager : MonoBehaviour {
         CurrentInspectedEntity = newTile.IsOccupied ? newTile.Occupant : null;
         Debug.Log($"GameStateManager.SetInspectedTile: Set CurrentInspectedEntity to {CurrentInspectedEntity}");
         UIDelegates.InvokeOnTerrainUIUpdate(CurrentInspectedTile);
-        if (CurrentUnitMoveSelectionMode == GameStateEnums.UnitMoveSelectionMode.Manual ||
+        if (CurrentState.Combat.UnitMoveSelectionMode == GameStateEnums.UnitMoveSelectionMode.Manual ||
             CurrentInspectedEntity != null) {
             // Focus camera rig onto position
             CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(CurrentInspectedTile.Position.x, 0,
