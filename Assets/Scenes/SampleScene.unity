@@ -6429,6 +6429,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0b4c689ae6844227b26f7b68574801e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentState:
+    Combat:
+      TurnPhase: 3
+      ActorsIDsRemaining: 
+      PlayerPhase: 6
+      EnemyPhase: 6
+      UnitMoveSelectionMode: 2
+      InspectedEntityID: -1
+      SelectedEntityID: -1
+      InspectedTilePosition: {x: 0, y: 0}
+      NextActorReady: 1
 --- !u!1 &1231200177
 GameObject:
   m_ObjectHideFlags: 0
@@ -6646,7 +6657,9 @@ MonoBehaviour:
   agilityText: {fileID: 287084930}
   evasionText: {fileID: 1558766147}
   entityTitleBackground: {fileID: 1600962348}
+  entityTitleBackgroundBlur: {fileID: 0}
   moveSpeedBackground: {fileID: 2122410263}
+  moveSpeedBackgroundBlur: {fileID: 0}
 --- !u!222 &1251540407
 CanvasRenderer:
   m_ObjectHideFlags: 0

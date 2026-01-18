@@ -47,7 +47,7 @@ namespace StrategyGame.Grid {
         // CORE METHODS
         // ==============================
         private GridEntity GetGridEntityById(int id) {
-            return Entities[id];
+            return Entities.GetValueOrDefault(id);
         }
         private List<GridUnit> SpawnUnits(List<UnitSpawnQuery> query) {
             List<GridUnit> spawnedUnits = new List<GridUnit>();

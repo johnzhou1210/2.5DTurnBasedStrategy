@@ -39,7 +39,7 @@ namespace StrategyGame.UI.HUD {
         // CORE METHODS
         // ==============================
         private void UpdateHUD(GridEntity entity) {
-            entityTitleBackground.color = entity.Faction == Faction.PlayerFaction ? Color.blue :   Color.red;
+            entityTitleBackground.color = entity.Faction == Faction.PlayerFaction ? Color.blue : Color.red;
             moveSpeedBackground.color = entity.Faction == Faction.PlayerFaction ? new(0,0,140/255f): new Color(150/255f,0,0);
             entityNameText.SetText(entity.DisplayName);
             hpText.SetText($"<size=80>{entity.Health}</size>/{entity.MaxHealth}");

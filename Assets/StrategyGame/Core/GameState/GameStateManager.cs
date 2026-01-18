@@ -173,9 +173,9 @@ namespace StrategyGame.Core.GameState {
         private void HandlePlayerPhaseState() {
             switch (CurrentState.Combat.PlayerPhase) {
                 case GameStateEnums.PlayerPhaseState.SelectUnitToControl: break;
-                case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination: GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTile.Position, true); break;
+                case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination: GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, true); break;
                 case GameStateEnums.PlayerPhaseState.UnitMovingToDestination:
-                    if (CurrentState.Combat.SelectedEntity == null) {
+                    if (CurrentState.Combat.SelectedEntityID == -1) {
                         Debug.LogWarning("GameStateManager.HandlePlayerPhaseState: CurrentSelectedEntity is null");
                         return;
                     }
@@ -183,23 +183,34 @@ namespace StrategyGame.Core.GameState {
 
                     // Focus camera rig onto position
                     // Debug.Log("Current selected entity: " + CurrentSelectedEntity);
-                    Vector3 visualPosition = EntityDelegates.GetEntityVisualTransformByID(CurrentState.Combat.SelectedEntity.ID).position;
+                    Vector3 visualPosition = EntityDelegates.GetEntityVisualTransformByID(CurrentState.Combat.SelectedEntityID).position;
                     CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y, visualPosition.z));
                     break;
                 case GameStateEnums.PlayerPhaseState.UnitActionMenu: break;
-                case GameStateEnums.PlayerPhaseState.UnitSelectTarget: GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTile.Position, true); break;
+                case GameStateEnums.PlayerPhaseState.UnitSelectTarget: GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, true); break;
                 case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: break;
                 case GameStateEnums.PlayerPhaseState.None: break;
                 default: throw new Exception("GameStateManager.HandlePlayerPhaseState: Invalid PlayerPhase state!");
             }
         }
         private void HandleEnemyPhaseState() {
+            Vector3 visualPosition = EntityDelegates.GetEntityVisualTransformByID(CurrentState.Combat.SelectedEntityID).position;
             switch (CurrentState.Combat.EnemyPhase) {
-                case GameStateEnums.EnemyPhaseState.SelectUnitToControl: break;
-                case GameStateEnums.EnemyPhaseState.SelectUnitMoveDestination: break;
-                case GameStateEnums.EnemyPhaseState.UnitMovingToDestination: break;
-                case GameStateEnums.EnemyPhaseState.UnitContemplateAction: break;
-                case GameStateEnums.EnemyPhaseState.UnitSelectTarget: break;
+                case GameStateEnums.EnemyPhaseState.SelectUnitToControl:
+                    CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y, visualPosition.z));
+                    break;
+                case GameStateEnums.EnemyPhaseState.SelectUnitMoveDestination: 
+                    CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y, visualPosition.z));
+                    break;
+                case GameStateEnums.EnemyPhaseState.UnitMovingToDestination: 
+                    CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y, visualPosition.z));
+                    break;
+                case GameStateEnums.EnemyPhaseState.UnitContemplateAction: 
+                    CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y, visualPosition.z));
+                    break;
+                case GameStateEnums.EnemyPhaseState.UnitSelectTarget:
+                    CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y, visualPosition.z));
+                    break;
                 case GameStateEnums.EnemyPhaseState.UnitAttackCutscene: break;
                 case GameStateEnums.EnemyPhaseState.None: break;
                 default: throw new Exception("GameStateManager.HandleEnemyPhaseState: Invalid EnemyPhase state!");
@@ -229,25 +240,26 @@ namespace StrategyGame.Core.GameState {
             switch (CurrentState.Combat.PlayerPhase) {
                 case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
                     ManualPath.Clear();
-                    GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTile.Position, false);
+                    CurrentState.Combat.SelectedEntityID = -1;
+                    GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, false);
                     break;
                 case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
                     // Selected current inspected entity
-                    CurrentState.Combat.SelectedEntity = CurrentState.Combat.InspectedEntity;
-                    bool stepSuccess = ManualPath.StepToTile(CurrentState.Combat.InspectedTile);
+                    CurrentState.Combat.SelectedEntityID = CurrentState.Combat.InspectedEntityID;
+                    bool stepSuccess = ManualPath.StepToTile(GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition));
                     if (!stepSuccess) {
-                        Debug.LogError($"GameStateManager.SetCurrentPlayerPhaseState: Failed to step to {CurrentState.Combat.InspectedTile.Position}");
+                        Debug.LogError($"GameStateManager.SetCurrentPlayerPhaseState: Failed to step to {CurrentState.Combat.InspectedTilePosition}");
                     }
                     Debug.Log($"GameStateManager.SetCurrentPlayerPhaseState: Manual path is now: {ManualPath}");
                     GridDelegates.InvokeOnManualPathPreview(ManualPath);
                     break;
-                case GameStateEnums.PlayerPhaseState.UnitMovingToDestination: GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTile.Position, false); break;
+                case GameStateEnums.PlayerPhaseState.UnitMovingToDestination: GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, false); break;
                 case GameStateEnums.PlayerPhaseState.UnitActionMenu:
                     ManualPath.Clear();
                     UIDelegates.InvokeOnSetCombatActionMenuVisibility(true);
-                    Debug.Log($"GameStateManager.SetCurrentPlayerPhaseState: CurrentSelectedEntity is {CurrentState.Combat.SelectedEntity}");
-                    SetInspectedTile(CurrentState.Combat.InspectedTile.Position);
-                    GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTile.Position, true);
+                    Debug.Log($"GameStateManager.SetCurrentPlayerPhaseState: SelectedEntityID is {CurrentState.Combat.SelectedEntityID}");
+                    SetInspectedTile(CurrentState.Combat.InspectedTilePosition);
+                    GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, true);
                     break;
                 case GameStateEnums.PlayerPhaseState.UnitSelectTarget: break;
                 case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: break;
@@ -281,15 +293,17 @@ namespace StrategyGame.Core.GameState {
             Tile tileAtCoordinate = GridDelegates.GetTileFromPosition(coordinate);
             // Forbid adding coordinate to manual path if out of movement range
             // Forbid adding coordinate to manual path if currently inspecting an entity of an enemy faction
+            GridEntity inspectedEntity = EntityDelegates.GetGridEntityByID(CurrentState.Combat.InspectedEntityID);
+            GridEntity selectedEntity = EntityDelegates.GetGridEntityByID(CurrentState.Combat.SelectedEntityID);
             if (ManualPath.Tiles.FirstOrDefault(tile => tile.Position == coordinate) == null) {
-                if (CurrentState.Combat.InspectedEntity != null && CurrentState.Combat.InspectedEntity.Faction != CurrentState.Combat.SelectedEntity.Faction) {
+                if (CurrentState.Combat.InspectedEntityID != -1 && inspectedEntity.Faction != selectedEntity.Faction) {
                     Debug.LogWarning("GameStateManager.AddCoordinateToManualPath: An entity of an opposing faction is blocking movement to this tile.");
                     return false;
                 }
                 int movementCostUsed = GetManualPathUsedMovementCost();
-                if (CurrentState.Combat.SelectedEntity.MovementRange - movementCostUsed - tileAtCoordinate.MovementCost < 0) {
+                if (selectedEntity.MovementRange - movementCostUsed - tileAtCoordinate.MovementCost < 0) {
                     Debug.LogWarning(
-                        $"GameStateManager.AddCoordinateToManualPath: Not enough movement cost (need {tileAtCoordinate.MovementCost} but have {CurrentState.Combat.SelectedEntity.MovementRange - movementCostUsed} left: used {movementCostUsed}). Not adding coordinate {coordinate} to manual path. {string.Join(",", ManualPath.Tiles)}");
+                        $"GameStateManager.AddCoordinateToManualPath: Not enough movement cost (need {tileAtCoordinate.MovementCost} but have {selectedEntity.MovementRange - movementCostUsed} left: used {movementCostUsed}). Not adding coordinate {coordinate} to manual path. {string.Join(",", ManualPath.Tiles)}");
                     return false;
                 }
             }
@@ -299,7 +313,7 @@ namespace StrategyGame.Core.GameState {
                 SetInspectedTile(coordinate);
                 GridDelegates.InvokeOnManualPathPreview(ManualPath);
             } else {
-                Debug.LogWarning($"GameStateManager.AddCoordinateToManualPath: Illegal path. Restricting cursor movement. Cursor position according to GameState: {CurrentState.Combat.InspectedTile.Position}");
+                Debug.LogWarning($"GameStateManager.AddCoordinateToManualPath: Illegal path. Restricting cursor movement. Cursor position according to GameState: {CurrentState.Combat.InspectedTilePosition}");
             }
             return stepSuccess;
         }
@@ -313,12 +327,13 @@ namespace StrategyGame.Core.GameState {
         }
         private void UpdateAutomaticPathPreview(Vector2Int coordinate) {
             Tile newTile = GridDelegates.GetTileFromPosition(coordinate);
-            Vector2Int startPosition = CurrentState.Combat.InspectedEntity?.GridPosition ?? newTile.Position;
+            GridEntity inspectedEntity = EntityDelegates.GetGridEntityByID(CurrentState.Combat.InspectedEntityID);
+            Vector2Int startPosition = inspectedEntity?.GridPosition ?? newTile.Position;
             GridDelegates.InvokeOnAStarPathPreview(startPosition, startPosition);
         }
         private void SetInspectedTile(Vector2Int coordinate) {
             Tile newTile = GridDelegates.GetTileFromPosition(coordinate);
-            Tile oldTile = CurrentState.Combat.InspectedTile;
+            Tile oldTile = GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition);
 
             // Forbid the change if player is currently in manual path selection mode and the new tile is not walkable from the old tile
             if (CurrentState.Combat.PlayerPhase == GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination && CurrentState.Combat.UnitMoveSelectionMode == GameStateEnums.UnitMoveSelectionMode.Manual) {
@@ -331,26 +346,26 @@ namespace StrategyGame.Core.GameState {
 
             // Clear any visual selection on old tile
             // GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentInspectedTile.Position, false); 
-            CurrentState.Combat.InspectedTile = newTile ?? throw new ArgumentException("GameStateManager.SetInspectedTile: Tile does not exist at position {coordinates}!");
+            CurrentState.Combat.InspectedTilePosition = newTile?.Position ?? throw new ArgumentException("GameStateManager.SetInspectedTile: Tile does not exist at position {coordinates}!");
             GridDelegates.InvokeOnInspectedTileChanged(oldTile, newTile);
-            GridEntity previousSelectedEntity = CurrentState.Combat.InspectedEntity;
-            CurrentState.Combat.InspectedEntity = newTile.IsOccupied ? newTile.Occupant : null;
-            Debug.Log($"GameStateManager.SetInspectedTile: Set CurrentInspectedEntity to {CurrentState.Combat.InspectedEntity}");
-            UIDelegates.InvokeOnTerrainUIUpdate(CurrentState.Combat.InspectedTile);
-            if (CurrentState.Combat.UnitMoveSelectionMode == GameStateEnums.UnitMoveSelectionMode.Manual || CurrentState.Combat.InspectedEntity != null) {
+            GridEntity previousSelectedEntity = EntityDelegates.GetGridEntityByID(CurrentState.Combat.InspectedEntityID);
+            CurrentState.Combat.InspectedEntityID = newTile.IsOccupied ? newTile.Occupant.ID : -1;
+            Debug.Log($"GameStateManager.SetInspectedTile: Set InspectedEntityID to {CurrentState.Combat.InspectedEntityID}");
+            UIDelegates.InvokeOnTerrainUIUpdate(GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition));
+            if (CurrentState.Combat.UnitMoveSelectionMode == GameStateEnums.UnitMoveSelectionMode.Manual || CurrentState.Combat.InspectedEntityID != -1) {
                 // Focus camera rig onto position
-                CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(CurrentState.Combat.InspectedTile.Position.x, 0, CurrentState.Combat.InspectedTile.Position.y));
-                if (CurrentState.Combat.InspectedEntity != null) {
-                    UIDelegates.InvokeOnEntityHUDUpdate(CurrentState.Combat.InspectedEntity);
+                CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(CurrentState.Combat.InspectedTilePosition.x, 0, CurrentState.Combat.InspectedTilePosition.y));
+                if (CurrentState.Combat.InspectedEntityID != -1) {
+                    UIDelegates.InvokeOnEntityHUDUpdate(EntityDelegates.GetGridEntityByID(CurrentState.Combat.InspectedEntityID));
                 }
             }
-            if (previousSelectedEntity == null && CurrentState.Combat.InspectedEntity == null)
+            if (previousSelectedEntity == null && CurrentState.Combat.InspectedEntityID == -1)
                 return;
-            if (previousSelectedEntity != null && CurrentState.Combat.InspectedEntity != null)
+            if (previousSelectedEntity != null && CurrentState.Combat.InspectedEntityID != -1)
                 return;
-            if (CurrentState.Combat.InspectedEntity != null) {
+            if (CurrentState.Combat.InspectedEntityID != -1) {
                 UIAnimationDelegates.InvokeOnPlayAnimation(AnimatorCategory.EntityHUD, "TweenIn");
-            } else if (CurrentState.Combat.InspectedEntity == null) {
+            } else if (CurrentState.Combat.InspectedEntityID == -1) {
                 UIAnimationDelegates.InvokeOnPlayAnimation(AnimatorCategory.EntityHUD, "TweenOut");
             }
         }
@@ -380,22 +395,26 @@ namespace StrategyGame.Core.GameState {
                 if (currentEntity == null) {
                     throw new Exception($"GameStateManager.RunEnemyPhaseCoroutine: Tried to search for enemy of ID {entityID} but could not find it!");
                 }
-                Tile oldTile = CurrentState.Combat.InspectedTile;
-                CurrentState.Combat.InspectedEntity = currentEntity;
-                CurrentState.Combat.SelectedEntity = currentEntity;
-                CurrentState.Combat.InspectedTile = GridDelegates.GetTileFromPosition(currentEntity.GridPosition);
-                GridDelegates.InvokeOnInspectedTileChanged(oldTile, CurrentState.Combat.InspectedTile);
+                Tile oldTile = GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition);
+                CurrentState.Combat.InspectedEntityID = entityID;
+                yield return new WaitForEndOfFrame();
+                CurrentState.Combat.SelectedEntityID = entityID;
+                CurrentState.Combat.InspectedTilePosition = currentEntity.GridPosition;
+                GridDelegates.InvokeOnInspectedTileChanged(oldTile, GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition));
+                GridDelegates.InvokeOnSetTileVisualSelectionAnim(currentEntity.GridPosition, true);
                 yield return new WaitForSeconds(2f);
                 // Do something
-                HashSet<Tile> walkableTiles = currentEntity.GetWalkableTiles();
-
                 
+               
+                
+                HashSet<Tile> walkableTiles = currentEntity.GetWalkableTiles();
                 Tile chosenRandomTile = walkableTiles.ElementAt(Random.Range(0, walkableTiles.Count));
                 (bool reachable, List<Tile> path) = AStar.CalculateBestPath(currentEntity.GridPosition, chosenRandomTile.Position);
                 if (!reachable) {
                     throw new Exception($"GameStateManager.RunEnemyPhaseCoroutine: AStar could not find a path for the chosen random tile at position {chosenRandomTile.Position}!");
                 }
                 CurrentState.Combat.NextActorReady = false;
+                GridDelegates.InvokeOnSetTileVisualSelectionAnim(currentEntity.GridPosition, false);
                 currentEntity.MoveAlongPath(path);
                 yield return new WaitUntil(() => CurrentState.Combat.NextActorReady);
                 yield return new WaitForSeconds(2f);

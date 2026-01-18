@@ -40,7 +40,7 @@ namespace StrategyGame.Grid.Rendering {
         // CORE METHODS
         // ==============================
         private Transform GetEntityVisualTransformByID(int id) {
-            return _entityVisuals[id].transform;
+            return _entityVisuals.GetValueOrDefault(id)?.transform;
         }
         
         private void OnEntitySpawned(GridEntity entity, Vector2Int newPosition) {

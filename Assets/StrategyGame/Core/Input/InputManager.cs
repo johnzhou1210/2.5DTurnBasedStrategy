@@ -242,12 +242,12 @@ public class InputManager : MonoBehaviour, IPointerMoveHandler {
         GameStateData state = GameStateDelegates.GetCurrentGameState();
         switch (state.Combat.PlayerPhase) {
             // In order to select, there must be an entity
-            case GameStateEnums.PlayerPhaseState.SelectUnitToControl when state.Combat.InspectedEntity == null:
+            case GameStateEnums.PlayerPhaseState.SelectUnitToControl when state.Combat.InspectedEntityID == -1:
                 Debug.Log("InputManager.HandleSelectionInput: Current selected entity is null!");
                 return;
             case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
                 // Disallow if the unit's ID is not in ActorIDsRemaining list.
-                if (!state.Combat.ActorsIDsRemaining.Contains(state.Combat.InspectedEntity.ID)) {
+                if (!state.Combat.ActorsIDsRemaining.Contains(state.Combat.InspectedEntityID)) {
                     Debug.Log("InputManager.HandleEntityTileSelection: The currently inspected entity needs to wait for their turn phase or has already acted!");
                     return;
                 }
@@ -256,7 +256,7 @@ public class InputManager : MonoBehaviour, IPointerMoveHandler {
                 GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination);
             break;
             case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination: {
-                GridEntity currentSelectedEntity = state.Combat.SelectedEntity;
+                GridEntity currentSelectedEntity = EntityDelegates.GetGridEntityByID(state.Combat.SelectedEntityID);
                 if (currentSelectedEntity == null) {
                     Debug.LogWarning("InputManager.HandleSelectionInput: Current selected entity is null!");
                     return;

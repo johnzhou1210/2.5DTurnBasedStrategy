@@ -95,7 +95,7 @@ namespace StrategyGame.Grid.Rendering {
                         }
                         break;
                     case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
-                        GridEntity currentSelectedEntity = currentGameState.Combat.SelectedEntity;
+                        GridEntity currentSelectedEntity = EntityDelegates.GetGridEntityByID(currentGameState.Combat.SelectedEntityID);
                         // To determine how many steps to look, take a look at GameStateManager's manual path
                         int movementCostRemaining = currentSelectedEntity.MovementRange - GameStateDelegates.ManualPathSelectionGetSpentMovementCost();
                         Debug.Log($"GridRenderer.UpdateInspectedTileVisuals: Movement cost remaining: {movementCostRemaining}");

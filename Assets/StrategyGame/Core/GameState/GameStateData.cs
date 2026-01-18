@@ -17,9 +17,9 @@ namespace StrategyGame.Core.GameState {
         public GameStateEnums.PlayerPhaseState PlayerPhase = GameStateEnums.PlayerPhaseState.None;
         public GameStateEnums.EnemyPhaseState EnemyPhase = GameStateEnums.EnemyPhaseState.None;
         public GameStateEnums.UnitMoveSelectionMode UnitMoveSelectionMode = GameStateEnums.UnitMoveSelectionMode.None;
-        public GridEntity InspectedEntity;
-        public GridEntity SelectedEntity;
-        public Tile InspectedTile;
+        public int InspectedEntityID = -1;
+        public int SelectedEntityID = -1;
+        public Vector2Int InspectedTilePosition;
         public bool NextActorReady = true;
     }
 }
