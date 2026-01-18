@@ -83,7 +83,7 @@ namespace StrategyGame.Core.Input {
                 // Show route if GameStateManager is currently selecting a Unit
                 GameStateData state = GameStateDelegates.GetCurrentGameState();
                 if (state.Combat.UnitMoveSelectionMode != GameStateEnums.UnitMoveSelectionMode.Automatic) return;
-                GridEntity currentSelectedEntity = GameStateDelegates.GetCurrentSelectedEntity();
+                GridEntity currentSelectedEntity = state.Combat.SelectedEntity;
                 if (currentSelectedEntity == null) return;
                 GridDelegates.InvokeOnAStarPathPreview(currentSelectedEntity?.GridPosition ?? tile.GetComponent<TileSelectable>().GridCoordinates, tile.GetComponent<TileSelectable>().GridCoordinates);
 

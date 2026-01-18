@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
 using StrategyGame.Core.GameState;
+using StrategyGame.Factions;
 using StrategyGame.Grid;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -92,6 +93,7 @@ public class InputManager : MonoBehaviour, IPointerMoveHandler {
         _pathSelectionMoveActionTimer = Mathf.Max(0f, _pathSelectionMoveActionTimer - Time.deltaTime);
         Vector2 moveInput = _moveAction.ReadValue<Vector2>();
         GameStateData currentGameState = GameStateDelegates.GetCurrentGameState();
+        if (currentGameState.Combat.TurnPhase != GameStateEnums.TurnPhase.Player) return;
         switch (currentGameState.Combat.PlayerPhase) {
             case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
                 HandleGridNavigationInput(moveInput);
@@ -240,19 +242,23 @@ public class InputManager : MonoBehaviour, IPointerMoveHandler {
         GameStateData state = GameStateDelegates.GetCurrentGameState();
         switch (state.Combat.PlayerPhase) {
             // In order to select, there must be an entity
-            case GameStateEnums.PlayerPhaseState.SelectUnitToControl when GameStateDelegates.GetCurrentInspectedEntity() == null:
-                Debug.LogWarning("InputManager.HandleSelectionInput : Current selected entity is null!");
+            case GameStateEnums.PlayerPhaseState.SelectUnitToControl when state.Combat.InspectedEntity == null:
+                Debug.Log("InputManager.HandleSelectionInput: Current selected entity is null!");
                 return;
             case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
+                // Disallow if the unit's ID is not in ActorIDsRemaining list.
+                if (!state.Combat.ActorsIDsRemaining.Contains(state.Combat.InspectedEntity.ID)) {
+                    Debug.Log("InputManager.HandleEntityTileSelection: The currently inspected entity needs to wait for their turn phase or has already acted!");
+                    return;
+                }
                 Debug.Log("InputManager.HandleEntityTileSelection: START FORMING PATH");
                 _isDiagonalMoveEnabled = false;
-                GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState
-                    .SelectUnitMoveDestination);
+                GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination);
             break;
             case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination: {
-                GridEntity currentSelectedEntity = GameStateDelegates.GetCurrentSelectedEntity();
+                GridEntity currentSelectedEntity = state.Combat.SelectedEntity;
                 if (currentSelectedEntity == null) {
-                    Debug.LogWarning("InputManager.HandleSelectionInput : Current selected entity is null!");
+                    Debug.LogWarning("InputManager.HandleSelectionInput: Current selected entity is null!");
                     return;
                 }
                 Debug.Log("InputManager.HandleEntityTileSelection: STOP FORMING PATH");

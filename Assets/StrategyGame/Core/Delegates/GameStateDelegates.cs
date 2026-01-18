@@ -9,14 +9,12 @@ namespace StrategyGame.Core.Delegates {
         // ==============================
         // EVENTS
         // ==============================
-        public static event Action<GameStateEnums.TurnPhase> OnPhaseChanged;
         public static event Action<GameStateEnums.UnitMoveSelectionMode> OnUnitMoveSelectionChanged;
         public static event Action OnGameStarted;
         public static event Action<GameStateEnums.PlayerPhaseState> OnPlayerPhaseStateChanged;
-
-        public static void InvokeOnPhaseChanged(GameStateEnums.TurnPhase phase) {
-            OnPhaseChanged?.Invoke(phase);
-        }
+        public static event Action OnAdvanceTurnPhase;
+        public static event Action<GameStateEnums.TurnPhase> OnTurnPhaseChanged;
+        
         public static void InvokeOnGameStarted() {
             OnGameStarted?.Invoke();
         }
@@ -26,14 +24,18 @@ namespace StrategyGame.Core.Delegates {
         public static void InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState state) {
             OnPlayerPhaseStateChanged?.Invoke(state);
         }
-
+        public static void InvokeOnAdvanceTurnPhase() {
+            OnAdvanceTurnPhase?.Invoke();
+        }
+        public static void InvokeOnTurnPhaseChanged(GameStateEnums.TurnPhase phase) {
+            OnTurnPhaseChanged?.Invoke(phase);
+        }
+     
         
 
         // ==============================
         // FUNCS
         // ==============================
-        public static Func<GridEntity> GetCurrentInspectedEntity;
-        public static Func<GridEntity> GetCurrentSelectedEntity;
         public static Func<GameStateData> GetCurrentGameState;
         public static Func<ManualPath> GetManualPath;
         public static Func<int> ManualPathSelectionGetSpentMovementCost;

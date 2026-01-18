@@ -24,7 +24,7 @@ namespace StrategyGame.Core.Delegates {
         public static Func<List<UnitSpawnQuery>, List<GridUnit>> SpawnUnits;
         public static Func<List<StructureSpawnQuery>, List<GridStructure>> SpawnStructures;
         public static Func<int, Transform> GetEntityVisualTransformByID;
-        public static Func<Faction, List<GridEntity>> GetAllGridEntitiesByFaction;
+        public static Func<Faction, List<int>> GetAllGridEntityIDsByFaction;
 
     }
 }

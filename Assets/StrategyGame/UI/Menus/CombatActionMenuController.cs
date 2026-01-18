@@ -1,6 +1,7 @@
 using System;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
+using StrategyGame.Core.GameState;
 using UnityEngine;
 
 namespace StrategyGame.UI.Menus {
@@ -72,6 +73,11 @@ public class CombatActionMenuController : MonoBehaviour {
             case (int)ActionType.Item:
             break;
             case (int)ActionType.Wait:
+                GameStateData currState = GameStateDelegates.GetCurrentGameState();
+                currState.Combat.ActorsIDsRemaining.Remove(currState.Combat.SelectedEntity.ID);
+                if (currState.Combat.ActorsIDsRemaining.Count == 0) {
+                    GameStateDelegates.InvokeOnAdvanceTurnPhase();
+                }
                 GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitToControl);
                 SetVisible(false);
                 SelectAction(0);

@@ -34,13 +34,13 @@ namespace StrategyGame.Grid {
             EntityDelegates.GetGridEntityByID = GetGridEntityById;
             EntityDelegates.SpawnUnits = SpawnUnits;
             EntityDelegates.SpawnStructures = SpawnStructures;
-            EntityDelegates.GetAllGridEntitiesByFaction = GetAllGridEntitiesByFaction;
+            EntityDelegates.GetAllGridEntityIDsByFaction = GetAllGridEntityIDsByFaction;
         }
         private void OnDisable() {
             EntityDelegates.GetGridEntityByID = null;
             EntityDelegates.SpawnUnits = null;
             EntityDelegates.SpawnStructures = null;
-            EntityDelegates.GetAllGridEntitiesByFaction = null;
+            EntityDelegates.GetAllGridEntityIDsByFaction = null;
         }
         
         // ==============================
@@ -90,11 +90,11 @@ namespace StrategyGame.Grid {
             GridDelegates.InvokeOnEntitySpawned(newStructure, position);
             return newStructure;
         }
-        private List<GridEntity> GetAllGridEntitiesByFaction(Faction faction) {
-            List<GridEntity> result = new List<GridEntity>();
+        private List<int> GetAllGridEntityIDsByFaction(Faction faction) {
+            List<int> result = new List<int>();
             foreach (GridEntity entity in Entities.Values) {
                 if (entity.Faction == faction) {
-                    result.Add(entity);
+                    result.Add(entity.ID);
                 }
             }
             return result;

@@ -16,6 +16,16 @@ namespace StrategyGame.Core.Enums {
             UnitAttackCutscene,
             None
         }
+        
+        public enum EnemyPhaseState {
+            SelectUnitToControl,
+            SelectUnitMoveDestination,
+            UnitMovingToDestination,
+            UnitContemplateAction,
+            UnitSelectTarget,
+            UnitAttackCutscene,
+            None
+        }
 
         public enum UnitMoveSelectionMode {
             Manual,

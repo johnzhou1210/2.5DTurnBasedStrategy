@@ -11,6 +11,7 @@ namespace StrategyGame.Grid {
         public int RemainingMovementPoints;
     }
 
+    [Serializable]
     public abstract class GridEntity {
         // ==============================
         // FIELDS & PROPERTIES

@@ -95,7 +95,7 @@ namespace StrategyGame.Grid.Rendering {
                         }
                         break;
                     case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
-                        GridEntity currentSelectedEntity = GameStateDelegates.GetCurrentSelectedEntity();
+                        GridEntity currentSelectedEntity = currentGameState.Combat.SelectedEntity;
                         // To determine how many steps to look, take a look at GameStateManager's manual path
                         int movementCostRemaining = currentSelectedEntity.MovementRange - GameStateDelegates.ManualPathSelectionGetSpentMovementCost();
                         Debug.Log($"GridRenderer.UpdateInspectedTileVisuals: Movement cost remaining: {movementCostRemaining}");
@@ -302,8 +302,24 @@ namespace StrategyGame.Grid.Rendering {
                 Tween tween = entityTransform.DOMove(new Vector3(tile.Position.x, 0f, tile.Position.y), 0.33f).SetEase(Ease.Linear);
                 yield return tween.WaitForCompletion();
             }
-            // Notify game state to change immediately to unit action menu
-            GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitActionMenu);
+            GameStateData currentState = GameStateDelegates.GetCurrentGameState();
+            switch (currentState.Combat.TurnPhase) {
+                case GameStateEnums.TurnPhase.Player:
+                    // Notify game state to change immediately to unit action menu
+                    GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitActionMenu);
+                    break;
+                case GameStateEnums.TurnPhase.Enemy:
+                    // Notify game state to continue to next enemy actor.
+                    currentState.Combat.NextActorReady = true;
+                    break;
+                case GameStateEnums.TurnPhase.Event:
+                    break;
+                case GameStateEnums.TurnPhase.None:
+                    break;
+                default:
+                    throw new Exception("GridRenderer.EntityPathMovementCoroutine: Invalid turn phase!");
+            }
+          
         }
     }
 }

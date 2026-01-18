@@ -49,7 +49,6 @@ namespace StrategyGame.Core.Delegates {
         // EVENTS
         // ==============================
         public static Func<Vector2Int, Tile> GetTileFromPosition;
-        public static Func<Tile> GetInspectedTile;
         public static Func<GridEntity, Vector2Int, bool> AddEntityToGridFirstTime;
         public static Func<Vector2Int> GetGridDimensions;
         public static Func<Vector2Int, bool> SetInspectedTile;
