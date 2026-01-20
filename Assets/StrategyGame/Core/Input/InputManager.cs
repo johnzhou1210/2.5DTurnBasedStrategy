@@ -27,11 +27,9 @@ public class InputManager : MonoBehaviour, IPointerMoveHandler {
     [SerializeField] private float pathSelectionMoveActionMinimumCooldown = .08f;
     [SerializeField] private float pathSelectionMoveActionCooldownAccelerationRate = .05f;
 
-    [Header("UI Selection Settings")] [SerializeField]
-    private float uiSelectionMoveActionCooldown = 0.33f;
-
+    [Header("UI Selection Settings")]
     [SerializeField] private float uiSelectionHoldInitialDelay = .33f;
-    [SerializeField] private float uiSelectionHoldRepeatRate = .1f;
+    [SerializeField] private float uiSelectionHoldRepeatRate = .1f; 
 
     private InputAction _moveAction;
     private InputAction _selectAction;
