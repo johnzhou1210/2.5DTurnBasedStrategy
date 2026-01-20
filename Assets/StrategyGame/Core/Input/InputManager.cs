@@ -61,7 +61,7 @@ public class InputManager : MonoBehaviour, IPointerMoveHandler {
         InputDelegates.GetUIManager = null;
         InputDelegates.GetGridCursorPosition = null;
     }
-
+    
     private void Start() {
         GameStateEnums.UnitMoveSelectionMode currentUnitMoveSelectionMode =
             GameStateDelegates.GetCurrentGameState().Combat.UnitMoveSelectionMode;
@@ -71,7 +71,6 @@ public class InputManager : MonoBehaviour, IPointerMoveHandler {
                                               GameStateEnums.UnitMoveSelectionMode.Automatic);
         // cameraRigController.SetZoomingEnabled(currentUnitMoveSelectionMode == UnitMoveSelectionMode.Automatic);
     }
-
 
     private void Update() {
         HandleInteractionInput();
