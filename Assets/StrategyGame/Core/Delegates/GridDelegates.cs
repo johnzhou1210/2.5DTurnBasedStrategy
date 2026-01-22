@@ -17,6 +17,7 @@ namespace StrategyGame.Core.Delegates {
         public static event Action<Tile, Tile> OnInspectedTileChanged;
         public static event Action<Vector2Int, bool> OnSetTileVisualSelectionAnim;
         public static event Action OnClearPath;
+        public static event Action OnGridRedraw;
 
         public static void InvokeOnEntitySpawned(GridEntity entity, Vector2Int position) {
             OnEntitySpawned?.Invoke(entity, position);
@@ -40,6 +41,10 @@ namespace StrategyGame.Core.Delegates {
 
         public static void InvokeOnClearPath() {
             OnClearPath?.Invoke();
+        }
+
+        public static void InvokeOnGridRedraw() {
+            OnGridRedraw?.Invoke();
         }
 
         

@@ -106,19 +106,25 @@ namespace StrategyGame.Grid {
         public virtual GameObject GetSpritePrefab() {
             return GridEntityData.VisualPrefab;
         }
-        public virtual HashSet<Tile> GetWalkableTiles(bool includeAllies = false) {
+        public virtual (HashSet<Tile>, HashSet<GridEntity>) GetWalkableTiles(bool includeAllies = false) {
             return GetWalkableTilesAtPosition(GridPosition, MovementRange, includeAllies);
         }
 
-        public HashSet<Tile> GetWalkableTilesAtPosition(Vector2Int position, int availableMovementCost, bool includeAllies = false) {
-            HashSet<Tile> result = new HashSet<Tile>();
+        /// <summary>
+        /// Gets walkable tiles and attackable entities at position.
+        /// </summary>
+        /// <param name="position">The position to check.</param>
+        /// <param name="availableMovementCost">How much movement cost remaining.</param>
+        /// <param name="includeAllies">Include allies or not. Useful for path previewing.</param>
+        /// <returns>Walkable tiles at position and attackable entities at position.</returns>
+        public (HashSet<Tile>, HashSet<GridEntity>) GetWalkableTilesAtPosition(Vector2Int position, int availableMovementCost, bool includeAllies = false) {
+            HashSet<Tile> walkableTiles = new HashSet<Tile>();
+            HashSet<GridEntity> attackableEntities = new HashSet<GridEntity>();
             Tile startTile = GridDelegates.GetTileFromPosition(position);
-
             if (startTile.Occupant != null && startTile.Occupant.Faction != Faction) {
                 Debug.LogWarning("GridEntity.GetWalkableTilesAtPosition: Start tile is blocked by an opposing faction!");
-                return result;
+                return (walkableTiles, attackableEntities);
             }
-            
             // BFS / flood fill
             Queue<FloodFillQueueEntry> tilesToVisit = new Queue<FloodFillQueueEntry>();
             Dictionary<Tile, int> bestRemainingMovements = new Dictionary<Tile, int>();
@@ -135,7 +141,10 @@ namespace StrategyGame.Grid {
                     bool isOccupied = neighbor.Occupant != null;
                     bool isEnemy = isOccupied && neighbor.Occupant.Faction != Faction;
                     bool isAlly = isOccupied && neighbor.Occupant.Faction == Faction;
-                    if (isEnemy) continue;
+                    if (isEnemy) {
+                        attackableEntities.Add(currentTile.Occupant);
+                        continue;
+                    }
                     if (isAlly && !includeAllies) continue;
                     int newRemainingMovement = remainingMovement - neighbor.MovementCost;
                     if (newRemainingMovement < 0)
@@ -149,14 +158,14 @@ namespace StrategyGame.Grid {
                     }
                 }
             }
-
             // Collect all reachable tiles
             foreach (var entry in bestRemainingMovements) {
-                result.Add(entry.Key);
+                walkableTiles.Add(entry.Key);
             }
-            
-            return result;
+            return (walkableTiles, attackableEntities);
         }
+        
+        
         
         public void SetGridPosition(Vector2Int newPosition) {
             GridPosition = newPosition;

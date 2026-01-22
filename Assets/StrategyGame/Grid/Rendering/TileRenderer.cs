@@ -1,5 +1,8 @@
 using System;
 using StrategyGame.Core.Delegates;
+using StrategyGame.Core.Enums;
+using StrategyGame.Core.GameState;
+using StrategyGame.Factions;
 using StrategyGame.Grid.GridData;
 using UnityEngine;
 
@@ -13,7 +16,7 @@ namespace StrategyGame.Grid.Rendering {
         public bool IsStart;
     }
     
-    public class TileSelectable : MonoBehaviour {
+    public class TileRenderer : MonoBehaviour {
         // ==============================
         // FIELDS & PROPERTIES
         // ==============================
@@ -25,10 +28,13 @@ namespace StrategyGame.Grid.Rendering {
         [SerializeField] private GameObject routeStartVisual;
         [SerializeField] private GameObject routeHalfStraightVisual;
 
+        [SerializeField] private Renderer playerHighlightRenderer; // Physically on top
+        [SerializeField] private Renderer enemyHighlightRenderer; // Physically on bottom
+
         [SerializeField] private new Renderer renderer;
         [SerializeField] private Animator selectionAnimator;
 
-        private Color _originalColor;
+        private Color _terrainColor;
         
         public Vector2Int GridCoordinates { get; private set; }
         
@@ -40,8 +46,23 @@ namespace StrategyGame.Grid.Rendering {
         public void Initialize(Vector2Int position) {
             GridCoordinates = position;
             gameObject.name = $"Tile {GridCoordinates}";
-            _originalColor = GridDelegates.GetTileFromPosition(position).MovementCost > 100 ? Color.black : Color.gray;
-            renderer.material.color = _originalColor;
+            Tile tile = GridDelegates.GetTileFromPosition(position);
+            switch (tile.InitData.name) {
+                case "Grasslands":
+                    _terrainColor = new Color(.3f,.5f,.2f);
+                    break;
+                case "Forest":
+                    _terrainColor = new Color(.2f,.3f,.2f);
+                    break;
+                case "Mountains":
+                    _terrainColor = new Color(.2f,.2f,.2f);
+                    break;
+                default:
+                    _terrainColor = Color.black;
+                    break;
+            }
+            Debug.Log($"TileRenderer.Initialize: Setting tile {name} renderer material color to {_terrainColor} when data name is {tile.InitData.name}");
+            SetColor(renderer, _terrainColor);
         }
 
         
@@ -100,15 +121,26 @@ namespace StrategyGame.Grid.Rendering {
         
         // For when unit is selected
         public void SetWalkableMarkVisualVisibility(bool val) {
-            if (_originalColor == Color.black) return;
-            renderer.material.color = val ? Color.green : Color.gray;
+            SetColor(playerHighlightRenderer, val ? new Color(0,0,1,.2f) : Color.clear);
+
+            if (!val) {
+                SetColor(playerHighlightRenderer, Color.clear);
+                SetColor(enemyHighlightRenderer, Color.clear);
+            }
         }
 
-        public void Redraw() {
+        public void RedrawHighlights() {
             TileData tileInitData = GridDelegates.GetTileFromPosition(GridCoordinates).InitData;
             if (tileInitData == null) throw new Exception("Redraw: Tile init data is null");
-            _originalColor = tileInitData.MovementCost >=  100 ? Color.black : Color.white;
-            renderer.material.color = _originalColor;
+            SetColor(playerHighlightRenderer, Color.clear);
+            SetColor(enemyHighlightRenderer, Color.clear);
+        }
+
+        private void SetColor(Renderer renderer, Color color) {
+            MaterialPropertyBlock block = new MaterialPropertyBlock();
+            renderer.GetPropertyBlock(block);
+            block.SetColor("_BaseColor", color);
+            renderer.SetPropertyBlock(block);
         }
         
         

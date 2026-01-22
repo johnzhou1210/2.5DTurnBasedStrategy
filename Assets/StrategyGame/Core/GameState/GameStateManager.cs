@@ -164,6 +164,8 @@ namespace StrategyGame.Core.GameState {
             EntityDelegates.SpawnUnits(entities);
             GenerateRandomBiome(Resources.Load<TileData>("ScriptableObjects/Tiles/Mountains"));
             GenerateRandomBiome(Resources.Load<TileData>("ScriptableObjects/Tiles/Forest"));
+            
+            GridDelegates.InvokeOnGridRedraw();
 
             // Start core game loop
             SetInspectedTile(Vector2Int.zero);
@@ -463,17 +465,12 @@ namespace StrategyGame.Core.GameState {
                 Debug.Log($"GameStateManager.SetInspectedTile: MovementCostUsed: {movementCostUsed}");
             }
             
-      
             CurrentState.Combat.InspectedTilePosition = newTile?.Position ??
                                                         throw new ArgumentException(
                                                             "GameStateManager.SetInspectedTile: Tile does not exist at position {coordinates}!");
             GridDelegates.InvokeOnInspectedTileChanged(oldTile, newTile);
-            int previousSelectedEntityID = CurrentState.Combat.InspectedEntityID;
             CurrentState.Combat.InspectedEntityID = newTile.IsOccupied ? newTile.Occupant.ID : -1;
-            Debug.Log(
-                $"GameStateManager.SetInspectedTile: Set InspectedEntityID to {CurrentState.Combat.InspectedEntityID}");
-            UIDelegates.InvokeOnTerrainUIUpdate(
-                GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition));
+            UIDelegates.InvokeOnTerrainUIUpdate(GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition));
             if (CurrentState.Combat.UnitMoveSelectionMode == GameStateEnums.UnitMoveSelectionMode.Manual ||
                 CurrentState.Combat.InspectedEntityID != -1) {
                 // Focus camera rig onto position
@@ -488,26 +485,23 @@ namespace StrategyGame.Core.GameState {
            
         }
 
-        private void GenerateRandomBiome(TileData tileData, bool overrideNonDefault = false) {
-            int placedMountains = 0;
+        private void GenerateRandomBiome(TileData tileData) {
+            int replacedTiles = 0;
             int numTries = 32;
             Vector2Int gridDimensions = GridDelegates.GetGridDimensions();
-            while (placedMountains < numTries) {
+            while (replacedTiles < numTries) {
                 Vector2Int randomPosition =
                     new Vector2Int(Random.Range(0, gridDimensions.x), Random.Range(0, gridDimensions.y));
                 Tile randomTile = GridDelegates.GetTileFromPosition(randomPosition);
-                if (!overrideNonDefault && randomTile.InitData.name != "Grasslands")
-                    continue;
-                if (tileData.MovementCost > 99) {
-                    while (randomTile.IsOccupied) {
-                        randomPosition = new Vector2Int(Random.Range(0, gridDimensions.x),
-                            Random.Range(0, gridDimensions.y));
-                        randomTile = GridDelegates.GetTileFromPosition(randomPosition);
-                    }
+                
+                while (randomTile.IsOccupied) {
+                    randomPosition = new Vector2Int(Random.Range(0, gridDimensions.x), Random.Range(0, gridDimensions.y));
+                    randomTile = GridDelegates.GetTileFromPosition(randomPosition);
                 }
+                
 
                 GridDelegates.InvokeOnSetTileTerrainType(randomPosition, tileData);
-                placedMountains++;
+                replacedTiles++;
             }
         }
 
@@ -533,7 +527,7 @@ namespace StrategyGame.Core.GameState {
                 
                 // Choose tile to move to
                 CurrentState.Combat.EnemyPhase = GameStateEnums.EnemyPhaseState.SelectUnitMoveDestination;
-                HashSet<Tile> walkableTiles = currentEntity.GetWalkableTiles();
+                (HashSet<Tile> walkableTiles, HashSet<GridEntity> attackableEnemies) = currentEntity.GetWalkableTiles();
                 Tile chosenRandomTile = walkableTiles.ElementAt(Random.Range(0, walkableTiles.Count));
                 (bool reachable, List<Tile> path) =
                     AStar.CalculateBestPath(currentEntity.GridPosition, chosenRandomTile.Position);
@@ -552,7 +546,7 @@ namespace StrategyGame.Core.GameState {
                 CurrentState.Combat.NextActorReady = false;
                 currentEntity.MoveAlongPath(path);
                 yield return new WaitUntil(() => CurrentState.Combat.NextActorReady);
-                yield return new WaitForSeconds(2f);
+                yield return new WaitForSeconds(path.Count > 0 ? 2f : 0f);
                 
                 // Contemplate action
                 CurrentState.Combat.EnemyPhase = GameStateEnums.EnemyPhaseState.UnitContemplateAction;

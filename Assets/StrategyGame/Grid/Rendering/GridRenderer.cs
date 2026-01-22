@@ -45,12 +45,14 @@ namespace StrategyGame.Grid.Rendering {
             GridDelegates.OnInspectedTileChanged += UpdateInspectedTileVisuals;
             GridDelegates.OnSetTileVisualSelectionAnim += UpdateTileVisualSelection;
             GridDelegates.OnClearPath += ClearAllPathTileVisuals;
+            GridDelegates.OnGridRedraw += OnGridRedraw;
         }
         private void OnDisable() {
             GridDelegates.OnAStarPathPreview -= PreviewPathAStar;
             GridDelegates.OnManualPathPreview -= PreviewManualPath;
             GridDelegates.OnInspectedTileChanged -= UpdateInspectedTileVisuals;
             GridDelegates.OnClearPath -= ClearAllPathTileVisuals;
+            GridDelegates.OnGridRedraw -= OnGridRedraw;
         }
 
         // ==============================
@@ -63,9 +65,9 @@ namespace StrategyGame.Grid.Rendering {
                 if (oldTileVisual == null) {
                     throw new Exception("GridRenderer.UpdateInspectedTileVisuals: Old tile visual not found!");
                 }
-                if (oldTileVisual.TryGetComponent(out TileSelectable oldSelectable)) {
-                    oldSelectable.SetSelectionVisualIsAnimated(false);
-                    oldSelectable.SetSelectionVisualVisibility(false);
+                if (oldTileVisual.TryGetComponent(out TileRenderer oldRenderer)) {
+                    oldRenderer.SetSelectionVisualIsAnimated(false);
+                    oldRenderer.SetSelectionVisualVisibility(false);
                 }
                 // ClearWalkableTiles();
             }
@@ -80,8 +82,8 @@ namespace StrategyGame.Grid.Rendering {
             if (newTileVisual == null) {
                 throw new Exception("GridRenderer.UpdateInspectedTileVisuals: New tile visual not found!");
             }
-            if (newTileVisual.TryGetComponent(out TileSelectable newSelectable)) {
-                newSelectable.SetSelectionVisualVisibility(true);
+            if (newTileVisual.TryGetComponent(out TileRenderer newRenderer)) {
+                newRenderer.SetSelectionVisualVisibility(true);
 
                 // If currently selecting an entity or hovering over an entity outside of path selection mode, show entity's walkable tiles
                 // Do not update walkable tiles if currently selecting a unit's movement path
@@ -89,10 +91,15 @@ namespace StrategyGame.Grid.Rendering {
                 
                 ClearWalkableTiles();
 
+                HashSet<Tile> walkableTiles = new HashSet<Tile>();
+                HashSet<GridEntity> attackableEntities = new HashSet<GridEntity>();
+                
                 switch (currentGameState.Combat.PlayerPhase) {
                     case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
                         if (newTile.IsOccupied) {
-                            MarkWalkableTiles(newTile.Occupant.GetWalkableTiles(true));
+                            (walkableTiles, attackableEntities) =
+                                newTile.Occupant.GetWalkableTiles(true);
+                            MarkWalkableTiles(walkableTiles);
                         }
                         break;
                     case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
@@ -100,9 +107,9 @@ namespace StrategyGame.Grid.Rendering {
                         // To determine how many steps to look, take a look at GameStateManager's manual path
                         int movementCostRemaining = currentSelectedEntity.MovementRange - GameStateDelegates.ManualPathSelectionGetSpentMovementCost();
                         Debug.Log($"GridRenderer.UpdateInspectedTileVisuals: Movement cost remaining: {movementCostRemaining}");
-                        HashSet<Tile> walkableTileObjects = currentSelectedEntity.GetWalkableTilesAtPosition(newTile.Position, movementCostRemaining, true);
-                        walkableTileObjects.UnionWith(GameStateDelegates.GetManualPath().Unique);
-                        MarkWalkableTiles(walkableTileObjects);
+                        (walkableTiles, attackableEntities) = currentSelectedEntity.GetWalkableTilesAtPosition(newTile.Position, movementCostRemaining, true);
+                        walkableTiles.UnionWith(GameStateDelegates.GetManualPath().Unique);
+                        MarkWalkableTiles(walkableTiles);
                         break;
                     case GameStateEnums.PlayerPhaseState.UnitMovingToDestination:
                         break;
@@ -130,8 +137,8 @@ namespace StrategyGame.Grid.Rendering {
                 _walkableTiles.Add(_tileVisuals[tile.Position.x, tile.Position.y]);
             }
             foreach (GameObject walkableTile in _walkableTiles) {
-                if (walkableTile.TryGetComponent(out TileSelectable tileSelectable)) {
-                    tileSelectable.SetWalkableMarkVisualVisibility(true);
+                if (walkableTile.TryGetComponent(out TileRenderer tileRenderer)) {
+                    tileRenderer.SetWalkableMarkVisualVisibility(true);
                 }
             }
         }
@@ -160,8 +167,8 @@ namespace StrategyGame.Grid.Rendering {
             }
             for (int i = 0; i < _pathTiles.Count; i++) {
                 GameObject visual = _pathTiles[i];
-                if (visual.TryGetComponent(out TileSelectable tileSelectable)) {
-                    tileSelectable.ShowRouteSegment(true, CreateRouteSegmentData(newPath, i));
+                if (visual.TryGetComponent(out TileRenderer tileRenderer)) {
+                    tileRenderer.ShowRouteSegment(true, CreateRouteSegmentData(newPath, i));
                 }
             }
         }
@@ -173,8 +180,8 @@ namespace StrategyGame.Grid.Rendering {
             }
             for (int i = 0; i < _pathTiles.Count; i++) {
                 GameObject visual = _pathTiles[i];
-                if (visual.TryGetComponent(out TileSelectable tileSelectable)) {
-                    tileSelectable.ShowRouteSegment(true, CreateRouteSegmentData(manualPath.Tiles, i));
+                if (visual.TryGetComponent(out TileRenderer tileRenderer)) {
+                    tileRenderer.ShowRouteSegment(true, CreateRouteSegmentData(manualPath.Tiles, i));
                 }
             }
         }
@@ -183,8 +190,8 @@ namespace StrategyGame.Grid.Rendering {
             // Clear all path tiles before rendering new ones
             for (int i = 0; i < _pathTiles.Count; i++) {
                 GameObject visual = _pathTiles[i];
-                if (visual.TryGetComponent(out TileSelectable tileSelectable)) {
-                    tileSelectable.ShowRouteSegment(false, CreateRouteSegmentData(new List<Tile>(), i));
+                if (visual.TryGetComponent(out TileRenderer tileRenderer)) {
+                    tileRenderer.ShowRouteSegment(false, CreateRouteSegmentData(new List<Tile>(), i));
                 }
             }
             _pathTiles.Clear();
@@ -193,8 +200,8 @@ namespace StrategyGame.Grid.Rendering {
         private void UpdateTileVisualSelection(Vector2Int newPosition, bool animated) {
             GameObject tileToUpdate = _tileVisuals[newPosition.x, newPosition.y];
             if (!tileToUpdate.activeInHierarchy) return;
-            if (tileToUpdate.TryGetComponent(out TileSelectable tileSelectable)) {
-                tileSelectable.SetSelectionVisualIsAnimated(animated);
+            if (tileToUpdate.TryGetComponent(out TileRenderer tileRenderer)) {
+                tileRenderer.SetSelectionVisualIsAnimated(animated);
             }
         }
         
@@ -210,7 +217,7 @@ namespace StrategyGame.Grid.Rendering {
                     GameObject newTile = Instantiate(tilePrefab, transform);
                     newTile.transform.position = position;
                     _tileVisuals[x, y] = newTile;
-                    if (newTile.TryGetComponent(out TileSelectable selectable)) {
+                    if (newTile.TryGetComponent(out TileRenderer selectable)) {
                         selectable.Initialize(new Vector2Int(x, y));
                     }
                 }
@@ -220,8 +227,8 @@ namespace StrategyGame.Grid.Rendering {
             GameObject tileVisualToRedraw = _tileVisuals[tileToRedraw.Position.x, tileToRedraw.Position.y];
             if (tileVisualToRedraw == null)
                 throw new Exception("GridRenderer.OnTileRedraw: Tile to redraw is null");
-            if (tileVisualToRedraw.TryGetComponent(out TileSelectable selectable)) {
-                selectable.Redraw();
+            if (tileVisualToRedraw.TryGetComponent(out TileRenderer selectable)) {
+                selectable.RedrawHighlights();
             }
         }
         
@@ -288,8 +295,8 @@ namespace StrategyGame.Grid.Rendering {
         }
         private void ClearWalkableTiles() {
             foreach (GameObject walkableTile in _walkableTiles) {
-                if (walkableTile.TryGetComponent(out TileSelectable tileSelectable)) {
-                    tileSelectable.SetWalkableMarkVisualVisibility(false);
+                if (walkableTile.TryGetComponent(out TileRenderer tileRenderer)) {
+                    tileRenderer.SetWalkableMarkVisualVisibility(false);
                 }
             }
             _walkableTiles.Clear();
