@@ -99,12 +99,12 @@ namespace StrategyGame.Grid.Rendering {
                 
                 switch (currentGameState.Combat.PlayerPhase) {
                     case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
-                        if (newTile.IsOccupied) {
-                            (walkableTiles, attackableEntities) =
-                                newTile.Occupant.GetWalkableTiles(true);
-                            MarkWalkableTiles(walkableTiles);
-                            MarkTilesWithAttackableEntities(attackableEntities);
-                        }
+                        // if (newTile.IsOccupied) {
+                        //     (walkableTiles, attackableEntities) =
+                        //         newTile.Occupant.GetWalkableTiles(true);
+                        //     MarkWalkableTiles(walkableTiles);
+                        //     MarkTilesWithAttackableEntities(attackableEntities);
+                        // }
                         break;
                     case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
                         GridEntity currentSelectedEntity = EntityDelegates.GetGridEntityByID(currentGameState.Combat.SelectedEntityID);
@@ -175,8 +175,6 @@ namespace StrategyGame.Grid.Rendering {
             if (startTile == null)
                 return;
             if (!startTile.IsOccupied)
-                return;
-            if (startTile.Occupant is not GridUnit)
                 return;
             // Assign new tiles
             List<Tile> newPath = AStar.CalculateBestPath(startPosition, endPosition).path;

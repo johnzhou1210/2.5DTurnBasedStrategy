@@ -132,36 +132,36 @@ namespace StrategyGame.Core.GameState {
 
         private void StartGame() {
             Debug.Log("Starting Game");
-            List<UnitSpawnQuery> entities = new List<UnitSpawnQuery>();
-            entities.Add(new UnitSpawnQuery {
+            List<UnitSpawnQuery> units = new List<UnitSpawnQuery>();
+            units.Add(new UnitSpawnQuery {
                 UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Soldier"),
                 SpawnPosition = new Vector2Int(0, 0)
             });
-            entities.Add(new UnitSpawnQuery {
+            units.Add(new UnitSpawnQuery {
                 UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Orc"),
                 SpawnPosition = new Vector2Int(1, 1)
             });
-            entities.Add(new UnitSpawnQuery {
+            units.Add(new UnitSpawnQuery {
                 UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Archer"),
                 SpawnPosition = new Vector2Int(2, 2)
             });
-            entities.Add(new UnitSpawnQuery {
+            units.Add(new UnitSpawnQuery {
                 UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Soldier"),
                 SpawnPosition = new Vector2Int(5, 1)
             });
-            entities.Add(new UnitSpawnQuery {
+            units.Add(new UnitSpawnQuery {
                 UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Orc"),
                 SpawnPosition = new Vector2Int(3, 6)
             });
-            entities.Add(new UnitSpawnQuery {
+            units.Add(new UnitSpawnQuery {
                 UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Elite Orc"),
                 SpawnPosition = new Vector2Int(4, 4)
             });
-            entities.Add(new UnitSpawnQuery {
+            units.Add(new UnitSpawnQuery {
                 UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Elite Orc"),
                 SpawnPosition = new Vector2Int(0, 1)
             });
-            EntityDelegates.SpawnUnits(entities);
+            EntityDelegates.SpawnUnits(units);
             GenerateRandomBiome(Resources.Load<TileData>("ScriptableObjects/Tiles/Mountains"));
             GenerateRandomBiome(Resources.Load<TileData>("ScriptableObjects/Tiles/Forest"));
             
@@ -338,6 +338,8 @@ namespace StrategyGame.Core.GameState {
                     ManualPath.Clear();
                     CurrentState.Combat.SelectedEntityID = -1;
                     GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, false);
+                    Tile currInspectedTile = GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition);
+                    GridDelegates.InvokeOnInspectedTileChanged(currInspectedTile, currInspectedTile);
                     break;
                 case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
                     // Selected current inspected entity
@@ -352,6 +354,8 @@ namespace StrategyGame.Core.GameState {
 
                     Debug.Log($"GameStateManager.SetCurrentPlayerPhaseState: Manual path is now: {ManualPath}");
                     GridDelegates.InvokeOnManualPathPreview(ManualPath);
+                    Tile currentTile = GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition);
+                    GridDelegates.InvokeOnInspectedTileChanged(currentTile, currentTile); // Force update to show walkable tiles
                     break;
                 case GameStateEnums.PlayerPhaseState.UnitMovingToDestination:
                     GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, false);
@@ -381,7 +385,7 @@ namespace StrategyGame.Core.GameState {
             switch (CurrentState.Combat.PlayerPhase) {
                 case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
                     SetInspectedTile(coordinate);
-                    UpdateAutomaticPathPreview(coordinate);
+                    // UpdateAutomaticPathPreview(coordinate);
                     return true;
                 case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
                     return AddCoordinateToManualPath(coordinate);
@@ -514,9 +518,7 @@ namespace StrategyGame.Core.GameState {
                 // Wait a frame for entityID to update correctly
                 yield return new WaitForEndOfFrame();
                 CurrentState.Combat.SelectedEntityID = entityID;
-                // CurrentState.Combat.InspectedTilePosition = currentEntity.GridPosition;
                 SetInspectedTile(currentEntity.GridPosition, false);
-                // GridDelegates.InvokeOnInspectedTileChanged(oldTile, GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition));
                 yield return new WaitForSeconds(2f);
                 
                 // Choose tile to move to
@@ -531,9 +533,7 @@ namespace StrategyGame.Core.GameState {
                 }
 
                 oldTile = GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition); 
-                // CurrentState.Combat.InspectedTilePosition = path[^1].Position;
                 SetInspectedTile(path[^1].Position, false);
-                // GridDelegates.InvokeOnInspectedTileChanged(oldTile, GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition));
                 yield return new WaitForSeconds(.1f);
 
                 // Move to destination
