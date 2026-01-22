@@ -14,6 +14,7 @@ namespace StrategyGame.Core.Delegates {
         public static event Action OnLeftPressed;
         public static event Action OnRightPressed;
         public static event Action OnConfirmPressed;
+        public static event Action OnReinstateGridCursorPosition;
 
         public static void InvokeOnSetMouseRaycastEnabled(bool value) {
             OnSetMouseRaycastEnabled?.Invoke(value);
@@ -37,6 +38,10 @@ namespace StrategyGame.Core.Delegates {
 
         public static void InvokeOnConfirmPressed() {
             OnConfirmPressed?.Invoke();
+        }
+
+        public static void InvokeOnReinstateGridCursorPosition() {
+            OnReinstateGridCursorPosition?.Invoke();
         }
 
         // ==============================

@@ -30,6 +30,7 @@ namespace StrategyGame.Core.Delegates {
         public static void InvokeOnManualPathPreview(ManualPath path) {
             OnManualPathPreview?.Invoke(path);
         }
+        
         public static void InvokeOnInspectedTileChanged(Tile oldTile, Tile newTile) {
             OnInspectedTileChanged?.Invoke(oldTile, newTile);
         }

@@ -71,7 +71,8 @@ namespace StrategyGame.Grid.Rendering {
             }
 
             if (newTile == null) {
-                throw new Exception("GridRenderer.UpdateInspectedTileVisuals: New tile is null!");
+               Debug.Log("GridRenderer.UpdateInspectedTileVisuals: New tile is null, returning early.");
+               return;
             }
             
             // Show new tile selection visual
@@ -91,7 +92,7 @@ namespace StrategyGame.Grid.Rendering {
                 switch (currentGameState.Combat.PlayerPhase) {
                     case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
                         if (newTile.IsOccupied) {
-                            MarkWalkableTiles(newTile.Occupant.GetWalkableTiles());
+                            MarkWalkableTiles(newTile.Occupant.GetWalkableTiles(true));
                         }
                         break;
                     case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
@@ -99,7 +100,7 @@ namespace StrategyGame.Grid.Rendering {
                         // To determine how many steps to look, take a look at GameStateManager's manual path
                         int movementCostRemaining = currentSelectedEntity.MovementRange - GameStateDelegates.ManualPathSelectionGetSpentMovementCost();
                         Debug.Log($"GridRenderer.UpdateInspectedTileVisuals: Movement cost remaining: {movementCostRemaining}");
-                        HashSet<Tile> walkableTileObjects = currentSelectedEntity.GetWalkableTilesAtPosition(newTile.Position, movementCostRemaining);
+                        HashSet<Tile> walkableTileObjects = currentSelectedEntity.GetWalkableTilesAtPosition(newTile.Position, movementCostRemaining, true);
                         walkableTileObjects.UnionWith(GameStateDelegates.GetManualPath().Unique);
                         MarkWalkableTiles(walkableTileObjects);
                         break;

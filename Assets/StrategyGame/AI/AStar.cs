@@ -13,7 +13,7 @@ namespace StrategyGame.AI {
         public Tile Tile;
         public bool Reachable;
     }
-    public class AStar {
+    public static class AStar {
         // ==============================
         // CORE METHODS
         // ==============================
@@ -88,7 +88,7 @@ namespace StrategyGame.AI {
             }
 
             // If here, then no path found.
-            Debug.Log("A*: No path found!");
+            Debug.Log("AStar.CalculateBestPath: No path found!");
             return (false, new List<Tile>());
         }
 

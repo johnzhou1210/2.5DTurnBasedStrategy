@@ -106,11 +106,11 @@ namespace StrategyGame.Grid {
         public virtual GameObject GetSpritePrefab() {
             return GridEntityData.VisualPrefab;
         }
-        public virtual HashSet<Tile> GetWalkableTiles() {
-            return GetWalkableTilesAtPosition(GridPosition, MovementRange);
+        public virtual HashSet<Tile> GetWalkableTiles(bool includeAllies = false) {
+            return GetWalkableTilesAtPosition(GridPosition, MovementRange, includeAllies);
         }
 
-        public HashSet<Tile> GetWalkableTilesAtPosition(Vector2Int position, int availableMovementCost) {
+        public HashSet<Tile> GetWalkableTilesAtPosition(Vector2Int position, int availableMovementCost, bool includeAllies = false) {
             HashSet<Tile> result = new HashSet<Tile>();
             Tile startTile = GridDelegates.GetTileFromPosition(position);
 
@@ -132,8 +132,11 @@ namespace StrategyGame.Grid {
                     Tile neighbor = neighborPair.Value;
                     if (neighbor == null)
                         continue;
-                    bool isEnemy = neighbor.Occupant != null && neighbor.Occupant.Faction != Faction;
+                    bool isOccupied = neighbor.Occupant != null;
+                    bool isEnemy = isOccupied && neighbor.Occupant.Faction != Faction;
+                    bool isAlly = isOccupied && neighbor.Occupant.Faction == Faction;
                     if (isEnemy) continue;
+                    if (isAlly && !includeAllies) continue;
                     int newRemainingMovement = remainingMovement - neighbor.MovementCost;
                     if (newRemainingMovement < 0)
                         continue; // Not enough movement points to enter
@@ -141,12 +144,8 @@ namespace StrategyGame.Grid {
                     // Update bestRemainingMovements if better
                     if (!bestRemainingMovements.ContainsKey(neighbor) || newRemainingMovement > bestRemainingMovements[neighbor]) {
                         bestRemainingMovements[neighbor] = newRemainingMovement;
-
-                        // Enqueue neighbor only if it’s empty or friendly tile
                         // Enemy tiles are reachable but NOT pass-through
-                        if (!isEnemy) {
-                            tilesToVisit.Enqueue(new FloodFillQueueEntry { Tile = neighbor, RemainingMovementPoints = newRemainingMovement });
-                        }
+                        tilesToVisit.Enqueue(new FloodFillQueueEntry { Tile = neighbor, RemainingMovementPoints = newRemainingMovement });
                     }
                 }
             }

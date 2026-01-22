@@ -3,7 +3,7 @@ using StrategyGame.Grid;
 using StrategyGame.UI;
 
 namespace StrategyGame.Core.Delegates {
-    public class UIDelegates {
+    public static class UIDelegates {
         // ==============================
         // EVENTS
         // ==============================
@@ -11,6 +11,8 @@ namespace StrategyGame.Core.Delegates {
         public static event Action<GridEntity> OnEntityHUDUpdate;
         public static event Action<Tile> OnTerrainUIUpdate;
         public static event Action<bool> OnSetCombatActionMenuVisibility;
+        public static event Action OnUpdateTurnIndicatorRenderer;
+        public static event Action OnPlayPhaseBannerAnimationSequence;
 
         public static void InvokeOnSetUIActive(UICategory category, bool active) {
             OnSetUIActive?.Invoke(category, active);
@@ -24,6 +26,14 @@ namespace StrategyGame.Core.Delegates {
 
         public static void InvokeOnSetCombatActionMenuVisibility(bool visible) {
             OnSetCombatActionMenuVisibility?.Invoke(visible);
+        }
+
+        public static void InvokeOnUpdateTurnIndicatorRenderer() {
+            OnUpdateTurnIndicatorRenderer?.Invoke();
+        }
+
+        public static void InvokeOnPlayPhaseBannerAnimationSequence() {
+            OnPlayPhaseBannerAnimationSequence?.Invoke();
         }
         
 
