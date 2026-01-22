@@ -87,6 +87,7 @@ namespace StrategyGame.Core.Input
 
         private void Update()
         {
+            HandleCancellationInput();
             HandleInteractionInput();
             HandleAxisInput();
         }
@@ -177,6 +178,7 @@ namespace StrategyGame.Core.Input
         }
 
         private void HandleCancellationInput() {
+            if (!_cancelAction.WasPerformedThisFrame()) return;
             GameStateData currentGameState = GameStateDelegates.GetCurrentGameState();
             switch (currentGameState.Combat.TurnPhase) {
                 case GameStateEnums.TurnPhase.Player:
@@ -184,8 +186,7 @@ namespace StrategyGame.Core.Input
                         case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
                             break;
                         case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
-                            // Set selected entity to null and set state back to selecting a unit to control.
-                            
+                            GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitToControl);
                             break;
                         case GameStateEnums.PlayerPhaseState.UnitMovingToDestination:
                             break;
