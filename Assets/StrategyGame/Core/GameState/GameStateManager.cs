@@ -267,24 +267,19 @@ namespace StrategyGame.Core.GameState {
                 Vector3 visualPosition = entityVisualTransform.position;
                 switch (CurrentState.Combat.EnemyPhase) {
                     case GameStateEnums.EnemyPhaseState.SelectUnitToControl:
-                        CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y,
-                            visualPosition.z));
+                        CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y, visualPosition.z));
                         break;
                     case GameStateEnums.EnemyPhaseState.SelectUnitMoveDestination:
-                        CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y,
-                            visualPosition.z));
+                        CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y, visualPosition.z));
                         break;
                     case GameStateEnums.EnemyPhaseState.UnitMovingToDestination:
-                        CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y,
-                            visualPosition.z));
+                        CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y, visualPosition.z));
                         break;
                     case GameStateEnums.EnemyPhaseState.UnitContemplateAction:
-                        CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y,
-                            visualPosition.z));
+                        CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y, visualPosition.z));
                         break;
                     case GameStateEnums.EnemyPhaseState.UnitSelectTarget:
-                        CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y,
-                            visualPosition.z));
+                        CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y, visualPosition.z));
                         break;
                     case GameStateEnums.EnemyPhaseState.UnitAttackCutscene: break;
                     case GameStateEnums.EnemyPhaseState.None: break;
@@ -454,7 +449,7 @@ namespace StrategyGame.Core.GameState {
             GridDelegates.InvokeOnAStarPathPreview(startPosition, startPosition);
         }
 
-        private void SetInspectedTile(Vector2Int coordinate) {
+        private void SetInspectedTile(Vector2Int coordinate, bool focusCameraRig = true) {
             Tile newTile = GridDelegates.GetTileFromPosition(coordinate);
             Tile oldTile = GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition);
 
@@ -474,8 +469,7 @@ namespace StrategyGame.Core.GameState {
             if (CurrentState.Combat.UnitMoveSelectionMode == GameStateEnums.UnitMoveSelectionMode.Manual ||
                 CurrentState.Combat.InspectedEntityID != -1) {
                 // Focus camera rig onto position
-                CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(CurrentState.Combat.InspectedTilePosition.x, 0,
-                    CurrentState.Combat.InspectedTilePosition.y));
+                if (focusCameraRig) CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(CurrentState.Combat.InspectedTilePosition.x, 0, CurrentState.Combat.InspectedTilePosition.y));
                 if (CurrentState.Combat.InspectedEntityID != -1) {
                     UIDelegates.InvokeOnEntityHUDUpdate(
                         EntityDelegates.GetGridEntityByID(CurrentState.Combat.InspectedEntityID));
@@ -520,9 +514,9 @@ namespace StrategyGame.Core.GameState {
                 // Wait a frame for entityID to update correctly
                 yield return new WaitForEndOfFrame();
                 CurrentState.Combat.SelectedEntityID = entityID;
-                CurrentState.Combat.InspectedTilePosition = currentEntity.GridPosition;
-                SetInspectedTile(CurrentState.Combat.InspectedTilePosition);
-                GridDelegates.InvokeOnInspectedTileChanged(oldTile, GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition));
+                // CurrentState.Combat.InspectedTilePosition = currentEntity.GridPosition;
+                SetInspectedTile(currentEntity.GridPosition, false);
+                // GridDelegates.InvokeOnInspectedTileChanged(oldTile, GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition));
                 yield return new WaitForSeconds(2f);
                 
                 // Choose tile to move to
@@ -537,8 +531,9 @@ namespace StrategyGame.Core.GameState {
                 }
 
                 oldTile = GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition); 
-                CurrentState.Combat.InspectedTilePosition = path[^1].Position;
-                GridDelegates.InvokeOnInspectedTileChanged(oldTile, GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition));
+                // CurrentState.Combat.InspectedTilePosition = path[^1].Position;
+                SetInspectedTile(path[^1].Position, false);
+                // GridDelegates.InvokeOnInspectedTileChanged(oldTile, GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition));
                 yield return new WaitForSeconds(.1f);
 
                 // Move to destination
