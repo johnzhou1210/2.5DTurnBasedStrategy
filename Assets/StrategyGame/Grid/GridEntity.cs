@@ -138,11 +138,12 @@ namespace StrategyGame.Grid {
                     Tile neighbor = neighborPair.Value;
                     if (neighbor == null)
                         continue;
-                    bool isOccupied = neighbor.Occupant != null;
-                    bool isEnemy = isOccupied && neighbor.Occupant.Faction != Faction;
-                    bool isAlly = isOccupied && neighbor.Occupant.Faction == Faction;
+                    bool isNeighborOccupied = neighbor.Occupant != null;
+                    bool isEnemy = isNeighborOccupied && neighbor.Occupant.Faction != Faction;
+                    bool isAlly = isNeighborOccupied && neighbor.Occupant.Faction == Faction;
                     if (isEnemy) {
-                        attackableEntities.Add(currentTile.Occupant);
+                        Debug.Log($"GridEntity.GetWalkableTilesAtPosition: Adding attackable entity: {neighbor.Occupant}");
+                        attackableEntities.Add(neighbor.Occupant);
                         continue;
                     }
                     if (isAlly && !includeAllies) continue;

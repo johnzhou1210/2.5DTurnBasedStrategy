@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using StrategyGame.Core.Delegates;
@@ -10,6 +11,7 @@ using StrategyGame.Grid;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using Debug = UnityEngine.Debug;
 
 namespace StrategyGame.Core.Input
 {
@@ -36,6 +38,7 @@ namespace StrategyGame.Core.Input
 
         private InputAction _moveAction;
         private InputAction _selectAction;
+        private InputAction _cancelAction;
         private float _pathSelectionMoveActionTimer;
         private float _currentPathSelectionMoveActionCooldown;
         private float _pathSelectionMoveActionHeldDuration;
@@ -52,6 +55,7 @@ namespace StrategyGame.Core.Input
         {
             _moveAction = playerInput.actions["Move"];
             _selectAction = playerInput.actions["Select"];
+            _cancelAction = playerInput.actions["Cancel"];
         }
 
         private void OnEnable()
@@ -135,28 +139,76 @@ namespace StrategyGame.Core.Input
         private void HandleInteractionInput()
         {
             GameStateData currentGameState = GameStateDelegates.GetCurrentGameState();
-            switch (currentGameState.Combat.PlayerPhase)
-            {
-                case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
-                    HandleEntityTileSelection();
+            switch (currentGameState.Combat.TurnPhase) {
+                case GameStateEnums.TurnPhase.Player:
+                    switch (currentGameState.Combat.PlayerPhase)
+                    {
+                        case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
+                            HandleEntityTileSelection();
+                            break;
+                        case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
+                            HandleEntityTileSelection();
+                            break;
+                        case GameStateEnums.PlayerPhaseState.UnitMovingToDestination:
+                            break;
+                        case GameStateEnums.PlayerPhaseState.UnitActionMenu:
+                            HandleUIConfirmation();
+                            break;
+                        case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
+                            HandleEntityTileSelection();
+                            break;
+                        case GameStateEnums.PlayerPhaseState.UnitAttackCutscene:
+                            break;
+                        case GameStateEnums.PlayerPhaseState.None:
+                            break;
+                        default:
+                            throw new Exception("InputManager.HandleInteractionInput: Invalid player phase state enum!");
+                    }
                     break;
-                case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
-                    HandleEntityTileSelection();
+                case GameStateEnums.TurnPhase.Enemy:
                     break;
-                case GameStateEnums.PlayerPhaseState.UnitMovingToDestination:
+                case GameStateEnums.TurnPhase.Event:
                     break;
-                case GameStateEnums.PlayerPhaseState.UnitActionMenu:
-                    HandleUIConfirmation();
-                    break;
-                case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
-                    HandleEntityTileSelection();
-                    break;
-                case GameStateEnums.PlayerPhaseState.UnitAttackCutscene:
-                    break;
-                case GameStateEnums.PlayerPhaseState.None:
+                case GameStateEnums.TurnPhase.None:
                     break;
                 default:
-                    throw new Exception("InputManager.HandleInteractionInput: Invalid player phase state enum!");
+                    throw new Exception("InputManager.HandleInteractionInput: Invalid turn phase state enum!");
+            }
+        }
+
+        private void HandleCancellationInput() {
+            GameStateData currentGameState = GameStateDelegates.GetCurrentGameState();
+            switch (currentGameState.Combat.TurnPhase) {
+                case GameStateEnums.TurnPhase.Player:
+                    switch (currentGameState.Combat.PlayerPhase) {
+                        case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
+                            break;
+                        case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
+                            // Set selected entity to null and set state back to selecting a unit to control.
+                            
+                            break;
+                        case GameStateEnums.PlayerPhaseState.UnitMovingToDestination:
+                            break;
+                        case GameStateEnums.PlayerPhaseState.UnitActionMenu:
+                            break;
+                        case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
+                            break;
+                        case GameStateEnums.PlayerPhaseState.UnitAttackCutscene:
+                            break;
+                        case GameStateEnums.PlayerPhaseState.None:
+                            break;
+                        default:
+                            throw new Exception("InputManager.HandleCancellationInput: Invalid player phase state enum!");
+                    }
+                    break;
+                case GameStateEnums.TurnPhase.Enemy:
+                    break;
+                case GameStateEnums.TurnPhase.Event:
+                    break;
+                case GameStateEnums.TurnPhase.None:
+                    break;
+                default:
+                    throw new Exception("InputManager.HandleCancellationInput: Invalid turn phase state enum!");
             }
         }
 

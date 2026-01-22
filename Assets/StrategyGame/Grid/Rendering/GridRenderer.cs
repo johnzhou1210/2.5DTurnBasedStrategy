@@ -30,6 +30,7 @@ namespace StrategyGame.Grid.Rendering {
         private GameObject[,] _tileVisuals;
         [SerializeField] private GridManager grid;
         private HashSet<GameObject> _walkableTiles;
+        private HashSet<GameObject> _tilesWithAttackableEntities;
         private List<GameObject> _pathTiles;
 
         // ==============================
@@ -38,6 +39,7 @@ namespace StrategyGame.Grid.Rendering {
         private void OnEnable() {
             _tileVisuals = new GameObject[grid.GetSize().x, grid.GetSize().y];
             _walkableTiles = new HashSet<GameObject>();
+            _tilesWithAttackableEntities = new HashSet<GameObject>();
             _pathTiles = new List<GameObject>();
             GridDelegates.OnAStarPathPreview += PreviewPathAStar;
             GridDelegates.OnManualPathPreview += PreviewManualPath;
@@ -90,6 +92,7 @@ namespace StrategyGame.Grid.Rendering {
                 GameStateData currentGameState = GameStateDelegates.GetCurrentGameState();
                 
                 ClearWalkableTiles();
+                ClearAttackableTiles();
 
                 HashSet<Tile> walkableTiles = new HashSet<Tile>();
                 HashSet<GridEntity> attackableEntities = new HashSet<GridEntity>();
@@ -100,6 +103,7 @@ namespace StrategyGame.Grid.Rendering {
                             (walkableTiles, attackableEntities) =
                                 newTile.Occupant.GetWalkableTiles(true);
                             MarkWalkableTiles(walkableTiles);
+                            MarkTilesWithAttackableEntities(attackableEntities);
                         }
                         break;
                     case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
@@ -110,6 +114,7 @@ namespace StrategyGame.Grid.Rendering {
                         (walkableTiles, attackableEntities) = currentSelectedEntity.GetWalkableTilesAtPosition(newTile.Position, movementCostRemaining, true);
                         walkableTiles.UnionWith(GameStateDelegates.GetManualPath().Unique);
                         MarkWalkableTiles(walkableTiles);
+                        MarkTilesWithAttackableEntities(attackableEntities);
                         break;
                     case GameStateEnums.PlayerPhaseState.UnitMovingToDestination:
                         break;
@@ -139,6 +144,19 @@ namespace StrategyGame.Grid.Rendering {
             foreach (GameObject walkableTile in _walkableTiles) {
                 if (walkableTile.TryGetComponent(out TileRenderer tileRenderer)) {
                     tileRenderer.SetWalkableMarkVisualVisibility(true);
+                }
+            }
+        }
+
+        private void MarkTilesWithAttackableEntities(HashSet<GridEntity> attackableEntities) {
+            foreach (GridEntity attackableEntity in attackableEntities) {
+                Debug.Log($"GridRenderer.MarkTilesWithAttackableEntities: {string.Join(",", attackableEntities)}");
+                _tilesWithAttackableEntities.Add(_tileVisuals[attackableEntity.GridPosition.x, attackableEntity.GridPosition.y]);
+            }
+
+            foreach (GameObject attackableTile in _tilesWithAttackableEntities) {
+                if (attackableTile.TryGetComponent(out TileRenderer tileRenderer)) {
+                    tileRenderer.SetAttackableHighlightVisualVisibility(true);
                 }
             }
         }
@@ -301,6 +319,17 @@ namespace StrategyGame.Grid.Rendering {
             }
             _walkableTiles.Clear();
         }
+
+        private void ClearAttackableTiles() {
+            foreach (GameObject attackableTile in _tilesWithAttackableEntities)
+            {
+                if (attackableTile.TryGetComponent(out TileRenderer tileRenderer)) {
+                    tileRenderer.SetAttackableHighlightVisualVisibility(false);
+                }
+            }
+            _tilesWithAttackableEntities.Clear();
+        }
+        
         private IEnumerator EntityPathMovementCoroutine(GridEntity entity, List<Tile> path) {
             // Get entity transform
             Transform entityTransform = EntityDelegates.GetEntityVisualTransformByID(entity.ID);

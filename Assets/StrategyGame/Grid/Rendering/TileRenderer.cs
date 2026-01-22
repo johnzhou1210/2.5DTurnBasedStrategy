@@ -28,8 +28,9 @@ namespace StrategyGame.Grid.Rendering {
         [SerializeField] private GameObject routeStartVisual;
         [SerializeField] private GameObject routeHalfStraightVisual;
 
-        [SerializeField] private Renderer playerHighlightRenderer; // Physically on top
-        [SerializeField] private Renderer enemyHighlightRenderer; // Physically on bottom
+        [SerializeField] private Renderer walkableHighlightRenderer; // Physically in middle
+        [SerializeField] private Renderer oppositeReactionHighlightRenderer; // Physically on bottom
+        [SerializeField] private Renderer attackableHighlightRenderer; // Physically on top
 
         [SerializeField] private new Renderer renderer;
         [SerializeField] private Animator selectionAnimator;
@@ -121,19 +122,23 @@ namespace StrategyGame.Grid.Rendering {
         
         // For when unit is selected
         public void SetWalkableMarkVisualVisibility(bool val) {
-            SetColor(playerHighlightRenderer, val ? new Color(0,0,1,.2f) : Color.clear);
+            SetColor(walkableHighlightRenderer, val ? new Color(0,0,1,.2f) : Color.clear);
+        }
 
-            if (!val) {
-                SetColor(playerHighlightRenderer, Color.clear);
-                SetColor(enemyHighlightRenderer, Color.clear);
-            }
+        public void SetOppositeReactionHighlightVisualVisibility(bool val) {
+            SetColor(oppositeReactionHighlightRenderer, val ? new Color(0,0,1,.2f) : Color.clear);
+        }
+
+        public void SetAttackableHighlightVisualVisibility(bool val) {
+            SetColor(attackableHighlightRenderer, val ? new Color(0,0,1,.2f) : Color.clear);
         }
 
         public void RedrawHighlights() {
             TileData tileInitData = GridDelegates.GetTileFromPosition(GridCoordinates).InitData;
             if (tileInitData == null) throw new Exception("Redraw: Tile init data is null");
-            SetColor(playerHighlightRenderer, Color.clear);
-            SetColor(enemyHighlightRenderer, Color.clear);
+            SetColor(walkableHighlightRenderer, Color.clear);
+            SetColor(attackableHighlightRenderer, Color.clear);
+            SetColor(oppositeReactionHighlightRenderer, Color.clear);
         }
 
         private void SetColor(Renderer renderer, Color color) {
