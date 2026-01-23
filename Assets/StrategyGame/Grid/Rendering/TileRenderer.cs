@@ -64,11 +64,11 @@ namespace StrategyGame.Grid.Rendering {
 
         private readonly Dictionary<(TileHighlightType, Faction), Color> _highlightColors = new Dictionary<(TileHighlightType, Faction), Color> {
             { (TileHighlightType.Move, Faction.Player), new Color(0,0,1,.2f) },
-            { (TileHighlightType.Attackable, Faction.Player), new Color(.5f,.75f,1,.2f) },
+            { (TileHighlightType.Attackable, Faction.Player), new Color(0f,1f,1,.2f) },
             { (TileHighlightType.Attackable, Faction.Enemy), new Color(1,0.5f,0,.2f) },
             { (TileHighlightType.AttackRange, Faction.Player), new Color(0,0,1,.2f) },
             { (TileHighlightType.AttackRange, Faction.Enemy), new Color(1,0,0,.2f) },
-            { (TileHighlightType.Danger, Faction.Enemy), new Color(1,0,0,.1f) }
+            { (TileHighlightType.Danger, Faction.Enemy), new Color(1,0,0,.2f) }
         };
 
         
@@ -182,12 +182,17 @@ namespace StrategyGame.Grid.Rendering {
 
         
         private void UpdateHighlightColor() {
+            if (_activeHighlights.Count == 0) {
+                SetColor(highlightRenderer, Color.clear);
+                return;
+            }
             Color finalColor = Color.clear;
             foreach (var highlight in _activeHighlights) {
                 if (_highlightColors.TryGetValue((highlight.Type, highlight.Owner), out var color)) {
-                    finalColor += color; // simple additive blend
+                    finalColor += color;
                 }
             }
+            finalColor /= _activeHighlights.Count;
             SetColor(highlightRenderer, finalColor);
         }
 

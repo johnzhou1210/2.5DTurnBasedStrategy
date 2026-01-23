@@ -389,7 +389,7 @@ namespace StrategyGame.Core.Input
                      * 2) Intersecting valid tiles set with path must result in just the path set.
                      */
                     ManualPath manualPath = GameStateDelegates.GetManualPath();
-                    (HashSet<Tile> walkableTiles, HashSet<GridEntity> attackableEntities) = currentSelectedEntity.GetWalkableTiles(true);
+                    HashSet<Tile> walkableTiles = currentSelectedEntity.GetWalkableTiles(true);
                     HashSet<Tile> manualPathSet = manualPath.Unique;
                     List<Tile> manualPathList = manualPath.Tiles;
                     manualPathSet.IntersectWith(walkableTiles);

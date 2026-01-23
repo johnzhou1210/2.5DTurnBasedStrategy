@@ -109,24 +109,23 @@ namespace StrategyGame.Grid {
         public virtual GameObject GetSpritePrefab() {
             return GridEntityData.VisualPrefab;
         }
-        public virtual (HashSet<Tile>, HashSet<GridEntity>) GetWalkableTiles(bool includeAllies = false) {
+        public virtual HashSet<Tile> GetWalkableTiles(bool includeAllies = false) {
             return GetWalkableTilesAtPosition(GridPosition, MovementRange, includeAllies);
         }
 
         /// <summary>
-        /// Gets walkable tiles and attackable entities at position.
+        /// Gets walkable tiles at position.
         /// </summary>
         /// <param name="position">The position to check.</param>
         /// <param name="availableMovementCost">How much movement cost remaining.</param>
         /// <param name="includeAllies">Include allies or not. Useful for path previewing.</param>
-        /// <returns>Walkable tiles at position and attackable entities at position.</returns>
-        public (HashSet<Tile>, HashSet<GridEntity>) GetWalkableTilesAtPosition(Vector2Int position, int availableMovementCost, bool includeAllies = false) {
+        /// <returns>Walkable tiles at position.</returns>
+        public HashSet<Tile> GetWalkableTilesAtPosition(Vector2Int position, int availableMovementCost, bool includeAllies = false) {
             HashSet<Tile> walkableTiles = new HashSet<Tile>();
-            HashSet<GridEntity> attackableEntities = new HashSet<GridEntity>();
             Tile startTile = GridDelegates.GetTileFromPosition(position);
             if (startTile.Occupant != null && startTile.Occupant.Faction != Faction) {
                 Debug.LogWarning("GridEntity.GetWalkableTilesAtPosition: Start tile is blocked by an opposing faction!");
-                return (walkableTiles, attackableEntities);
+                return walkableTiles;
             }
             // BFS / flood fill
             Queue<FloodFillQueueEntry> tilesToVisit = new Queue<FloodFillQueueEntry>();
@@ -145,8 +144,6 @@ namespace StrategyGame.Grid {
                     bool isEnemy = isNeighborOccupied && neighbor.Occupant.Faction != Faction;
                     bool isAlly = isNeighborOccupied && neighbor.Occupant.Faction == Faction;
                     if (isEnemy) {
-                        Debug.Log($"GridEntity.GetWalkableTilesAtPosition: Adding attackable entity: {neighbor.Occupant}");
-                        attackableEntities.Add(neighbor.Occupant);
                         continue;
                     }
                     if (isAlly && !includeAllies) continue;
@@ -166,7 +163,7 @@ namespace StrategyGame.Grid {
             foreach (var entry in bestRemainingMovements) {
                 walkableTiles.Add(entry.Key);
             }
-            return (walkableTiles, attackableEntities);
+            return walkableTiles;
         }
 
 
@@ -175,16 +172,27 @@ namespace StrategyGame.Grid {
             return tilesWithinRange;
         }
 
+        // Do not combine this logic with Getting entities at a specific position.
         public virtual HashSet<Tile> GetTilesWithinAttackRange() {
             Debug.Log("GridEntity.GetTilesWithinAttackRange: Calling base version");
-            (HashSet<Tile> reachableTiles, HashSet<GridEntity> attackables) = GetWalkableTiles(true);
+            HashSet<Tile> reachableTiles = GetWalkableTiles(true);
             HashSet<Tile> dangerTiles = new HashSet<Tile>();
             foreach (Tile tile in reachableTiles) {
                 dangerTiles.UnionWith(GetAttackableTilesAtPosition(tile.Position));
             }
             return dangerTiles;
         }
-        
+
+        public virtual HashSet<GridEntity> GetAttackableEntitiesAtPosition(Vector2Int position) {
+            HashSet<Tile> attackableTiles = GetAttackableTilesAtPosition(position);
+            HashSet<GridEntity> attackableEntities =  new HashSet<GridEntity>();
+            foreach (Tile tile in attackableTiles) {
+                if (tile.IsOccupied && !IsFriendlyWith(tile.Occupant)) {
+                    attackableEntities.Add(tile.Occupant);
+                }
+            }
+            return attackableEntities;
+        }
         
         
         public void SetGridPosition(Vector2Int newPosition) {
@@ -193,6 +201,10 @@ namespace StrategyGame.Grid {
 
         public override string ToString() {
             return DisplayName;
+        }
+        
+        public bool IsFriendlyWith(GridEntity other) {
+            return Faction == other.Faction;
         }
 
 

@@ -117,9 +117,10 @@ namespace StrategyGame.Grid.Rendering {
                         // To determine how many steps to look, take a look at GameStateManager's manual path
                         int movementCostRemaining = currentSelectedEntity.MovementRange - GameStateDelegates.ManualPathSelectionGetSpentMovementCost();
                         Debug.Log($"GridRenderer.UpdateInspectedTileVisuals: Movement cost remaining: {movementCostRemaining}");
-                        (walkableTiles, attackableEntities) = currentSelectedEntity.GetWalkableTilesAtPosition(newTile.Position, movementCostRemaining, true);
+                        walkableTiles = currentSelectedEntity.GetWalkableTilesAtPosition(newTile.Position, movementCostRemaining, true);
                         walkableTiles.UnionWith(GameStateDelegates.GetManualPath().Unique);
                         MarkWalkableTiles(walkableTiles);
+                        attackableEntities = currentSelectedEntity.GetAttackableEntitiesAtPosition(currentGameState.Combat.InspectedTilePosition);
                         MarkTilesWithAttackableEntities(attackableEntities);
                         break;
                     case GameStateEnums.PlayerPhaseState.UnitMovingToDestination:
