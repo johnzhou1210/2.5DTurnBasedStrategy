@@ -17,9 +17,7 @@ namespace StrategyGame.AI {
         // ==============================
         // CORE METHODS
         // ==============================
-        private static int ManhattanDistance(Vector2Int coord1, Vector2Int coord2) {
-            return Math.Abs(coord1.x - coord2.x) + Math.Abs(coord1.y - coord2.y);
-        }
+        
         
         public static (bool reachable, List<Tile> path) CalculateBestPath(Vector2Int startPosition, Vector2Int targetPosition) {
             // 1. Initialization
@@ -34,7 +32,7 @@ namespace StrategyGame.AI {
             HashSet<Tile> tilesInOpenSet = new HashSet<Tile>();
 
             gCosts[startTile] = 0;
-            hCosts[startTile] = ManhattanDistance(startPosition, targetPosition);
+            hCosts[startTile] = Manhattan.Distance(startPosition, targetPosition);
             fCosts[startTile] = gCosts[startTile] + hCosts[startTile];
             
             openSet.Enqueue(startTile, fCosts[startTile]);
@@ -76,7 +74,7 @@ namespace StrategyGame.AI {
                     int gCostAfterMovement = gCosts[dequeuedTile] + neighborCost;
                     if (!gCosts.ContainsKey(neighborTile) || gCostAfterMovement < gCosts[neighborTile]) {
                         gCosts[neighborTile] = gCostAfterMovement;
-                        hCosts[neighborTile] = ManhattanDistance(neighborTile.Position, targetPosition);
+                        hCosts[neighborTile] = Manhattan.Distance(neighborTile.Position, targetPosition);
                         fCosts[neighborTile] = gCosts[neighborTile] + hCosts[neighborTile];
                         parents[neighborTile] = dequeuedTile;
                         if (!tilesInOpenSet.Contains(neighborTile) && unitMovementRange - gCostAfterMovement >= 0) {

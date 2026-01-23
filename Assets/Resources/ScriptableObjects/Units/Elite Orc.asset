@@ -23,4 +23,4 @@ MonoBehaviour:
   baseResistance: 20
   baseAgility: 30
   baseEvasion: 25
-  weaponType: 2
+  weapon: {fileID: 11400000, guid: 7ba9987b11a11d99db3431b032915156, type: 2}

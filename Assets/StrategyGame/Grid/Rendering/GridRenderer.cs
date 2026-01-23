@@ -6,6 +6,7 @@ using StrategyGame.AI;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
 using StrategyGame.Core.GameState;
+using StrategyGame.Factions;
 using UnityEngine;
 
 namespace StrategyGame.Grid.Rendering {
@@ -31,6 +32,7 @@ namespace StrategyGame.Grid.Rendering {
         [SerializeField] private GridManager grid;
         private HashSet<GameObject> _walkableTiles;
         private HashSet<GameObject> _tilesWithAttackableEntities;
+        private HashSet<GameObject> _tilesWithinAttackRange;
         private List<GameObject> _pathTiles;
 
         // ==============================
@@ -40,6 +42,7 @@ namespace StrategyGame.Grid.Rendering {
             _tileVisuals = new GameObject[grid.GetSize().x, grid.GetSize().y];
             _walkableTiles = new HashSet<GameObject>();
             _tilesWithAttackableEntities = new HashSet<GameObject>();
+            _tilesWithinAttackRange = new HashSet<GameObject>();
             _pathTiles = new List<GameObject>();
             GridDelegates.OnAStarPathPreview += PreviewPathAStar;
             GridDelegates.OnManualPathPreview += PreviewManualPath;
@@ -93,18 +96,17 @@ namespace StrategyGame.Grid.Rendering {
                 
                 ClearWalkableTiles();
                 ClearAttackableTiles();
+                ClearTilesWithinAttackRange();
 
                 HashSet<Tile> walkableTiles = new HashSet<Tile>();
                 HashSet<GridEntity> attackableEntities = new HashSet<GridEntity>();
                 
                 switch (currentGameState.Combat.PlayerPhase) {
                     case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
-                        // if (newTile.IsOccupied) {
-                        //     (walkableTiles, attackableEntities) =
-                        //         newTile.Occupant.GetWalkableTiles(true);
-                        //     MarkWalkableTiles(walkableTiles);
-                        //     MarkTilesWithAttackableEntities(attackableEntities);
-                        // }
+                        if (newTile.IsOccupied && newTile.Occupant.Faction == Faction.EnemyFaction) {
+                            HashSet<Tile> tilesWithinAttackRange = newTile.Occupant.GetTilesWithinAttackRangeAtPosition(newTile.Position);
+                            MarkTilesWithinAttackRange(tilesWithinAttackRange);
+                        }
                         break;
                     case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
                         GridEntity currentSelectedEntity = EntityDelegates.GetGridEntityByID(currentGameState.Combat.SelectedEntityID);
@@ -157,6 +159,17 @@ namespace StrategyGame.Grid.Rendering {
             foreach (GameObject attackableTile in _tilesWithAttackableEntities) {
                 if (attackableTile.TryGetComponent(out TileRenderer tileRenderer)) {
                     tileRenderer.SetAttackableHighlightVisualVisibility(true);
+                }
+            }
+        }
+
+        private void MarkTilesWithinAttackRange(HashSet<Tile> tilesWithinAttackRange) {
+            foreach (Tile tile in tilesWithinAttackRange) {
+                _tilesWithinAttackRange.Add(_tileVisuals[tile.Position.x, tile.Position.y]);
+            }
+            foreach (GameObject tileWithinRange in _tilesWithinAttackRange) {
+                if (tileWithinRange.TryGetComponent(out TileRenderer tileRenderer)) {
+                    tileRenderer.SetOppositeReactionHighlightVisualVisibility(true);
                 }
             }
         }
@@ -326,6 +339,15 @@ namespace StrategyGame.Grid.Rendering {
                 }
             }
             _tilesWithAttackableEntities.Clear();
+        }
+
+        private void ClearTilesWithinAttackRange() {
+            foreach (GameObject tile in _tilesWithinAttackRange) {
+                if (tile.TryGetComponent(out TileRenderer tileRenderer)) {
+                    tileRenderer.SetOppositeReactionHighlightVisualVisibility(false);
+                }
+            }
+            _tilesWithinAttackRange.Clear();
         }
         
         private IEnumerator EntityPathMovementCoroutine(GridEntity entity, List<Tile> path) {

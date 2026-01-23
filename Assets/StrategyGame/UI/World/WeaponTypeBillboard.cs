@@ -25,14 +25,20 @@ namespace StrategyGame.UI.World {
                 Transform targetTransform = EntityDelegates.GetEntityVisualTransformByID(unit.ID);
                 billboardFollow.SetTarget(targetTransform);
             }
-            weaponTypeFrame.color = GetColorFromWeaponType(unit.GridUnitInitData.WeaponType);
-            weaponTypeImage.sprite = GetSpriteFromWeaponType(unit.GridUnitInitData.WeaponType);
+            if (unit.GridUnitData.Weapon == null) {
+                Debug.LogWarning("WeaponTypeBillboard.Initialize: Unit does not have weapon, hiding weapon frame icon.");
+                weaponTypeFrame.enabled = false;
+                weaponTypeImage.enabled = false;
+                return;
+            }
+            weaponTypeFrame.color = GetColorFromWeaponType(unit.GridUnitData.Weapon.WeaponType);
+            weaponTypeImage.sprite = GetSpriteFromWeaponType(unit.GridUnitData.Weapon.WeaponType);
         }
 
         private void UpdateUnitWeaponType(GridUnit unit) {
             if (_targetID != unit.ID) return;
-            weaponTypeFrame.color = GetColorFromWeaponType(unit.GridUnitInitData.WeaponType);
-            weaponTypeImage.sprite = GetSpriteFromWeaponType(unit.GridUnitInitData.WeaponType);
+            weaponTypeFrame.color = GetColorFromWeaponType(unit.GridUnitData.Weapon.WeaponType);
+            weaponTypeImage.sprite = GetSpriteFromWeaponType(unit.GridUnitData.Weapon.WeaponType);
         }
 
         private Color GetColorFromWeaponType(WeaponType weaponType) {

@@ -19,17 +19,18 @@ namespace StrategyGame.Grid {
         // MONOBEHAVIOUR LIFECYCLE
         // ==============================
         private void OnEnable() {
+            GridDelegates.OnSetTileTerrainType += SetTileTerrainType;
             GridDelegates.GetTileFromPosition = GetTileFromPosition;
             GridDelegates.AddEntityToGridFirstTime = AddEntityToGridFirstTime;
             GridDelegates.GetGridDimensions = GetSize;
-            GridDelegates.OnSetTileTerrainType += SetTileTerrainType;
+            GridDelegates.GetTilesInRadius = GetTilesInRadius;
         }
         private void OnDisable() {
+            GridDelegates.OnSetTileTerrainType -= SetTileTerrainType;
             GridDelegates.GetTileFromPosition = null;
             GridDelegates.AddEntityToGridFirstTime = null;
             GridDelegates.GetGridDimensions = null;
-            GridDelegates.OnSetTileTerrainType -= SetTileTerrainType;
-            
+            GridDelegates.GetTilesInRadius = null;
         }
         private void Start() {
             TileData defaultTileData = Resources.Load<TileData>("ScriptableObjects/Tiles/Grasslands");
@@ -85,6 +86,7 @@ namespace StrategyGame.Grid {
             return tileToAddTo.AddOccupant(entity);
         }
         
+       
         
         
         // ==============================
@@ -98,8 +100,18 @@ namespace StrategyGame.Grid {
             return position.x >= 0 && position.x < size.x && position.y >= 0 && position.y < size.y;
         }
         
-
-        
+        private List<Tile> GetTilesInRadius(Vector2Int center, int radius) {
+            List <Tile> result =  new List<Tile>();
+            for (int dx = -radius; dx <= radius; dx++) {
+                int remaining = radius - Mathf.Abs(dx);
+                for (int dy = -remaining; dy <= remaining; dy++) {
+                    Vector2Int pos = center + new Vector2Int(dx, dy);
+                    if (!IsValidPosition(pos)) continue;
+                    result.Add(Tiles[pos.x, pos.y]);
+                }
+            }
+            return result;
+        }
 
         
 

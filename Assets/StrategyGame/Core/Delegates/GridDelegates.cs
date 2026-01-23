@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using StrategyGame.Core.GameState;
 using StrategyGame.Grid;
 using StrategyGame.Grid.GridData;
@@ -58,6 +59,7 @@ namespace StrategyGame.Core.Delegates {
         public static Func<GridEntity, Vector2Int, bool> AddEntityToGridFirstTime;
         public static Func<Vector2Int> GetGridDimensions;
         public static Func<Vector2Int, bool> SetInspectedTile;
+        public static Func<Vector2Int, int, List<Tile>> GetTilesInRadius;
 
     }
 }

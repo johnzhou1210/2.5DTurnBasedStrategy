@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using StrategyGame.Combat.Weapons;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Factions;
 using StrategyGame.Grid.GridData;
@@ -21,6 +23,7 @@ namespace StrategyGame.Grid {
         public Vector2Int GridPosition { get; private set; }
         public bool IsPassable { get; private set; } = true;
         public GridEntityData GridEntityData { get; private set; }
+        public WeaponData Weapon { get; private set; }
 
         /* IDENTITY */
         private static int _nextID = 0;
@@ -164,6 +167,12 @@ namespace StrategyGame.Grid {
                 walkableTiles.Add(entry.Key);
             }
             return (walkableTiles, attackableEntities);
+        }
+
+
+        public virtual HashSet<Tile> GetTilesWithinAttackRangeAtPosition(Vector2Int position) {
+            HashSet<Tile> tilesWithinRange = GridDelegates.GetTilesInRadius(position, VisionRange).ToHashSet();
+            return tilesWithinRange;
         }
         
         

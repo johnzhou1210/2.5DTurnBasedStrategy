@@ -126,7 +126,7 @@ namespace StrategyGame.Grid.Rendering {
         }
 
         public void SetOppositeReactionHighlightVisualVisibility(bool val) {
-            SetColor(oppositeReactionHighlightRenderer, val ? new Color(0,0,1,.2f) : Color.clear);
+            SetColor(oppositeReactionHighlightRenderer, val ? new Color(1,0,0,.2f) : Color.clear);
         }
 
         public void SetAttackableHighlightVisualVisibility(bool val) {

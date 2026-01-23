@@ -1,3 +1,4 @@
+using StrategyGame.Combat.Weapons;
 using UnityEngine;
 
 namespace StrategyGame.Grid.GridData {
@@ -6,15 +7,15 @@ namespace StrategyGame.Grid.GridData {
         Spear,
         Axe,
         Bow,
-        Staff
+        Staff,
     }
 
 
     [CreateAssetMenu(menuName = "Strategy Game/Grid Unit")]
     public class GridUnitData : GridEntityData {
-        [SerializeField] private WeaponType weaponType;
+        [SerializeField] private WeaponData weapon;
         
-        public WeaponType WeaponType { get => weaponType; }
+        public WeaponData Weapon { get => weapon; }
     }
 
 }

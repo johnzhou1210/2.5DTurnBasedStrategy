@@ -187,6 +187,7 @@ namespace StrategyGame.Core.Input
                             break;
                         case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
                             GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitToControl);
+                            _isDiagonalMoveEnabled = true;
                             break;
                         case GameStateEnums.PlayerPhaseState.UnitMovingToDestination:
                             break;

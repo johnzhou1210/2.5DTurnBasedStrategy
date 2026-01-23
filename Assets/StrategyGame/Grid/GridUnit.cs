@@ -1,5 +1,8 @@
 using System.Collections.Generic;
+using System.Linq;
+using StrategyGame.Core.Delegates;
 using StrategyGame.Grid.GridData;
+using UnityEngine;
 
 namespace StrategyGame.Grid {
     public class GridUnit : GridEntity
@@ -10,10 +13,10 @@ namespace StrategyGame.Grid {
          * FactionData
          * MovementRange and VisionRange
          */
-        public GridUnitData GridUnitInitData { get; private set; }
+        public GridUnitData GridUnitData { get; private set; }
         
         public GridUnit(GridEntityData gridEntityData, GridUnitData gridUnitData) : base(gridEntityData) {
-            GridUnitInitData = gridUnitData;
+            GridUnitData = gridUnitData;
         }
 
 
@@ -22,7 +25,10 @@ namespace StrategyGame.Grid {
             return validTiles;
         }
        
-        
+        public override HashSet<Tile> GetTilesWithinAttackRangeAtPosition(Vector2Int position) {
+            HashSet<Tile> tilesWithinRange = GridDelegates.GetTilesInRadius(position, GridUnitData.Weapon.AttackRange).ToHashSet();
+            return tilesWithinRange;
+        }
         
         
 
