@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
 using StrategyGame.Core.GameState;
@@ -15,6 +16,33 @@ namespace StrategyGame.Grid.Rendering {
         public bool IsFlipped;
         public bool IsStart;
     }
+
+    public enum TileHighlightType {
+        Move,
+        AttackRange,
+        Attackable,
+        Danger,
+        Inspected,
+        Hover
+    }
+
+    public struct TileHighlight : IEquatable<TileHighlight> {
+        public TileHighlightType Type;
+        public Faction Owner;
+        public TileHighlight(TileHighlightType type, Faction owner) {
+            Type = type;
+            Owner = owner;
+        }
+        public bool Equals(TileHighlight other) {
+            return Type == other.Type && Owner == other.Owner;
+        }
+        public override bool Equals(object obj) {
+            return obj is TileHighlight other && Equals(other);
+        }
+        public override int GetHashCode() {
+            return HashCode.Combine((int)Type, (int)Owner);
+        }
+    }
     
     public class TileRenderer : MonoBehaviour {
         private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
@@ -29,12 +57,23 @@ namespace StrategyGame.Grid.Rendering {
         [SerializeField] private GameObject routeStartVisual;
         [SerializeField] private GameObject routeHalfStraightVisual;
 
-        [SerializeField] private Renderer walkableHighlightRenderer; // Physically in middle
-        [SerializeField] private Renderer oppositeReactionHighlightRenderer; // Physically on bottom
-        [SerializeField] private Renderer attackableHighlightRenderer; // Physically on top
+        [SerializeField] private Renderer highlightRenderer;
 
         [SerializeField] private new Renderer renderer;
         [SerializeField] private Animator selectionAnimator;
+
+        private readonly Dictionary<(TileHighlightType, Faction), Color> _highlightColors = new Dictionary<(TileHighlightType, Faction), Color> {
+            { (TileHighlightType.Move, Faction.Player), new Color(0,0,1,.2f) },
+            { (TileHighlightType.Attackable, Faction.Player), new Color(.5f,.75f,1,.2f) },
+            { (TileHighlightType.Attackable, Faction.Enemy), new Color(1,0.5f,0,.2f) },
+            { (TileHighlightType.AttackRange, Faction.Player), new Color(0,0,1,.2f) },
+            { (TileHighlightType.AttackRange, Faction.Enemy), new Color(1,0,0,.2f) },
+            { (TileHighlightType.Danger, Faction.Enemy), new Color(1,0,0,.1f) }
+        };
+
+        
+        private HashSet<TileHighlight> _activeHighlights = new HashSet<TileHighlight>();
+
 
         private Color _terrainColor;
         
@@ -120,26 +159,11 @@ namespace StrategyGame.Grid.Rendering {
             routeStartVisual.SetActive(false);
             routeHalfStraightVisual.SetActive(false);
         }
-        
-        // For when unit is selected
-        public void SetWalkableMarkVisualVisibility(bool val) {
-            SetColor(walkableHighlightRenderer, val ? new Color(0,0,1,.2f) : Color.clear);
-        }
-
-        public void SetOppositeReactionHighlightVisualVisibility(bool val) {
-            SetColor(oppositeReactionHighlightRenderer, val ? new Color(1,0,0,.1f) : Color.clear);
-        }
-
-        public void SetAttackableHighlightVisualVisibility(bool val) {
-            SetColor(attackableHighlightRenderer, val ? new Color(0,0,1,.2f) : Color.clear);
-        }
 
         public void RedrawHighlights() {
             TileData tileInitData = GridDelegates.GetTileFromPosition(GridCoordinates).InitData;
             if (tileInitData == null) throw new Exception("Redraw: Tile init data is null");
-            SetColor(walkableHighlightRenderer, Color.clear);
-            SetColor(attackableHighlightRenderer, Color.clear);
-            SetColor(oppositeReactionHighlightRenderer, Color.clear);
+            SetColor(highlightRenderer, Color.clear);
         }
 
         private void SetColor(Renderer rend, Color color) {
@@ -148,7 +172,28 @@ namespace StrategyGame.Grid.Rendering {
             block.SetColor(BaseColor, color);
             rend.SetPropertyBlock(block);
         }
+
+        public void SetHighlight(TileHighlightType type, Faction owner, bool active) {
+            TileHighlight hl = new TileHighlight(type, owner);
+            if (active) _activeHighlights.Add(hl);
+            else _activeHighlights.Remove(hl);
+            UpdateHighlightColor();
+        }
+
         
+        private void UpdateHighlightColor() {
+            Color finalColor = Color.clear;
+            foreach (var highlight in _activeHighlights) {
+                if (_highlightColors.TryGetValue((highlight.Type, highlight.Owner), out var color)) {
+                    finalColor += color; // simple additive blend
+                }
+            }
+            SetColor(highlightRenderer, finalColor);
+        }
+
+
+
+       
         
     }
 }

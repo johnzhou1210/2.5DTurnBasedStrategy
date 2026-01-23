@@ -1,6 +1,7 @@
 namespace StrategyGame.Factions {
     public enum Faction {
-        PlayerFaction,
-        EnemyFaction
+        Player,
+        Enemy,
+        Neutral
     }
 }

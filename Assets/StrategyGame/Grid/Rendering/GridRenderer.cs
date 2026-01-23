@@ -108,7 +108,7 @@ namespace StrategyGame.Grid.Rendering {
                     case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
                         if (InputDelegates.GetDangerZoneVisible()) break;
                         ClearTilesWithinAttackRange();
-                        if (newTile.IsOccupied && newTile.Occupant.Faction == Faction.EnemyFaction) {
+                        if (newTile.IsOccupied && newTile.Occupant.Faction == Faction.Enemy) {
                             MarkAttackRange(newTile.Occupant);
                         }
                         break;
@@ -149,7 +149,8 @@ namespace StrategyGame.Grid.Rendering {
             }
             foreach (GameObject walkableTile in _walkableTiles) {
                 if (walkableTile.TryGetComponent(out TileRenderer tileRenderer)) {
-                    tileRenderer.SetWalkableMarkVisualVisibility(true);
+                    tileRenderer.SetHighlight(TileHighlightType.Move, Faction.Player, true);
+                    // tileRenderer.SetWalkableMarkVisualVisibility(true);
                 }
             }
         }
@@ -162,7 +163,8 @@ namespace StrategyGame.Grid.Rendering {
 
             foreach (GameObject attackableTile in _tilesWithAttackableEntities) {
                 if (attackableTile.TryGetComponent(out TileRenderer tileRenderer)) {
-                    tileRenderer.SetAttackableHighlightVisualVisibility(true);
+                    tileRenderer.SetHighlight(TileHighlightType.Attackable, Faction.Player, true);
+                    // tileRenderer.SetAttackableHighlightVisualVisibility(true);
                 }
             }
         }
@@ -173,7 +175,8 @@ namespace StrategyGame.Grid.Rendering {
             }
             foreach (GameObject tileWithinRange in _tilesWithinAttackRange) {
                 if (tileWithinRange.TryGetComponent(out TileRenderer tileRenderer)) {
-                    tileRenderer.SetOppositeReactionHighlightVisualVisibility(true);
+                    tileRenderer.SetHighlight(TileHighlightType.Danger, Faction.Enemy, true);
+                    // tileRenderer.SetOppositeReactionHighlightVisualVisibility(true);
                 }
             }
         }
@@ -329,7 +332,8 @@ namespace StrategyGame.Grid.Rendering {
         private void ClearWalkableTiles() {
             foreach (GameObject walkableTile in _walkableTiles) {
                 if (walkableTile.TryGetComponent(out TileRenderer tileRenderer)) {
-                    tileRenderer.SetWalkableMarkVisualVisibility(false);
+                    tileRenderer.SetHighlight(TileHighlightType.Move, Faction.Player, false);
+                    // tileRenderer.SetWalkableMarkVisualVisibility(false);
                 }
             }
             _walkableTiles.Clear();
@@ -339,7 +343,8 @@ namespace StrategyGame.Grid.Rendering {
             foreach (GameObject attackableTile in _tilesWithAttackableEntities)
             {
                 if (attackableTile.TryGetComponent(out TileRenderer tileRenderer)) {
-                    tileRenderer.SetAttackableHighlightVisualVisibility(false);
+                    tileRenderer.SetHighlight(TileHighlightType.Attackable, Faction.Player, false);
+                    // tileRenderer.SetAttackableHighlightVisualVisibility(false);
                 }
             }
             _tilesWithAttackableEntities.Clear();
@@ -348,7 +353,8 @@ namespace StrategyGame.Grid.Rendering {
         private void ClearTilesWithinAttackRange() {
             foreach (GameObject tile in _tilesWithinAttackRange) {
                 if (tile.TryGetComponent(out TileRenderer tileRenderer)) {
-                    tileRenderer.SetOppositeReactionHighlightVisualVisibility(false);
+                    tileRenderer.SetHighlight(TileHighlightType.Danger, Faction.Enemy, false);
+                    // tileRenderer.SetOppositeReactionHighlightVisualVisibility(false);
                 }
             }
             _tilesWithinAttackRange.Clear();
@@ -357,7 +363,8 @@ namespace StrategyGame.Grid.Rendering {
         private void ClearTilesWithinDangerZone() {
             foreach (GameObject tile in _tilesWithinDangerZone) {
                 if (tile.TryGetComponent(out TileRenderer tileRenderer)) {
-                    tileRenderer.SetOppositeReactionHighlightVisualVisibility(false);
+                    tileRenderer.SetHighlight(TileHighlightType.Danger, Faction.Enemy, false);
+                    // tileRenderer.SetOppositeReactionHighlightVisualVisibility(false);
                 }
             }
             _tilesWithinDangerZone.Clear();
@@ -394,7 +401,7 @@ namespace StrategyGame.Grid.Rendering {
         private void SetDangerZoneVisibility(bool val) {
             if (val) {
                 // add tiles to danger zone
-                List<int> allEnemyIDs = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.EnemyFaction);
+                List<int> allEnemyIDs = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Enemy);
                 foreach (int enemyID in allEnemyIDs) {
                     GridEntity currentEnemy = EntityDelegates.GetGridEntityByID(enemyID);
                     HashSet<Tile> dangerTiles = currentEnemy.GetTilesWithinAttackRange();
@@ -405,7 +412,8 @@ namespace StrategyGame.Grid.Rendering {
                 }
                 foreach (GameObject tile in _tilesWithinDangerZone) {
                     if (tile.TryGetComponent(out TileRenderer tileRenderer)) {
-                        tileRenderer.SetOppositeReactionHighlightVisualVisibility(true);
+                        tileRenderer.SetHighlight(TileHighlightType.Danger, Faction.Enemy, true);
+                        // tileRenderer.SetOppositeReactionHighlightVisualVisibility(true);
                     }
                 }
             }
@@ -414,7 +422,7 @@ namespace StrategyGame.Grid.Rendering {
                 ClearTilesWithinDangerZone();
                 GameStateData currState = GameStateDelegates.GetCurrentGameState();
                 Tile currInspectedTile = GridDelegates.GetTileFromPosition(currState.Combat.InspectedTilePosition);
-                if (currInspectedTile.IsOccupied && currInspectedTile.Occupant.Faction == Faction.EnemyFaction) {
+                if (currInspectedTile.IsOccupied && currInspectedTile.Occupant.Faction == Faction.Enemy) {
                     MarkAttackRange(currInspectedTile.Occupant);
                 }
             }

@@ -67,7 +67,7 @@ namespace StrategyGame.Grid {
         
         private void SetTileTerrainType(Vector2Int position, TileData tileData) {
             Tile tileToSetTerrain = GetTileFromPosition(position);
-            if (tileToSetTerrain == null) throw new Exception("Tile to set terrain is null");
+            if (tileToSetTerrain == null) throw new Exception("GridManager.SetTileTerrainType: Tile to set terrain is null");
             tileToSetTerrain.SetInitData(tileData);
             GetComponent<GridRenderer>().OnTileRedraw(tileToSetTerrain);
         }
@@ -100,11 +100,15 @@ namespace StrategyGame.Grid {
             return position.x >= 0 && position.x < size.x && position.y >= 0 && position.y < size.y;
         }
         
-        private List<Tile> GetTilesInRadius(Vector2Int center, int radius) {
+        private List<Tile> GetTilesInRadius(Vector2Int center, int minRadius, int maxRadius) {
+            if (minRadius > maxRadius || minRadius < 0 || maxRadius < 0) {
+                throw new Exception("GridManager.GetTilesInRadius: Invalid min and max radius!");
+            }
             List <Tile> result =  new List<Tile>();
-            for (int dx = -radius; dx <= radius; dx++) {
-                int remaining = radius - Mathf.Abs(dx);
-                for (int dy = -remaining; dy <= remaining; dy++) {
+            for (int dx = -maxRadius; dx <= maxRadius; dx++) {
+                for (int dy = -maxRadius; dy <= maxRadius; dy++) {
+                    int distance = Mathf.Abs(dx) + Mathf.Abs(dy);
+                    if (distance < minRadius || distance > maxRadius) continue;
                     Vector2Int pos = center + new Vector2Int(dx, dy);
                     if (!IsValidPosition(pos)) continue;
                     // if impassible terrain, exclude from results

@@ -171,7 +171,7 @@ namespace StrategyGame.Grid {
 
 
         public virtual HashSet<Tile> GetAttackableTilesAtPosition(Vector2Int position) {
-            HashSet<Tile> tilesWithinRange = GridDelegates.GetTilesInRadius(position, VisionRange).ToHashSet();
+            HashSet<Tile> tilesWithinRange = GridDelegates.GetTilesInRadius(position, 1, VisionRange).ToHashSet();
             return tilesWithinRange;
         }
 

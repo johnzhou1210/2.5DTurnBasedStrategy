@@ -26,7 +26,7 @@ namespace StrategyGame.Grid {
         }
        
         public override HashSet<Tile> GetAttackableTilesAtPosition(Vector2Int position) {
-            HashSet<Tile> tilesWithinRange = GridDelegates.GetTilesInRadius(position, GridUnitData.Weapon.AttackRange).ToHashSet();
+            HashSet<Tile> tilesWithinRange = GridDelegates.GetTilesInRadius(position, GridUnitData.Weapon.MinAttackRange, GridUnitData.Weapon.MaxAttackRange).ToHashSet();
             return tilesWithinRange;
         }
 

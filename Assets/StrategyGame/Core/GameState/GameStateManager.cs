@@ -187,7 +187,7 @@ namespace StrategyGame.Core.GameState {
                     // Clear danger zone highlights
                     if (InputDelegates.GetDangerZoneVisible()) GridDelegates.InvokeOnSetDangerZoneVisibility(true); // doesn't change input state
                     CurrentState.Combat.ActorIDsRemaining =
-                        EntityDelegates.GetAllGridEntityIDsByFaction(Faction.PlayerFaction); 
+                        EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Player); 
                     CurrentState.Combat.PlayerPhase = GameStateEnums.PlayerPhaseState.SelectUnitToControl;
                     InputDelegates.InvokeOnReinstateGridCursorPosition();
                     break;
@@ -195,7 +195,7 @@ namespace StrategyGame.Core.GameState {
                     // Clear danger zone highlights
                     GridDelegates.InvokeOnSetDangerZoneVisibility(false); // doesn't change input state
                     CurrentState.Combat.ActorIDsRemaining =
-                        EntityDelegates.GetAllGridEntityIDsByFaction(Faction.EnemyFaction);
+                        EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Enemy);
                     // Automate enemy actions
                     _enemyPhaseCoroutine = StartCoroutine(RunEnemyPhaseCoroutine());
                     break;

@@ -60,7 +60,7 @@ namespace StrategyGame.Core.Delegates {
         public static Func<GridEntity, Vector2Int, bool> AddEntityToGridFirstTime;
         public static Func<Vector2Int> GetGridDimensions;
         public static Func<Vector2Int, bool> SetInspectedTile;
-        public static Func<Vector2Int, int, List<Tile>> GetTilesInRadius;
+        public static Func<Vector2Int, int, int, List<Tile>> GetTilesInRadius;
 
     }
 }

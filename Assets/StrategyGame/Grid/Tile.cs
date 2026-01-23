@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using StrategyGame.Core.Delegates;
+using StrategyGame.Core.GameState;
 using StrategyGame.Grid.GridData;
 using UnityEngine;
 
@@ -51,9 +53,6 @@ namespace StrategyGame.Grid {
             return true;
         }
         
-        
-        
-
         // Removes occupant from tile, but does not update removed occupant's position.
         public GridEntity RemoveOccupant() {
             if (IsOccupied) {
@@ -76,6 +75,13 @@ namespace StrategyGame.Grid {
         public override string ToString() {
             return $"({Position.x}, {Position.y})";
         }
+
+        public bool IsInspected() {
+            GameStateData currentState = GameStateDelegates.GetCurrentGameState();
+            return Position == currentState.Combat.InspectedTilePosition;
+        }
+
+      
 
     }
 
