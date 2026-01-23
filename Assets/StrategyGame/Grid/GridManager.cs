@@ -107,6 +107,8 @@ namespace StrategyGame.Grid {
                 for (int dy = -remaining; dy <= remaining; dy++) {
                     Vector2Int pos = center + new Vector2Int(dx, dy);
                     if (!IsValidPosition(pos)) continue;
+                    // if impassible terrain, exclude from results
+                    if (GetTile(pos).MovementCost > 99) continue;
                     result.Add(Tiles[pos.x, pos.y]);
                 }
             }

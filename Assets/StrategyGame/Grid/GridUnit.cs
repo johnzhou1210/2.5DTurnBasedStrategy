@@ -31,7 +31,8 @@ namespace StrategyGame.Grid {
         }
 
         public override HashSet<Tile> GetTilesWithinAttackRange() {
-            (HashSet<Tile> reachableTiles, HashSet<GridEntity> attackables) = GetWalkableTiles();
+            Debug.Log("GridUnit.GetTilesWithinAttackRange: Calling override version");
+            (HashSet<Tile> reachableTiles, HashSet<GridEntity> attackables) = GetWalkableTiles(true);
             HashSet<Tile> dangerTiles = new HashSet<Tile>();
             foreach (Tile tile in reachableTiles) {
                 dangerTiles.UnionWith(GetAttackableTilesAtPosition(tile.Position));

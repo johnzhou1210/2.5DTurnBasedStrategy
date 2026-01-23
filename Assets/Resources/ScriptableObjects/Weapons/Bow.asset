@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StrategyGame.Combat.Weapons.WeaponData
   weaponType: 3
   baseAttack: 3
-  attackRange: 1
+  attackRange: 3
   damageType: 0

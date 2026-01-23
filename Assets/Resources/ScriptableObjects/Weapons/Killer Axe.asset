@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StrategyGame.Combat.Weapons.WeaponData
   weaponType: 2
   baseAttack: 666
-  attackRange: 2
+  attackRange: 1
   damageType: 0

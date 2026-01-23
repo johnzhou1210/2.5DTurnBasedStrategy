@@ -107,15 +107,9 @@ namespace StrategyGame.Grid.Rendering {
                 switch (currentGameState.Combat.PlayerPhase) {
                     case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
                         if (InputDelegates.GetDangerZoneVisible()) break;
-                        switch (newTile.IsOccupied) {
-                            case false:
-                                ClearTilesWithinAttackRange();
-                                break;
-                            case true when newTile.Occupant.Faction == Faction.EnemyFaction:
-                            {
-                                MarkAttackRange(newTile.Occupant);
-                                break;
-                            }
+                        ClearTilesWithinAttackRange();
+                        if (newTile.IsOccupied && newTile.Occupant.Faction == Faction.EnemyFaction) {
+                            MarkAttackRange(newTile.Occupant);
                         }
                         break;
                     case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:

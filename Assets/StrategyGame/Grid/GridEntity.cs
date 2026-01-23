@@ -176,7 +176,8 @@ namespace StrategyGame.Grid {
         }
 
         public virtual HashSet<Tile> GetTilesWithinAttackRange() {
-            (HashSet<Tile> reachableTiles, HashSet<GridEntity> attackables) = GetWalkableTiles();
+            Debug.Log("GridEntity.GetTilesWithinAttackRange: Calling base version");
+            (HashSet<Tile> reachableTiles, HashSet<GridEntity> attackables) = GetWalkableTiles(true);
             HashSet<Tile> dangerTiles = new HashSet<Tile>();
             foreach (Tile tile in reachableTiles) {
                 dangerTiles.UnionWith(GetAttackableTilesAtPosition(tile.Position));
