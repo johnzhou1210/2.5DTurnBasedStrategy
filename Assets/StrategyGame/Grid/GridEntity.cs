@@ -172,7 +172,7 @@ namespace StrategyGame.Grid {
             return tilesWithinRange;
         }
 
-        // Do not combine this logic with Getting entities at a specific position.
+        // Assumes the player has not moved yet.
         public virtual HashSet<Tile> GetTilesWithinAttackRange() {
             Debug.Log("GridEntity.GetTilesWithinAttackRange: Calling base version");
             HashSet<Tile> reachableTiles = GetWalkableTiles(true);

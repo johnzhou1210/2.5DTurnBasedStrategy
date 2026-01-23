@@ -43,7 +43,7 @@ namespace StrategyGame.Grid.Rendering {
             return HashCode.Combine((int)Type, (int)Owner);
         }
     }
-    
+
     public class TileRenderer : MonoBehaviour {
         private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
         // ==============================
@@ -63,24 +63,23 @@ namespace StrategyGame.Grid.Rendering {
         [SerializeField] private Animator selectionAnimator;
 
         private readonly Dictionary<(TileHighlightType, Faction), Color> _highlightColors = new Dictionary<(TileHighlightType, Faction), Color> {
-            { (TileHighlightType.Move, Faction.Player), new Color(0,0,1,.2f) },
-            { (TileHighlightType.Attackable, Faction.Player), new Color(0f,1f,1,.2f) },
-            { (TileHighlightType.Attackable, Faction.Enemy), new Color(1,0.5f,0,.2f) },
-            { (TileHighlightType.AttackRange, Faction.Player), new Color(0,0,1,.2f) },
-            { (TileHighlightType.AttackRange, Faction.Enemy), new Color(1,0,0,.2f) },
-            { (TileHighlightType.Danger, Faction.Enemy), new Color(1,0,0,.2f) }
+            { (TileHighlightType.Move, Faction.Player), new Color(0, 0, 1, .2f) },
+            { (TileHighlightType.Attackable, Faction.Player), new Color(0f, 1.5f, 1.5f, .2f) },
+            { (TileHighlightType.AttackRange, Faction.Player), new Color(0, 0, 1.5f, .2f) },
+            { (TileHighlightType.AttackRange, Faction.Enemy), new Color(1.25f, 0, 0, .2f) },
+            { (TileHighlightType.Danger, Faction.Enemy), new Color(.5f, 0, 0, .2f) }
         };
 
-        
+
         private HashSet<TileHighlight> _activeHighlights = new HashSet<TileHighlight>();
 
 
         private Color _terrainColor;
-        
+
         public Vector2Int GridCoordinates { get; private set; }
-        
-        
-        
+
+
+
         // ==============================
         // INITIALIZATION
         // ==============================
@@ -90,13 +89,13 @@ namespace StrategyGame.Grid.Rendering {
             Tile tile = GridDelegates.GetTileFromPosition(position);
             switch (tile.InitData.name) {
                 case "Grasslands":
-                    _terrainColor = new Color(.3f,.5f,.2f);
+                    _terrainColor = new Color(.3f, .5f, .2f);
                     break;
                 case "Forest":
-                    _terrainColor = new Color(.2f,.3f,.2f);
+                    _terrainColor = new Color(.2f, .3f, .2f);
                     break;
                 case "Mountains":
-                    _terrainColor = new Color(.2f,.2f,.2f);
+                    _terrainColor = new Color(.2f, .2f, .2f);
                     break;
                 default:
                     _terrainColor = Color.black;
@@ -106,8 +105,8 @@ namespace StrategyGame.Grid.Rendering {
             SetColor(renderer, _terrainColor);
         }
 
-        
-        
+
+
         // ==============================
         // CORE METHODS
         // ==============================
@@ -119,30 +118,35 @@ namespace StrategyGame.Grid.Rendering {
         public void SetSelectionVisualIsAnimated(bool val) {
             selectionAnimator.Play(val ? "Select" : "Unselected");
         }
-        
+
         public void ShowRouteSegment(bool val, RouteSegmentData routeSegmentData) {
             HideAllRouteVisuals();
-            
+
             if (!val) return;
             if (!routeSegmentData.IsValid) return;
-            
+
             GameObject activeVisual;
             if (GameStateDelegates.GetManualPath().Unique.Count <= 1) {
                 activeVisual = null;
                 HideAllRouteVisuals();
-            } else if (routeSegmentData.IsStart) {
+            }
+            else if (routeSegmentData.IsStart) {
                 routeHalfStraightVisual.SetActive(true);
                 activeVisual = routeHalfStraightVisual;
-            } else if (routeSegmentData.IsDestination) {
+            }
+            else if (routeSegmentData.IsDestination) {
                 routeTipVisual.SetActive(true);
                 activeVisual = routeTipVisual;
-            } else if (routeSegmentData is { IsTurn: true, IsFlipped: false }) {
+            }
+            else if (routeSegmentData is { IsTurn: true, IsFlipped: false }) {
                 routeTurnVisual.SetActive(true);
                 activeVisual = routeTurnVisual;
-            } else if (routeSegmentData is { IsTurn: true, IsFlipped: true }) {
+            }
+            else if (routeSegmentData is { IsTurn: true, IsFlipped: true }) {
                 routeTurnFlippedVisual.SetActive(true);
                 activeVisual = routeTurnFlippedVisual;
-            } else {
+            }
+            else {
                 routeStraightVisual.SetActive(true);
                 activeVisual = routeStraightVisual;
             }
@@ -180,25 +184,34 @@ namespace StrategyGame.Grid.Rendering {
             UpdateHighlightColor();
         }
 
-        
+
         private void UpdateHighlightColor() {
-            if (_activeHighlights.Count == 0) {
-                SetColor(highlightRenderer, Color.clear);
-                return;
-            }
             Color finalColor = Color.clear;
+
             foreach (var highlight in _activeHighlights) {
                 if (_highlightColors.TryGetValue((highlight.Type, highlight.Owner), out var color)) {
-                    finalColor += color;
+                    finalColor = AlphaBlend(finalColor, color);
                 }
             }
-            finalColor /= _activeHighlights.Count;
+
             SetColor(highlightRenderer, finalColor);
+        }
+        
+        private Color AlphaBlend(Color bottom, Color top) {
+            float outAlpha = top.a + bottom.a * (1 - top.a);
+            if (outAlpha < 0.001f) return Color.clear;
+
+            float r = (top.r * top.a + bottom.r * bottom.a * (1 - top.a)) / outAlpha;
+            float g = (top.g * top.a + bottom.g * bottom.a * (1 - top.a)) / outAlpha;
+            float b = (top.b * top.a + bottom.b * bottom.a * (1 - top.a)) / outAlpha;
+
+            return new Color(r, g, b, outAlpha);
         }
 
 
 
-       
-        
+
+
+
     }
 }
