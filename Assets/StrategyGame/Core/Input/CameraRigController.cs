@@ -77,7 +77,7 @@ namespace StrategyGame.Core.Input {
         // ==============================
         private void SetPosition(Vector3 newPosition) {
             transform.position = newPosition + (Vector3.up * 2f);
-            _targetZoom = 3f;
+            // _targetZoom = 3f;
         }
         public void SetPanningEnabled(bool val) {
             _isPanningEnabled = val;

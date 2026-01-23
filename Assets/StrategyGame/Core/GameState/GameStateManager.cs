@@ -528,7 +528,11 @@ namespace StrategyGame.Core.GameState {
                 
                 // Choose tile to move to
                 CurrentState.Combat.EnemyPhase = GameStateEnums.EnemyPhaseState.SelectUnitMoveDestination;
-                (HashSet<Tile> walkableTiles, HashSet<GridEntity> attackableEnemies) = currentEntity.GetWalkableTiles();
+                (HashSet<Tile> walkableTiles, HashSet<GridEntity> attackableEnemies) = currentEntity.GetWalkableTiles(true);
+                
+                // Remove allies to get all truly walkable tiles
+                walkableTiles = walkableTiles.Where(tile => !tile.IsOccupied).ToHashSet();
+                
                 Tile chosenRandomTile = walkableTiles.ElementAt(Random.Range(0, walkableTiles.Count));
                 (bool reachable, List<Tile> path) =
                     AStar.CalculateBestPath(currentEntity.GridPosition, chosenRandomTile.Position);
