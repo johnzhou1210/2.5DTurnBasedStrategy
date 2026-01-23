@@ -39,12 +39,14 @@ namespace StrategyGame.Core.Input
         private InputAction _moveAction;
         private InputAction _selectAction;
         private InputAction _cancelAction;
+        private InputAction _rightShoulderAction;
         private float _pathSelectionMoveActionTimer;
         private float _currentPathSelectionMoveActionCooldown;
         private float _pathSelectionMoveActionHeldDuration;
         private float _uiSelectionHoldTimer;
         private float _uiSelectionNextRepeatTimer;
         private bool _isDiagonalMoveEnabled = true;
+        private bool _isDangerZoneVisible = false;
         private Vector2Int _gridCursorPosition;
 
 
@@ -56,6 +58,7 @@ namespace StrategyGame.Core.Input
             _moveAction = playerInput.actions["Move"];
             _selectAction = playerInput.actions["Select"];
             _cancelAction = playerInput.actions["Cancel"];
+            _rightShoulderAction = playerInput.actions["RightShoulder"];
         }
 
         private void OnEnable()
@@ -64,6 +67,7 @@ namespace StrategyGame.Core.Input
             InputDelegates.OnReinstateGridCursorPosition += ReinstateGridCursorPosition;
             InputDelegates.GetUIManager = () => this;
             InputDelegates.GetGridCursorPosition = () => _gridCursorPosition;
+            InputDelegates.GetDangerZoneVisible = () => _isDangerZoneVisible;
         }
 
         private void OnDisable()
@@ -72,6 +76,7 @@ namespace StrategyGame.Core.Input
             InputDelegates.OnReinstateGridCursorPosition -= ReinstateGridCursorPosition;
             InputDelegates.GetUIManager = null;
             InputDelegates.GetGridCursorPosition = null;
+            InputDelegates.GetDangerZoneVisible = null;
         }
 
         private void Start()
@@ -90,6 +95,7 @@ namespace StrategyGame.Core.Input
             HandleCancellationInput();
             HandleInteractionInput();
             HandleAxisInput();
+            HandleRightShoulderInput();
         }
 
 
@@ -211,6 +217,23 @@ namespace StrategyGame.Core.Input
                     break;
                 default:
                     throw new Exception("InputManager.HandleCancellationInput: Invalid turn phase state enum!");
+            }
+        }
+
+        private void HandleRightShoulderInput() {
+            GameStateData currentGameState = GameStateDelegates.GetCurrentGameState();
+            switch (currentGameState.MasterState) {
+                case GameStateEnums.MasterState.Title:
+                    break;
+                case GameStateEnums.MasterState.Home:
+                    break;
+                case GameStateEnums.MasterState.Combat:
+                    if (currentGameState.Combat.TurnPhase == GameStateEnums.TurnPhase.Player) {
+                        HandleDangerZoneToggle();
+                    }
+                    break;
+                default:
+                    throw new Exception("InputManager.HandleRightShoulderInput: Invalid master state enum!");
             }
         }
 
@@ -377,14 +400,12 @@ namespace StrategyGame.Core.Input
                     bool isDestinationValid = manualPathList.Count - 1 <= currentSelectedEntity.MovementRange &&
                         manualPathList.ToHashSet().IsSubsetOf(manualPathSet) &&
                         manualPathList[^1].Occupant == null || manualPathList[^1].Occupant == currentSelectedEntity;
-                    Debug.Log(
-                        $"Condition1: {manualPathList.Count - 1 <= currentSelectedEntity.MovementRange}, Condition2: {manualPathList.ToHashSet().IsSubsetOf(manualPathSet)}, Condition3: {manualPathList[^1].Occupant == null || manualPathList[^1].Occupant == currentSelectedEntity}");
+                    Debug.Log($"Condition1: {manualPathList.Count - 1 <= currentSelectedEntity.MovementRange}, Condition2: {manualPathList.ToHashSet().IsSubsetOf(manualPathSet)}, Condition3: {manualPathList[^1].Occupant == null || manualPathList[^1].Occupant == currentSelectedEntity}");
                     if (isDestinationValid)
                     {
                         // Move unit to destination
                         currentSelectedEntity.MoveAlongPath(manualPathList);
-                        GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState
-                            .UnitMovingToDestination);
+                        GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitMovingToDestination);
                     }
                     else
                     {
@@ -411,6 +432,12 @@ namespace StrategyGame.Core.Input
 
         private void ReinstateGridCursorPosition() {
             OnGridCursorMove(_gridCursorPosition);
+        }
+
+        private void HandleDangerZoneToggle() {
+            if (!_rightShoulderAction.WasPerformedThisFrame()) return;
+            _isDangerZoneVisible = !_isDangerZoneVisible;
+            GridDelegates.InvokeOnSetDangerZoneVisibility(_isDangerZoneVisible);
         }
     }
 }

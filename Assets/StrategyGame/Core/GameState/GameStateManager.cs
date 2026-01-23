@@ -82,7 +82,8 @@ namespace StrategyGame.Core.GameState {
                     TurnPhase = GameStateEnums.TurnPhase.None,
                     PlayerPhase = GameStateEnums.PlayerPhaseState.SelectUnitToControl,
                     UnitMoveSelectionMode = GameStateEnums.UnitMoveSelectionMode.Manual,
-                }
+                },
+                MasterState = GameStateEnums.MasterState.Combat
             };
             GameStateDelegates.OnGameStarted += StartGame;
             GameStateDelegates.OnUnitMoveSelectionChanged += SetCurrentUnitMoveSelectionMode;
@@ -183,12 +184,16 @@ namespace StrategyGame.Core.GameState {
             // Depending on turn phase, fill ActorsRemaining with the entities from the current phase.
             switch (CurrentState.Combat.TurnPhase) {
                 case GameStateEnums.TurnPhase.Player:
+                    // Clear danger zone highlights
+                    if (InputDelegates.GetDangerZoneVisible()) GridDelegates.InvokeOnSetDangerZoneVisibility(true); // doesn't change input state
                     CurrentState.Combat.ActorIDsRemaining =
                         EntityDelegates.GetAllGridEntityIDsByFaction(Faction.PlayerFaction); 
                     CurrentState.Combat.PlayerPhase = GameStateEnums.PlayerPhaseState.SelectUnitToControl;
                     InputDelegates.InvokeOnReinstateGridCursorPosition();
                     break;
                 case GameStateEnums.TurnPhase.Enemy:
+                    // Clear danger zone highlights
+                    GridDelegates.InvokeOnSetDangerZoneVisibility(false); // doesn't change input state
                     CurrentState.Combat.ActorIDsRemaining =
                         EntityDelegates.GetAllGridEntityIDsByFaction(Faction.EnemyFaction);
                     // Automate enemy actions

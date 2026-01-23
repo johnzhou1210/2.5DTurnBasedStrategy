@@ -170,9 +170,18 @@ namespace StrategyGame.Grid {
         }
 
 
-        public virtual HashSet<Tile> GetTilesWithinAttackRangeAtPosition(Vector2Int position) {
+        public virtual HashSet<Tile> GetAttackableTilesAtPosition(Vector2Int position) {
             HashSet<Tile> tilesWithinRange = GridDelegates.GetTilesInRadius(position, VisionRange).ToHashSet();
             return tilesWithinRange;
+        }
+
+        public virtual HashSet<Tile> GetTilesWithinAttackRange() {
+            (HashSet<Tile> reachableTiles, HashSet<GridEntity> attackables) = GetWalkableTiles();
+            HashSet<Tile> dangerTiles = new HashSet<Tile>();
+            foreach (Tile tile in reachableTiles) {
+                dangerTiles.UnionWith(GetAttackableTilesAtPosition(tile.Position));
+            }
+            return dangerTiles;
         }
         
         

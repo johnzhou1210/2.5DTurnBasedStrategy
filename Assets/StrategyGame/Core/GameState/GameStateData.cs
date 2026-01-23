@@ -10,6 +10,7 @@ namespace StrategyGame.Core.GameState {
     [Serializable]
     public class GameStateData {
         public CombatStateData Combat;
+        public GameStateEnums.MasterState MasterState;
     }
 
     [Serializable]

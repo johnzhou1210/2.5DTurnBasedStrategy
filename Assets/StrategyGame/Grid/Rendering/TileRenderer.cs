@@ -17,6 +17,7 @@ namespace StrategyGame.Grid.Rendering {
     }
     
     public class TileRenderer : MonoBehaviour {
+        private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
         // ==============================
         // FIELDS & PROPERTIES
         // ==============================
@@ -126,7 +127,7 @@ namespace StrategyGame.Grid.Rendering {
         }
 
         public void SetOppositeReactionHighlightVisualVisibility(bool val) {
-            SetColor(oppositeReactionHighlightRenderer, val ? new Color(1,0,0,.2f) : Color.clear);
+            SetColor(oppositeReactionHighlightRenderer, val ? new Color(1,0,0,.1f) : Color.clear);
         }
 
         public void SetAttackableHighlightVisualVisibility(bool val) {
@@ -141,11 +142,11 @@ namespace StrategyGame.Grid.Rendering {
             SetColor(oppositeReactionHighlightRenderer, Color.clear);
         }
 
-        private void SetColor(Renderer renderer, Color color) {
+        private void SetColor(Renderer rend, Color color) {
             MaterialPropertyBlock block = new MaterialPropertyBlock();
-            renderer.GetPropertyBlock(block);
-            block.SetColor("_BaseColor", color);
-            renderer.SetPropertyBlock(block);
+            rend.GetPropertyBlock(block);
+            block.SetColor(BaseColor, color);
+            rend.SetPropertyBlock(block);
         }
         
         

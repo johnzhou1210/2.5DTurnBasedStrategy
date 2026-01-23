@@ -19,6 +19,7 @@ namespace StrategyGame.Core.Delegates {
         public static event Action<Vector2Int, bool> OnSetTileVisualSelectionAnim;
         public static event Action OnClearPath;
         public static event Action OnGridRedraw;
+        public static event Action<bool> OnSetDangerZoneVisibility;
 
         public static void InvokeOnEntitySpawned(GridEntity entity, Vector2Int position) {
             OnEntitySpawned?.Invoke(entity, position);
@@ -47,9 +48,9 @@ namespace StrategyGame.Core.Delegates {
         public static void InvokeOnGridRedraw() {
             OnGridRedraw?.Invoke();
         }
-
-        
-
+        public static void InvokeOnSetDangerZoneVisibility(bool val) {
+            OnSetDangerZoneVisibility?.Invoke(val);
+        }
         
 
         // ==============================

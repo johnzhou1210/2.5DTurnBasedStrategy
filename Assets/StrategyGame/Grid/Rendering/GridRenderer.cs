@@ -33,6 +33,7 @@ namespace StrategyGame.Grid.Rendering {
         private HashSet<GameObject> _walkableTiles;
         private HashSet<GameObject> _tilesWithAttackableEntities;
         private HashSet<GameObject> _tilesWithinAttackRange;
+        private HashSet<GameObject> _tilesWithinDangerZone;
         private List<GameObject> _pathTiles;
 
         // ==============================
@@ -43,6 +44,7 @@ namespace StrategyGame.Grid.Rendering {
             _walkableTiles = new HashSet<GameObject>();
             _tilesWithAttackableEntities = new HashSet<GameObject>();
             _tilesWithinAttackRange = new HashSet<GameObject>();
+            _tilesWithinDangerZone = new HashSet<GameObject>();
             _pathTiles = new List<GameObject>();
             GridDelegates.OnAStarPathPreview += PreviewPathAStar;
             GridDelegates.OnManualPathPreview += PreviewManualPath;
@@ -51,6 +53,7 @@ namespace StrategyGame.Grid.Rendering {
             GridDelegates.OnSetTileVisualSelectionAnim += UpdateTileVisualSelection;
             GridDelegates.OnClearPath += ClearAllPathTileVisuals;
             GridDelegates.OnGridRedraw += OnGridRedraw;
+            GridDelegates.OnSetDangerZoneVisibility += SetDangerZoneVisibility;
         }
         private void OnDisable() {
             GridDelegates.OnAStarPathPreview -= PreviewPathAStar;
@@ -58,6 +61,7 @@ namespace StrategyGame.Grid.Rendering {
             GridDelegates.OnInspectedTileChanged -= UpdateInspectedTileVisuals;
             GridDelegates.OnClearPath -= ClearAllPathTileVisuals;
             GridDelegates.OnGridRedraw -= OnGridRedraw;
+            GridDelegates.OnSetDangerZoneVisibility -= SetDangerZoneVisibility;
         }
 
         // ==============================
@@ -96,16 +100,22 @@ namespace StrategyGame.Grid.Rendering {
                 
                 ClearWalkableTiles();
                 ClearAttackableTiles();
-                ClearTilesWithinAttackRange();
 
                 HashSet<Tile> walkableTiles = new HashSet<Tile>();
                 HashSet<GridEntity> attackableEntities = new HashSet<GridEntity>();
                 
                 switch (currentGameState.Combat.PlayerPhase) {
                     case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
-                        if (newTile.IsOccupied && newTile.Occupant.Faction == Faction.EnemyFaction) {
-                            HashSet<Tile> tilesWithinAttackRange = newTile.Occupant.GetTilesWithinAttackRangeAtPosition(newTile.Position);
-                            MarkTilesWithinAttackRange(tilesWithinAttackRange);
+                        if (InputDelegates.GetDangerZoneVisible()) break;
+                        switch (newTile.IsOccupied) {
+                            case false:
+                                ClearTilesWithinAttackRange();
+                                break;
+                            case true when newTile.Occupant.Faction == Faction.EnemyFaction:
+                            {
+                                MarkAttackRange(newTile.Occupant);
+                                break;
+                            }
                         }
                         break;
                     case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
@@ -349,6 +359,15 @@ namespace StrategyGame.Grid.Rendering {
             }
             _tilesWithinAttackRange.Clear();
         }
+
+        private void ClearTilesWithinDangerZone() {
+            foreach (GameObject tile in _tilesWithinDangerZone) {
+                if (tile.TryGetComponent(out TileRenderer tileRenderer)) {
+                    tileRenderer.SetOppositeReactionHighlightVisualVisibility(false);
+                }
+            }
+            _tilesWithinDangerZone.Clear();
+        }
         
         private IEnumerator EntityPathMovementCoroutine(GridEntity entity, List<Tile> path) {
             // Get entity transform
@@ -376,7 +395,40 @@ namespace StrategyGame.Grid.Rendering {
                 default:
                     throw new Exception("GridRenderer.EntityPathMovementCoroutine: Invalid turn phase!");
             }
-          
+        }
+
+        private void SetDangerZoneVisibility(bool val) {
+            if (val) {
+                // add tiles to danger zone
+                List<int> allEnemyIDs = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.EnemyFaction);
+                foreach (int enemyID in allEnemyIDs) {
+                    GridEntity currentEnemy = EntityDelegates.GetGridEntityByID(enemyID);
+                    HashSet<Tile> dangerTiles = currentEnemy.GetTilesWithinAttackRange();
+                    
+                    foreach (Tile tile in dangerTiles) {
+                        _tilesWithinDangerZone.Add(_tileVisuals[tile.Position.x,  tile.Position.y]);
+                    }
+                }
+                foreach (GameObject tile in _tilesWithinDangerZone) {
+                    if (tile.TryGetComponent(out TileRenderer tileRenderer)) {
+                        tileRenderer.SetOppositeReactionHighlightVisualVisibility(true);
+                    }
+                }
+            }
+            else {
+                // clear tiles from danger zone
+                ClearTilesWithinDangerZone();
+                GameStateData currState = GameStateDelegates.GetCurrentGameState();
+                Tile currInspectedTile = GridDelegates.GetTileFromPosition(currState.Combat.InspectedTilePosition);
+                if (currInspectedTile.IsOccupied && currInspectedTile.Occupant.Faction == Faction.EnemyFaction) {
+                    MarkAttackRange(currInspectedTile.Occupant);
+                }
+            }
+        }
+
+        private void MarkAttackRange(GridEntity entity) {
+            HashSet<Tile> tilesWithinAttackRange = entity.GetTilesWithinAttackRange();
+            MarkTilesWithinAttackRange(tilesWithinAttackRange);
         }
     }
 }

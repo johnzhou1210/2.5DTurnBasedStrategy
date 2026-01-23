@@ -25,13 +25,22 @@ namespace StrategyGame.Grid {
             return validTiles;
         }
        
-        public override HashSet<Tile> GetTilesWithinAttackRangeAtPosition(Vector2Int position) {
+        public override HashSet<Tile> GetAttackableTilesAtPosition(Vector2Int position) {
             HashSet<Tile> tilesWithinRange = GridDelegates.GetTilesInRadius(position, GridUnitData.Weapon.AttackRange).ToHashSet();
             return tilesWithinRange;
         }
-        
-        
 
-      
+        public override HashSet<Tile> GetTilesWithinAttackRange() {
+            (HashSet<Tile> reachableTiles, HashSet<GridEntity> attackables) = GetWalkableTiles();
+            HashSet<Tile> dangerTiles = new HashSet<Tile>();
+            foreach (Tile tile in reachableTiles) {
+                dangerTiles.UnionWith(GetAttackableTilesAtPosition(tile.Position));
+            }
+            return dangerTiles;
+        }
+
+
+
+
     }
 }

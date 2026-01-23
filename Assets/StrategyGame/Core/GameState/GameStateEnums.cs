@@ -32,6 +32,14 @@ namespace StrategyGame.Core.Enums {
             Automatic,
             None
         }
+
+        public enum MasterState {
+            Title,
+            Home,
+            Combat,
+            
+            
+        }
         
     }
 }
