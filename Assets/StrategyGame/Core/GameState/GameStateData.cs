@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
@@ -42,6 +43,7 @@ namespace StrategyGame.Core.GameState {
                 else if (inspectedEntityID == -1) {
                     UIAnimationDelegates.InvokeOnPlayAnimation(AnimatorCategory.EntityHUD, "TweenOut");
                 }
+                
             }
         }
         public int SelectedEntityID = -1;
@@ -51,5 +53,8 @@ namespace StrategyGame.Core.GameState {
             get => previousSelectedEntityID;
             set => previousSelectedEntityID = value;
         }
+        
+        public LinkedList<int> PlayersCycleDeque = new LinkedList<int>();
+        public LinkedList<int> EnemiesCycleDeque = new  LinkedList<int>();
     }
 }

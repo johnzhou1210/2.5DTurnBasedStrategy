@@ -106,9 +106,27 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "RightShoulder",
+                    "name": "DangerZone",
                     "type": "Button",
                     "id": "44fb6b44-16be-4fff-af94-edc77f0dcc91",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "CycleLeft",
+                    "type": "Button",
+                    "id": "e28344b4-ddeb-45f8-8067-3eec99cd5208",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "CycleRight",
+                    "type": "Button",
+                    "id": "5c11a584-26e3-4981-b315-3b939a282eaa",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -541,18 +559,62 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard&Mouse;Gamepad",
-                    "action": "RightShoulder",
+                    "action": "DangerZone",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
                     "id": "aafe08c6-e2ed-4393-93c4-a0bdc23380d3",
-                    "path": "<Gamepad>/rightShoulder",
+                    "path": "<Gamepad>/rightTrigger",
                     "interactions": "",
                     "processors": "",
                     "groups": ";Gamepad;Keyboard&Mouse",
-                    "action": "RightShoulder",
+                    "action": "DangerZone",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "cef5c5ee-1b67-4b9e-9902-d9804bd42d0a",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad;Keyboard&Mouse",
+                    "action": "CycleLeft",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "42850bc9-f1e2-446e-bbd0-34b4a71515f7",
+                    "path": "<Gamepad>/leftShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad;Keyboard&Mouse",
+                    "action": "CycleLeft",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "cd8ffcf0-fdcb-4a4c-8da3-2bd6a0b12f34",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CycleRight",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8530c613-393c-4021-b379-93beb05872eb",
+                    "path": "<Gamepad>/rightShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard&Mouse;Gamepad",
+                    "action": "CycleRight",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

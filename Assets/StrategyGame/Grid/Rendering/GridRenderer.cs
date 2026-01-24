@@ -54,6 +54,7 @@ namespace StrategyGame.Grid.Rendering {
             GridDelegates.OnClearPath += ClearAllPathTileVisuals;
             GridDelegates.OnGridRedraw += OnGridRedraw;
             GridDelegates.OnSetDangerZoneVisibility += SetDangerZoneVisibility;
+            GridDelegates.OnManualMarkTilesWithAttackableEntities += HandleManualMarkTilesWithAttackableEntities;
         }
         private void OnDisable() {
             GridDelegates.OnAStarPathPreview -= PreviewPathAStar;
@@ -62,6 +63,7 @@ namespace StrategyGame.Grid.Rendering {
             GridDelegates.OnClearPath -= ClearAllPathTileVisuals;
             GridDelegates.OnGridRedraw -= OnGridRedraw;
             GridDelegates.OnSetDangerZoneVisibility -= SetDangerZoneVisibility;
+            GridDelegates.OnManualMarkTilesWithAttackableEntities -= HandleManualMarkTilesWithAttackableEntities;
         }
 
         // ==============================
@@ -99,11 +101,16 @@ namespace StrategyGame.Grid.Rendering {
                 GameStateData currentGameState = GameStateDelegates.GetCurrentGameState();
 
                 ClearWalkableTiles();
-                ClearAttackableTiles();
+                if (currentGameState.Combat.PlayerPhase != GameStateEnums.PlayerPhaseState.UnitSelectTarget) ClearAttackableTiles();
 
                 HashSet<Tile> walkableTiles = new HashSet<Tile>();
                 HashSet<GridEntity> attackableEntities = new HashSet<GridEntity>();
+                GridEntity currSelectedEntity = EntityDelegates.GetGridEntityByID(currentGameState.Combat.SelectedEntityID);
 
+                if (currSelectedEntity != null) {
+                    attackableEntities = currSelectedEntity.GetAttackableEntitiesAtPosition(currentGameState.Combat.InspectedTilePosition);
+                }
+                
                 switch (currentGameState.Combat.TurnPhase) {
                     case GameStateEnums.TurnPhase.Player:
                         switch (currentGameState.Combat.PlayerPhase) {
@@ -114,20 +121,17 @@ namespace StrategyGame.Grid.Rendering {
                                 }
                                 break;
                             case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
-                                GridEntity currentSelectedEntity = EntityDelegates.GetGridEntityByID(currentGameState.Combat.SelectedEntityID);
                                 // To determine how many steps to look, take a look at GameStateManager's manual path
-                                int movementCostRemaining = currentSelectedEntity.MovementRange - GameStateDelegates.ManualPathSelectionGetSpentMovementCost();
+                                int movementCostRemaining = currSelectedEntity.MovementRange - GameStateDelegates.ManualPathSelectionGetSpentMovementCost();
                                 Debug.Log($"GridRenderer.UpdateInspectedTileVisuals: Movement cost remaining: {movementCostRemaining}");
-                                walkableTiles = currentSelectedEntity.GetWalkableTilesAtPosition(newTile.Position, movementCostRemaining, true);
+                                walkableTiles = currSelectedEntity.GetWalkableTilesAtPosition(newTile.Position, movementCostRemaining, true);
                                 walkableTiles.UnionWith(GameStateDelegates.GetManualPath().Unique);
                                 MarkWalkableTiles(walkableTiles);
-                                attackableEntities = currentSelectedEntity.GetAttackableEntitiesAtPosition(currentGameState.Combat.InspectedTilePosition);
                                 MarkTilesWithAttackableEntities(attackableEntities);
                                 break;
                             case GameStateEnums.PlayerPhaseState.UnitMovingToDestination:
                                 break;
                             case GameStateEnums.PlayerPhaseState.UnitActionMenu:
-                                GridEntity currSelectedEntity = EntityDelegates.GetGridEntityByID(currentGameState.Combat.SelectedEntityID);
                                 MarkTilesWithinAttackRange(Faction.Player, currSelectedEntity.GetAttackableTilesAtPosition(currSelectedEntity.GridPosition));
                                 break;
                             case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
@@ -445,5 +449,12 @@ namespace StrategyGame.Grid.Rendering {
             HashSet<Tile> tilesWithinAttackRange = entity.GetTilesWithinAttackRange();
             MarkTilesWithinAttackRange(faction, tilesWithinAttackRange);
         }
+
+        private void HandleManualMarkTilesWithAttackableEntities() {
+            GameStateData currentState = GameStateDelegates.GetCurrentGameState();
+            GridEntity selectedEntity = EntityDelegates.GetGridEntityByID(currentState.Combat.SelectedEntityID);
+            MarkTilesWithAttackableEntities(selectedEntity.GetAttackableEntitiesAtPosition(selectedEntity.GridPosition));
+        }
+        
     }
 }

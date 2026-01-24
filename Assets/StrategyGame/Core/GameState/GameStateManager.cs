@@ -186,16 +186,15 @@ namespace StrategyGame.Core.GameState {
                 case GameStateEnums.TurnPhase.Player:
                     // Clear danger zone highlights
                     if (InputDelegates.GetDangerZoneVisible()) GridDelegates.InvokeOnSetDangerZoneVisibility(true); // doesn't change input state
-                    CurrentState.Combat.ActorIDsRemaining =
-                        EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Player); 
+                    CurrentState.Combat.ActorIDsRemaining = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Player);
+                    CurrentState.Combat.PlayersCycleDeque = new LinkedList<int>(CurrentState.Combat.ActorIDsRemaining);
                     CurrentState.Combat.PlayerPhase = GameStateEnums.PlayerPhaseState.SelectUnitToControl;
                     InputDelegates.InvokeOnReinstateGridCursorPosition();
                     break;
                 case GameStateEnums.TurnPhase.Enemy:
                     // Clear danger zone highlights
                     GridDelegates.InvokeOnSetDangerZoneVisibility(false); // doesn't change input state
-                    CurrentState.Combat.ActorIDsRemaining =
-                        EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Enemy);
+                    CurrentState.Combat.ActorIDsRemaining = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Enemy);
                     // Automate enemy actions
                     _enemyPhaseCoroutine = StartCoroutine(RunEnemyPhaseCoroutine());
                     break;
@@ -257,7 +256,7 @@ namespace StrategyGame.Core.GameState {
                     break;
                 case GameStateEnums.PlayerPhaseState.UnitActionMenu: break;
                 case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
-                    GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, true);
+                    // GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, true);
                     break;
                 case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: break;
                 case GameStateEnums.PlayerPhaseState.None: break;
@@ -360,7 +359,7 @@ namespace StrategyGame.Core.GameState {
                     Debug.Log($"GameStateManager.SetCurrentPlayerPhaseState: Manual path is now: {ManualPath}");
                     GridDelegates.InvokeOnManualPathPreview(ManualPath);
                     Tile currentTile = GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition);
-                    GridDelegates.InvokeOnInspectedTileChanged(currentTile, currentTile); // Force update to show walkable tiles
+                    SetInspectedTile(CurrentState.Combat.InspectedTilePosition); // Force update to show walkable tiles
                     break;
                 case GameStateEnums.PlayerPhaseState.UnitMovingToDestination:
                     GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, false);
@@ -370,10 +369,19 @@ namespace StrategyGame.Core.GameState {
                     UIDelegates.InvokeOnSetCombatActionMenuVisibility(true);
                     Debug.Log(
                         $"GameStateManager.SetCurrentPlayerPhaseState: SelectedEntityID is {CurrentState.Combat.SelectedEntityID}");
-                    SetInspectedTile(CurrentState.Combat.InspectedTilePosition);
+                    SetInspectedTile(CurrentState.Combat.InspectedTilePosition); // Force update to show walkable tiles
                     GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, true);
                     break;
-                case GameStateEnums.PlayerPhaseState.UnitSelectTarget: break;
+                case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
+                    // Populate the EnemiesCycleDeque
+                    GridEntity attackingEntity = EntityDelegates.GetGridEntityByID(CurrentState.Combat.SelectedEntityID);
+                    HashSet<GridEntity> attackableEntities = attackingEntity.GetAttackableEntitiesAtPosition(attackingEntity.GridPosition);
+                    // Sort attackableEntities by increasing distance from player
+                    List<GridEntity> sortedAttackableEntities = attackableEntities.OrderBy(e => Manhattan.Distance(e.GridPosition, attackingEntity.GridPosition)).ToList();
+                    CurrentState.Combat.EnemiesCycleDeque = new LinkedList<int>(sortedAttackableEntities.Select(e => e.ID));
+                    SetInspectedTile( EntityDelegates.GetGridEntityByID(CurrentState.Combat.EnemiesCycleDeque.First.Value).GridPosition );
+                    GridDelegates.InvokeOnManualMarkTilesWithAttackableEntities();
+                    break;
                 case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: break;
                 case GameStateEnums.PlayerPhaseState.None: break;
             }
@@ -396,7 +404,9 @@ namespace StrategyGame.Core.GameState {
                     return AddCoordinateToManualPath(coordinate);
                 case GameStateEnums.PlayerPhaseState.UnitMovingToDestination: return false;
                 case GameStateEnums.PlayerPhaseState.UnitActionMenu: return false;
-                case GameStateEnums.PlayerPhaseState.UnitSelectTarget: return false;
+                case GameStateEnums.PlayerPhaseState.UnitSelectTarget: 
+                    SetInspectedTile(coordinate);
+                    return false;
                 case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: return false;
                 case GameStateEnums.PlayerPhaseState.None: return false;
                 default:

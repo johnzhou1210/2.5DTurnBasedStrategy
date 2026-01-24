@@ -2,6 +2,8 @@ using System;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
 using StrategyGame.Core.GameState;
+using StrategyGame.Grid;
+using TMPro;
 using UnityEngine;
 
 namespace StrategyGame.UI.Menus {
@@ -35,6 +37,7 @@ public class CombatActionMenuController : MonoBehaviour {
     }
 
     private void SetVisible(bool visible) {
+        if (visible) UpdateAttackActionAllowed();
         canvasGroup.alpha = visible ? 1 : 0;
         canvasGroup.interactable = visible;
         canvasGroup.blocksRaycasts = visible;
@@ -65,26 +68,39 @@ public class CombatActionMenuController : MonoBehaviour {
     }
 
     private void ConfirmAction() {
+        GameStateData currState = GameStateDelegates.GetCurrentGameState();
+        GridEntity currentSelectedEntity = EntityDelegates.GetGridEntityByID(currState.Combat.SelectedEntityID);
         switch (_currentSelectedIndex) {
             case (int)ActionType.Attack:
+                if (currentSelectedEntity.GetAttackableEntitiesAtPosition(currentSelectedEntity.GridPosition).Count == 0) break;
+                GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitSelectTarget);
+                SetVisible(false);
             break;
             case (int)ActionType.Skills:
             break;
             case (int)ActionType.Item:
             break;
             case (int)ActionType.Wait:
-                GameStateData currState = GameStateDelegates.GetCurrentGameState();
+                SetVisible(false);
+                
                 currState.Combat.ActorIDsRemaining.Remove(currState.Combat.SelectedEntityID);
                 GameStateDelegates.InvokeOnPlayerPhaseStateChanged(currState.Combat.ActorIDsRemaining.Count == 0 ? GameStateEnums.PlayerPhaseState.None : GameStateEnums.PlayerPhaseState.SelectUnitToControl);
                 if (currState.Combat.ActorIDsRemaining.Count == 0) {
                     GameStateDelegates.InvokeOnAdvanceTurnPhase();
                 }
-                SetVisible(false);
                 SelectAction(0);
             break;
             default:
                 throw new Exception("CombatActionMenuController.ConfirmAction: Invalid Action Type!");
         }
+    }
+
+    private void UpdateAttackActionAllowed() {
+        Transform attackButtonTransform = actionMenuItems.transform.GetChild(0);
+        GameStateData currState = GameStateDelegates.GetCurrentGameState();
+        GridEntity currentSelectedEntity = EntityDelegates.GetGridEntityByID(currState.Combat.SelectedEntityID);
+        TextMeshProUGUI attackTextMesh = attackButtonTransform.GetComponentInChildren<TextMeshProUGUI>();
+        attackTextMesh.color = currentSelectedEntity.GetAttackableEntitiesAtPosition(currentSelectedEntity.GridPosition).Count == 0 ? Color.gray4 : Color.white;
     }
 }
 }

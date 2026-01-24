@@ -154,7 +154,6 @@ namespace StrategyGame.Grid {
                     // Update bestRemainingMovements if better
                     if (!bestRemainingMovements.ContainsKey(neighbor) || newRemainingMovement > bestRemainingMovements[neighbor]) {
                         bestRemainingMovements[neighbor] = newRemainingMovement;
-                        // Enemy tiles are reachable but NOT pass-through
                         tilesToVisit.Enqueue(new FloodFillQueueEntry { Tile = neighbor, RemainingMovementPoints = newRemainingMovement });
                     }
                 }

@@ -39,7 +39,9 @@ namespace StrategyGame.Core.Input
         private InputAction _moveAction;
         private InputAction _selectAction;
         private InputAction _cancelAction;
-        private InputAction _rightShoulderAction;
+        private InputAction _dangerZoneAction;
+        private InputAction _cycleLeftAction;
+        private InputAction _cycleRightAction;
         private float _pathSelectionMoveActionTimer;
         private float _currentPathSelectionMoveActionCooldown;
         private float _pathSelectionMoveActionHeldDuration;
@@ -58,7 +60,9 @@ namespace StrategyGame.Core.Input
             _moveAction = playerInput.actions["Move"];
             _selectAction = playerInput.actions["Select"];
             _cancelAction = playerInput.actions["Cancel"];
-            _rightShoulderAction = playerInput.actions["RightShoulder"];
+            _dangerZoneAction = playerInput.actions["DangerZone"];
+            _cycleLeftAction = playerInput.actions["CycleLeft"];
+            _cycleRightAction = playerInput.actions["CycleRight"];
         }
 
         private void OnEnable()
@@ -95,7 +99,7 @@ namespace StrategyGame.Core.Input
             HandleCancellationInput();
             HandleInteractionInput();
             HandleAxisInput();
-            HandleRightShoulderInput();
+            HandleCombatControls();
         }
 
 
@@ -200,6 +204,9 @@ namespace StrategyGame.Core.Input
                         case GameStateEnums.PlayerPhaseState.UnitActionMenu:
                             break;
                         case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
+                            currentGameState.Combat.InspectedEntityID = currentGameState.Combat.SelectedEntityID;
+                            GridDelegates.SetInspectedTile(EntityDelegates.GetGridEntityByID(currentGameState.Combat.SelectedEntityID).GridPosition);
+                            GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitActionMenu);
                             break;
                         case GameStateEnums.PlayerPhaseState.UnitAttackCutscene:
                             break;
@@ -217,23 +224,6 @@ namespace StrategyGame.Core.Input
                     break;
                 default:
                     throw new Exception("InputManager.HandleCancellationInput: Invalid turn phase state enum!");
-            }
-        }
-
-        private void HandleRightShoulderInput() {
-            GameStateData currentGameState = GameStateDelegates.GetCurrentGameState();
-            switch (currentGameState.MasterState) {
-                case GameStateEnums.MasterState.Title:
-                    break;
-                case GameStateEnums.MasterState.Home:
-                    break;
-                case GameStateEnums.MasterState.Combat:
-                    if (currentGameState.Combat.TurnPhase == GameStateEnums.TurnPhase.Player) {
-                        HandleDangerZoneToggle();
-                    }
-                    break;
-                default:
-                    throw new Exception("InputManager.HandleRightShoulderInput: Invalid master state enum!");
             }
         }
 
@@ -434,8 +424,71 @@ namespace StrategyGame.Core.Input
             OnGridCursorMove(_gridCursorPosition);
         }
 
+        private void HandleCombatControls() {
+            GameStateData currentState = GameStateDelegates.GetCurrentGameState();
+            switch (currentState.Combat.TurnPhase) {
+                case GameStateEnums.TurnPhase.Player:
+                    HandleDangerZoneToggle();
+                    HandleCycleInput();
+                    break;
+            }
+            
+        }
+
+        private void HandleCycleInput() {
+            GameStateData currentState = GameStateDelegates.GetCurrentGameState();
+            switch (currentState.Combat.PlayerPhase) {
+                case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
+                    var playerUnitsDeque = currentState.Combat.PlayersCycleDeque;
+                    if (playerUnitsDeque.Count <= 1) return;
+                    if (_cycleRightAction.WasPerformedThisFrame()) {
+                        Debug.Log("InputManager.HandleCycleInput: Cycling right");
+                        int first = playerUnitsDeque.First();  // A
+                        playerUnitsDeque.RemoveFirst();        // [B C D]
+                        playerUnitsDeque.AddLast(first);       // [B C D A]
+                        int newID = playerUnitsDeque.First();  // B
+                        currentState.Combat.InspectedEntityID = newID;
+                        GridDelegates.SetInspectedTile(EntityDelegates.GetGridEntityByID(newID).GridPosition);
+                    }
+                    else if (_cycleLeftAction.WasPerformedThisFrame()) {
+                        Debug.Log("InputManager.HandleCycleInput: Cycling left");
+                        int last = playerUnitsDeque.Last();    // D
+                        playerUnitsDeque.RemoveLast();         // [A B C]
+                        playerUnitsDeque.AddFirst(last);       // [D A B C]
+                        int newID = playerUnitsDeque.First();  // D
+                        currentState.Combat.InspectedEntityID = newID;
+                        GridDelegates.SetInspectedTile(EntityDelegates.GetGridEntityByID(newID).GridPosition);
+                    }
+                    break;
+                case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
+                    var enemyTargetsDeque = currentState.Combat.EnemiesCycleDeque;
+                    if (enemyTargetsDeque.Count <= 1) return;
+                    if (_cycleRightAction.WasPerformedThisFrame()) {
+                        Debug.Log("InputManager.HandleCycleInput: Cycling right");
+                        int first = enemyTargetsDeque.First();  // A
+                        enemyTargetsDeque.RemoveFirst();        // [B C D]
+                        enemyTargetsDeque.AddLast(first);       // [B C D A]
+                        int newID = enemyTargetsDeque.First();  // B
+                        currentState.Combat.InspectedEntityID = newID;
+                        GridDelegates.SetInspectedTile(EntityDelegates.GetGridEntityByID(newID).GridPosition);
+                    }
+                    else if (_cycleLeftAction.WasPerformedThisFrame()) {
+                        Debug.Log("InputManager.HandleCycleInput: Cycling left");
+                        int last = enemyTargetsDeque.Last();    // D
+                        enemyTargetsDeque.RemoveLast();         // [A B C]
+                        enemyTargetsDeque.AddFirst(last);       // [D A B C]
+                        int newID = enemyTargetsDeque.First();  // D
+                        currentState.Combat.InspectedEntityID = newID;
+                        GridDelegates.SetInspectedTile(EntityDelegates.GetGridEntityByID(newID).GridPosition);
+                    }
+                    break;
+            }
+            
+        }
+
+        
         private void HandleDangerZoneToggle() {
-            if (!_rightShoulderAction.WasPerformedThisFrame()) return;
+            if (!_dangerZoneAction.WasPerformedThisFrame()) return;
             _isDangerZoneVisible = !_isDangerZoneVisible;
             GridDelegates.InvokeOnSetDangerZoneVisibility(_isDangerZoneVisible);
         }
