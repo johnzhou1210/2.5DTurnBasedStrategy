@@ -516,6 +516,7 @@ namespace StrategyGame.Core.Input
                         currentState.Combat.InspectedEntityID = newID;
                         GridDelegates.SetInspectedTile(EntityDelegates.GetGridEntityByID(newID).GridPosition);
                     }
+                    GridDelegates.InvokeOnSetTileVisualSelectionAnim(currentState.Combat.InspectedTilePosition, true);
                     break;
             }
             

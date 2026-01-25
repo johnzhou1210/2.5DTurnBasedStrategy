@@ -381,6 +381,7 @@ namespace StrategyGame.Core.GameState {
                     CurrentState.Combat.EnemiesCycleDeque = new LinkedList<int>(sortedAttackableEntities.Select(e => e.ID));
                     SetInspectedTile( EntityDelegates.GetGridEntityByID(CurrentState.Combat.EnemiesCycleDeque.First.Value).GridPosition );
                     GridDelegates.InvokeOnManualMarkTilesWithAttackableEntities();
+                    GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, true);
                     break;
                 case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: 
                     
