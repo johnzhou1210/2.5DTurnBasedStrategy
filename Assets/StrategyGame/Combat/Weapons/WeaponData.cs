@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using StrategyGame.Grid.GridData;
 using UnityEngine;
 
@@ -15,11 +16,13 @@ namespace StrategyGame.Combat.Weapons {
         [SerializeField] private int maxAttackRange = 1;
         [SerializeField] private int minAttackRange = 1;
         [SerializeField] private DamageType damageType = DamageType.Physical;
+        [SerializeField] private List<StatModifier> statModifiers = new();
 
         public WeaponType WeaponType { get => weaponType; }
         public int BaseAttack { get => baseAttack; }
         public int MaxAttackRange { get => maxAttackRange; }
         public int MinAttackRange { get => minAttackRange; }
         public DamageType DamageType { get => damageType; }
+        public List<StatModifier> StatModifiers { get => statModifiers; }
     }
 }

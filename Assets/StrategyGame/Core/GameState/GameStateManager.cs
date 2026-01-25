@@ -382,7 +382,10 @@ namespace StrategyGame.Core.GameState {
                     SetInspectedTile( EntityDelegates.GetGridEntityByID(CurrentState.Combat.EnemiesCycleDeque.First.Value).GridPosition );
                     GridDelegates.InvokeOnManualMarkTilesWithAttackableEntities();
                     break;
-                case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: break;
+                case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: 
+                    
+                    
+                    break;
                 case GameStateEnums.PlayerPhaseState.None: break;
             }
         }

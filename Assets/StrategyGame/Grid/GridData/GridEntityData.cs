@@ -1,3 +1,4 @@
+using StrategyGame.Combat.Weapons;
 using StrategyGame.Factions;
 using UnityEngine;
 
@@ -14,6 +15,8 @@ namespace StrategyGame.Grid.GridData {
         [SerializeField] private int baseResistance = 5;
         [SerializeField] private int baseAgility = 5;
         [SerializeField] private int baseEvasion = 5;
+        [SerializeField] private WeaponData weapon;
+        
 
         public GameObject VisualPrefab { get => visualPrefab; }
         public int BaseHealth { get => baseHealth; }
@@ -27,5 +30,9 @@ namespace StrategyGame.Grid.GridData {
         public int BaseResistance { get => baseResistance; }
         public int BaseAgility { get => baseAgility; }
         public int BaseEvasion { get => baseEvasion; }
+        public WeaponData Weapon {
+            get => weapon;
+            set => weapon = value;
+        }
     }
 }

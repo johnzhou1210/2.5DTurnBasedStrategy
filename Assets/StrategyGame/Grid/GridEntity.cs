@@ -22,8 +22,8 @@ namespace StrategyGame.Grid {
         /* CORE */
         public Vector2Int GridPosition { get; private set; }
         public bool IsPassable { get; private set; } = true;
-        public GridEntityData GridEntityData { get; private set; }
-        public WeaponData Weapon { get; private set; }
+        public GridEntityData GridEntityData { get; protected set; }
+        public WeaponData Weapon { get; protected set; }
 
         /* IDENTITY */
         private static int _nextID = 0;

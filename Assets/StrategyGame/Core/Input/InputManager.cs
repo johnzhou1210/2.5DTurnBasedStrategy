@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using StrategyGame.Combat;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
 using StrategyGame.Core.GameState;
@@ -406,6 +407,40 @@ namespace StrategyGame.Core.Input
                     break;
                 }
                 case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
+                    // Perform action on target
+                    // For now, assume attack
+                    GridEntity actingEntity = EntityDelegates.GetGridEntityByID(state.Combat.SelectedEntityID);
+                    GridEntity targetEntity = GridDelegates.GetTileFromPosition(state.Combat.InspectedTilePosition).Occupant;
+                    if (targetEntity == null) throw new Exception("InputManager.HandleEntityTileSelection: targetEntity is null!");
+                    
+                    Debug.Log($"Attacker weapon: {actingEntity.Weapon}");
+                    Debug.Log($"Defender weapon: {targetEntity.Weapon}");
+                    
+                    HashSet<GridEntity> entitiesWithinDefenderRange = targetEntity.GetAttackableEntitiesAtPosition(targetEntity.GridPosition);
+                    bool attackerInDefenderRange = entitiesWithinDefenderRange.Any(e => e.ID == actingEntity.ID);
+                    
+                    CombatOutcome attackOutcome = CombatResolver.SimulateAttack(new CombatStats {
+                        HP = actingEntity.Health,
+                        Attack = actingEntity.Attack,
+                        Defense = actingEntity.Defense,
+                        Agility = actingEntity.Agility,
+                        Accuracy = actingEntity.Accuracy,
+                        Resistance = actingEntity.Resistance,
+                        Evasion = actingEntity.Evasion,
+                        Weapon = actingEntity.Weapon,
+                        EntityID = actingEntity.ID
+                    }, new CombatStats {
+                        HP = targetEntity.Health,
+                        Attack = targetEntity.Attack,
+                        Defense = targetEntity.Defense,
+                        Agility = targetEntity.Agility,
+                        Accuracy = targetEntity.Accuracy,
+                        Resistance = targetEntity.Resistance,
+                        Evasion = targetEntity.Evasion,
+                        Weapon = targetEntity.Weapon,
+                        EntityID = targetEntity.ID
+                    }, Resources.Load<AbilityData>("ScriptableObjects/Abilities/Attack"), attackerInDefenderRange);
+                    Debug.Log($"Attack outcome: {attackOutcome}");
                     break;
                 default:
                     throw new Exception(

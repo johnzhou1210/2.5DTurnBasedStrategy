@@ -16,13 +16,9 @@ namespace StrategyGame.Grid {
         public GridUnitData GridUnitData { get; private set; }
         
         public GridUnit(GridEntityData gridEntityData, GridUnitData gridUnitData) : base(gridEntityData) {
+            GridEntityData = gridEntityData;
+            Weapon = gridUnitData.Weapon;
             GridUnitData = gridUnitData;
-        }
-
-
-        public HashSet<Tile> GetValidTileDestinations() {
-            HashSet<Tile> validTiles = new HashSet<Tile>();
-            return validTiles;
         }
        
         public override HashSet<Tile> GetAttackableTilesAtPosition(Vector2Int position) {
