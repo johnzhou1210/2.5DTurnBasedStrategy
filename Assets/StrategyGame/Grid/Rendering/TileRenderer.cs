@@ -101,7 +101,7 @@ namespace StrategyGame.Grid.Rendering {
                     _terrainColor = Color.black;
                     break;
             }
-            Debug.Log($"TileRenderer.Initialize: Setting tile {name} renderer material color to {_terrainColor} when data name is {tile.InitData.name}");
+            // Debug.Log($"TileRenderer.Initialize: Setting tile {name} renderer material color to {_terrainColor} when data name is {tile.InitData.name}");
             SetColor(renderer, _terrainColor);
         }
 

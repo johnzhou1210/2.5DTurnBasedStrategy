@@ -110,7 +110,7 @@ namespace StrategyGame.Grid.Rendering {
                 if (currSelectedEntity != null) {
                     attackableEntities = currSelectedEntity.GetAttackableEntitiesAtPosition(currentGameState.Combat.InspectedTilePosition);
                 }
-                
+
                 switch (currentGameState.Combat.TurnPhase) {
                     case GameStateEnums.TurnPhase.Player:
                         switch (currentGameState.Combat.PlayerPhase) {
@@ -127,7 +127,15 @@ namespace StrategyGame.Grid.Rendering {
                                 walkableTiles = currSelectedEntity.GetWalkableTilesAtPosition(newTile.Position, movementCostRemaining, true);
                                 walkableTiles.UnionWith(GameStateDelegates.GetManualPath().Unique);
                                 MarkWalkableTiles(walkableTiles);
-                                MarkTilesWithAttackableEntities(attackableEntities);
+
+                                if (newTile.Occupant is { Faction: Faction.Enemy }) {
+                                    // Highlight enemy
+                                    MarkTilesWithAttackableEntities(new HashSet<GridEntity> { newTile.Occupant });
+                                } else {
+                                    MarkTilesWithAttackableEntities(attackableEntities);
+                                }
+
+
                                 break;
                             case GameStateEnums.PlayerPhaseState.UnitMovingToDestination:
                                 break;
@@ -455,6 +463,6 @@ namespace StrategyGame.Grid.Rendering {
             GridEntity selectedEntity = EntityDelegates.GetGridEntityByID(currentState.Combat.SelectedEntityID);
             MarkTilesWithAttackableEntities(selectedEntity.GetAttackableEntitiesAtPosition(selectedEntity.GridPosition));
         }
-        
+
     }
 }

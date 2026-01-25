@@ -9,7 +9,6 @@ using StrategyGame.Core.Enums;
 using StrategyGame.Factions;
 using StrategyGame.Grid;
 using StrategyGame.Grid.GridData;
-using StrategyGame.UI;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -189,7 +188,7 @@ namespace StrategyGame.Core.GameState {
                     CurrentState.Combat.ActorIDsRemaining = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Player);
                     CurrentState.Combat.PlayersCycleDeque = new LinkedList<int>(CurrentState.Combat.ActorIDsRemaining);
                     CurrentState.Combat.PlayerPhase = GameStateEnums.PlayerPhaseState.SelectUnitToControl;
-                    InputDelegates.InvokeOnReinstateGridCursorPosition();
+                    InputDelegates.InvokeOnReinstateGridCursorPosition(null);
                     break;
                 case GameStateEnums.TurnPhase.Enemy:
                     // Clear danger zone highlights
@@ -348,17 +347,12 @@ namespace StrategyGame.Core.GameState {
                 case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
                     // Selected current inspected entity
                     CurrentState.Combat.SelectedEntityID = CurrentState.Combat.InspectedEntityID;
-                    bool stepSuccess =
-                        ManualPath.StepToTile(
-                            GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition));
+                    bool stepSuccess = ManualPath.StepToTile(GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition));
                     if (!stepSuccess) {
-                        Debug.LogError(
-                            $"GameStateManager.SetCurrentPlayerPhaseState: Failed to step to {CurrentState.Combat.InspectedTilePosition}");
+                        Debug.LogError($"GameStateManager.SetCurrentPlayerPhaseState: Failed to step to {CurrentState.Combat.InspectedTilePosition}");
                     }
-
                     Debug.Log($"GameStateManager.SetCurrentPlayerPhaseState: Manual path is now: {ManualPath}");
                     GridDelegates.InvokeOnManualPathPreview(ManualPath);
-                    Tile currentTile = GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition);
                     SetInspectedTile(CurrentState.Combat.InspectedTilePosition); // Force update to show walkable tiles
                     break;
                 case GameStateEnums.PlayerPhaseState.UnitMovingToDestination:
@@ -379,7 +373,9 @@ namespace StrategyGame.Core.GameState {
                     // Sort attackableEntities by increasing distance from player
                     List<GridEntity> sortedAttackableEntities = attackableEntities.OrderBy(e => Manhattan.Distance(e.GridPosition, attackingEntity.GridPosition)).ToList();
                     CurrentState.Combat.EnemiesCycleDeque = new LinkedList<int>(sortedAttackableEntities.Select(e => e.ID));
-                    SetInspectedTile( EntityDelegates.GetGridEntityByID(CurrentState.Combat.EnemiesCycleDeque.First.Value).GridPosition );
+                    Vector2Int firstTargetPosition = EntityDelegates.GetGridEntityByID(CurrentState.Combat.EnemiesCycleDeque.First.Value).GridPosition;
+                    InputDelegates.InvokeOnReinstateGridCursorPosition(firstTargetPosition);
+                    SetInspectedTile(firstTargetPosition);
                     GridDelegates.InvokeOnManualMarkTilesWithAttackableEntities();
                     GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, true);
                     break;
@@ -410,7 +406,7 @@ namespace StrategyGame.Core.GameState {
                 case GameStateEnums.PlayerPhaseState.UnitActionMenu: return false;
                 case GameStateEnums.PlayerPhaseState.UnitSelectTarget: 
                     SetInspectedTile(coordinate);
-                    return false;
+                    return true;
                 case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: return false;
                 case GameStateEnums.PlayerPhaseState.None: return false;
                 default:
@@ -439,6 +435,13 @@ namespace StrategyGame.Core.GameState {
                         $"GameStateManager.AddCoordinateToManualPath: Not enough movement cost (need {tileAtCoordinate.MovementCost} but have {selectedEntity.MovementRange - movementCostUsed} left: used {movementCostUsed}). Not adding coordinate {coordinate} to manual path. {string.Join(",", ManualPath.Tiles)}");
                     return false;
                 }
+            }
+            
+            // Also prevent the feature of immediately attacking target if min and max range are not 1
+            if (tileAtCoordinate.IsOccupied &&
+                tileAtCoordinate.Occupant.Faction != selectedEntity.Faction && (selectedEntity.Weapon.MinAttackRange != 1 || selectedEntity.Weapon.MaxAttackRange != 1)) {
+                Debug.LogWarning("GameStateManager.AddCoordinateToManualPath: Cannot add tile to manual path because immediate attacking is not supported for ranged units!");
+                return false;
             }
 
             bool stepSuccess = ManualPath.StepToTile(GridDelegates.GetTileFromPosition(coordinate));
@@ -546,25 +549,25 @@ namespace StrategyGame.Core.GameState {
                 
                 // Remove allies to get all truly walkable tiles
                 walkableTiles = walkableTiles.Where(tile => !tile.IsOccupied).ToHashSet();
+                if (walkableTiles.Count > 0) {
+                    Tile chosenRandomTile = walkableTiles.ElementAt(Random.Range(0, walkableTiles.Count));
+                    (bool reachable, List<Tile> path) =
+                        AStar.CalculateBestPath(currentEntity.GridPosition, chosenRandomTile.Position);
+                    if (!reachable) {
+                        throw new Exception(
+                            $"GameStateManager.RunEnemyPhaseCoroutine: AStar could not find a path for the chosen random tile at position {chosenRandomTile.Position}!");
+                    }
                 
-                Tile chosenRandomTile = walkableTiles.ElementAt(Random.Range(0, walkableTiles.Count));
-                (bool reachable, List<Tile> path) =
-                    AStar.CalculateBestPath(currentEntity.GridPosition, chosenRandomTile.Position);
-                if (!reachable) {
-                    throw new Exception(
-                        $"GameStateManager.RunEnemyPhaseCoroutine: AStar could not find a path for the chosen random tile at position {chosenRandomTile.Position}!");
+                    SetInspectedTile(path[^1].Position, false);
+                    yield return new WaitForSeconds(.1f);
+
+                    // Move to destination
+                    CurrentState.Combat.EnemyPhase = GameStateEnums.EnemyPhaseState.UnitMovingToDestination;
+                    CurrentState.Combat.NextActorReady = false;
+                    currentEntity.MoveAlongPath(path);
+                    yield return new WaitUntil(() => CurrentState.Combat.NextActorReady);
+                    yield return new WaitForSeconds(path.Count > 0 ? 2f : 0f);
                 }
-
-                oldTile = GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition); 
-                SetInspectedTile(path[^1].Position, false);
-                yield return new WaitForSeconds(.1f);
-
-                // Move to destination
-                CurrentState.Combat.EnemyPhase = GameStateEnums.EnemyPhaseState.UnitMovingToDestination;
-                CurrentState.Combat.NextActorReady = false;
-                currentEntity.MoveAlongPath(path);
-                yield return new WaitUntil(() => CurrentState.Combat.NextActorReady);
-                yield return new WaitForSeconds(path.Count > 0 ? 2f : 0f);
                 
                 // Contemplate action
                 CurrentState.Combat.EnemyPhase = GameStateEnums.EnemyPhaseState.UnitContemplateAction;

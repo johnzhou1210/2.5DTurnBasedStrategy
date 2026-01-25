@@ -82,8 +82,8 @@ public class CombatActionMenuController : MonoBehaviour {
             break;
             case (int)ActionType.Wait:
                 SetVisible(false);
-                
                 currState.Combat.ActorIDsRemaining.Remove(currState.Combat.SelectedEntityID);
+                currState.Combat.PlayersCycleDeque.Remove(currState.Combat.SelectedEntityID);
                 GameStateDelegates.InvokeOnPlayerPhaseStateChanged(currState.Combat.ActorIDsRemaining.Count == 0 ? GameStateEnums.PlayerPhaseState.None : GameStateEnums.PlayerPhaseState.SelectUnitToControl);
                 if (currState.Combat.ActorIDsRemaining.Count == 0) {
                     GameStateDelegates.InvokeOnAdvanceTurnPhase();

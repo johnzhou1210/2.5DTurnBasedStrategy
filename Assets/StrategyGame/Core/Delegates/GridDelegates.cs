@@ -21,6 +21,7 @@ namespace StrategyGame.Core.Delegates {
         public static event Action OnGridRedraw;
         public static event Action<bool> OnSetDangerZoneVisibility;
         public static event Action OnManualMarkTilesWithAttackableEntities;
+        
 
         public static void InvokeOnEntitySpawned(GridEntity entity, Vector2Int position) {
             OnEntitySpawned?.Invoke(entity, position);

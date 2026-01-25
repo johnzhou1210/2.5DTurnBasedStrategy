@@ -70,6 +70,7 @@ namespace StrategyGame.Core.Input
         {
             InputDelegates.OnSetMouseRaycastEnabled += SetMouseRaycastEnabled;
             InputDelegates.OnReinstateGridCursorPosition += ReinstateGridCursorPosition;
+            
             InputDelegates.GetUIManager = () => this;
             InputDelegates.GetGridCursorPosition = () => _gridCursorPosition;
             InputDelegates.GetDangerZoneVisible = () => _isDangerZoneVisible;
@@ -138,6 +139,7 @@ namespace StrategyGame.Core.Input
                     HandleActionMenuInput(moveInput);
                     break;
                 case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
+                    HandleGridNavigationInput(moveInput);
                     break;
                 case GameStateEnums.PlayerPhaseState.UnitAttackCutscene:
                     break;
@@ -236,16 +238,58 @@ namespace StrategyGame.Core.Input
             // GameStateDelegates.InvokeOnUnitMoveSelectionChanged(GameStateManager.UnitMoveSelectionMode.Automatic);
         }
 
-        public void OnGridCursorMove(Vector2Int newPosition)
+        public void OnGridCursorMove(Vector2Int originalPosition, Vector2Int moveVector)
         {
+            GameStateData currentGameState = GameStateDelegates.GetCurrentGameState();
             Vector2Int gridDimensions = GridDelegates.GetGridDimensions();
-            Vector2Int oldGridCursorPosition = _gridCursorPosition;
-            _gridCursorPosition = new Vector2Int(Math.Clamp(newPosition.x, 0, gridDimensions.x - 1),
-                Math.Clamp(newPosition.y, 0, gridDimensions.y - 1));
+            Vector2Int newPosition = originalPosition + moveVector;
+            Vector2Int? bestTilePosition = null;
+
+            if (moveVector == Vector2Int.zero) {
+                _gridCursorPosition = originalPosition;
+                GridDelegates.SetInspectedTile(_gridCursorPosition);
+                return;
+            }
+
+            if (currentGameState.Combat.PlayerPhase == GameStateEnums.PlayerPhaseState.UnitSelectTarget) {
+                // Choose best newPosition
+                float lowestPenalty = float.MaxValue;
+                GridEntity actorEntity = EntityDelegates.GetGridEntityByID(currentGameState.Combat.SelectedEntityID);
+                HashSet<Tile> targetSelectionTiles = actorEntity.GetAttackableTilesAtPosition(actorEntity.GridPosition);
+                foreach (Tile tile in targetSelectionTiles) {
+                    if (tile.Position == originalPosition) continue;
+                    Vector2 toTile = tile.Position - originalPosition;
+                    float dot = Vector2.Dot(toTile.normalized, moveVector);
+                    if (dot <= .2f) continue; // Ignore sideways/backwards tiles
+                    float anglePenalty = 1f - dot;
+                    float distance = toTile.sqrMagnitude;
+                    float currPenalty = distance + anglePenalty * 5f;
+                    if (moveVector.x != 0) // moving left/right
+                    {
+                        if (tile.Position.y == originalPosition.y)
+                            currPenalty *= 0.7f; // prefer same row
+                    }
+                    if (moveVector.y != 0) // moving up/down
+                    {
+                        if (tile.Position.x == originalPosition.x)
+                            currPenalty *= 0.7f; // prefer same column
+                    }
+                    if (currPenalty < lowestPenalty) {
+                        lowestPenalty = currPenalty;
+                        bestTilePosition = tile.Position;
+                    }
+                }
+                if (bestTilePosition.HasValue) _gridCursorPosition = bestTilePosition.Value;
+            }
+            else {
+                _gridCursorPosition = new Vector2Int(Math.Clamp(newPosition.x, 0, gridDimensions.x - 1), Math.Clamp(newPosition.y, 0, gridDimensions.y - 1));
+            }
+            
             bool success = GridDelegates.SetInspectedTile(_gridCursorPosition);
             if (!success)
             {
-                _gridCursorPosition = oldGridCursorPosition;
+                Debug.LogWarning("InputManager.OnGridCursorMove: Success is false!");
+                _gridCursorPosition = originalPosition;
             }
         }
 
@@ -269,12 +313,9 @@ namespace StrategyGame.Core.Input
                 _pathSelectionMoveActionHeldDuration += Time.deltaTime;
                 if (_pathSelectionMoveActionHeldDuration > pathSelectionMoveActionCooldownAccelerationThreshold)
                 {
-                    float extraHeldTime = _pathSelectionMoveActionHeldDuration -
-                                          pathSelectionMoveActionCooldownAccelerationThreshold;
-                    float acceleratedCooldown = _currentPathSelectionMoveActionCooldown -
-                                                extraHeldTime * pathSelectionMoveActionCooldownAccelerationRate;
-                    _currentPathSelectionMoveActionCooldown =
-                        Mathf.Max(pathSelectionMoveActionMinimumCooldown, acceleratedCooldown);
+                    float extraHeldTime = _pathSelectionMoveActionHeldDuration - pathSelectionMoveActionCooldownAccelerationThreshold;
+                    float acceleratedCooldown = _currentPathSelectionMoveActionCooldown - extraHeldTime * pathSelectionMoveActionCooldownAccelerationRate;
+                    _currentPathSelectionMoveActionCooldown = Mathf.Max(pathSelectionMoveActionMinimumCooldown, acceleratedCooldown);
                 }
 
                 if (_pathSelectionMoveActionTimer > 0f) return;
@@ -284,14 +325,12 @@ namespace StrategyGame.Core.Input
                 {
                     moveVector.y = 0;
                 }
-
-                OnGridCursorMove(_gridCursorPosition + moveVector);
+                OnGridCursorMove(_gridCursorPosition, moveVector);
             }
             else
             {
                 _pathSelectionMoveActionHeldDuration = 0f;
-                _currentPathSelectionMoveActionCooldown = Mathf.Lerp(_currentPathSelectionMoveActionCooldown,
-                    pathSelectionMoveActionCooldown, Time.deltaTime * 5f);
+                _currentPathSelectionMoveActionCooldown = Mathf.Lerp(_currentPathSelectionMoveActionCooldown, pathSelectionMoveActionCooldown, Time.deltaTime * 5f);
             }
         }
 
@@ -372,7 +411,6 @@ namespace StrategyGame.Core.Input
                         Debug.LogWarning("InputManager.HandleSelectionInput: Current selected entity is null!");
                         return;
                     }
-
                     Debug.Log("InputManager.HandleEntityTileSelection: STOP FORMING PATH");
                     _isDiagonalMoveEnabled = true;
                     /* To check if destination is valid: the following must be true:
@@ -386,17 +424,26 @@ namespace StrategyGame.Core.Input
                     manualPathSet.IntersectWith(walkableTiles);
                     manualPathSet.Add(GridDelegates.GetTileFromPosition(currentSelectedEntity.GridPosition));
                     Debug.Log($"InputManager.HandleSelectionInput: Walkable tiles: {string.Join(", ", walkableTiles)}");
-                    Debug.Log(
-                        $"InputManager.HandleSelectionInput: Manual path tiles: {string.Join(", ", manualPathList)} | Selected entity movement range: {currentSelectedEntity.MovementRange} | Manual path set: {string.Join(", ", manualPathSet)}");
-                    bool isDestinationValid = manualPathList.Count - 1 <= currentSelectedEntity.MovementRange &&
-                        manualPathList.ToHashSet().IsSubsetOf(manualPathSet) &&
-                        manualPathList[^1].Occupant == null || manualPathList[^1].Occupant == currentSelectedEntity;
-                    Debug.Log($"Condition1: {manualPathList.Count - 1 <= currentSelectedEntity.MovementRange}, Condition2: {manualPathList.ToHashSet().IsSubsetOf(manualPathSet)}, Condition3: {manualPathList[^1].Occupant == null || manualPathList[^1].Occupant == currentSelectedEntity}");
+                    Debug.Log($"InputManager.HandleSelectionInput: Manual path tiles: {string.Join(", ", manualPathList)} | Selected entity movement range: {currentSelectedEntity.MovementRange} | Manual path set: {string.Join(", ", manualPathSet)}");
+                    bool isDestinationValid = manualPathList.Count - 1 <= currentSelectedEntity.MovementRange;
+                    // Debug.Log($"Condition1: {manualPathList.Count - 1 <= currentSelectedEntity.MovementRange}");
                     if (isDestinationValid)
                     {
-                        // Move unit to destination
-                        currentSelectedEntity.MoveAlongPath(manualPathList);
-                        GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitMovingToDestination);
+                        // Check if the tile at the destination has an occupant.
+                        // If enemy occupant, directly go to choose target phase state, else, go to moving to destination state.
+                        Tile destinationTile = manualPathList[^1];
+                        bool conditionsNeededToMoveToDestination = manualPathList.ToHashSet().IsSubsetOf(manualPathSet) && (destinationTile.Occupant == null || destinationTile.Occupant == currentSelectedEntity);
+                        HashSet<GridEntity> entitiesWithinAttackRangeAtCurrentPosition = currentSelectedEntity.GetAttackableEntitiesAtPosition(currentSelectedEntity.GridPosition);
+                        bool conditionsNeededToDirectlyAttackTarget = destinationTile.Occupant is { Faction: Faction.Enemy } && entitiesWithinAttackRangeAtCurrentPosition.Any(e => e.ID == destinationTile.Occupant.ID);                      
+                        if (conditionsNeededToDirectlyAttackTarget) { // Assumes enemy
+                            // Give player ability to directly attack the target
+                            Debug.Log($"ConditionsNeededToAttackTarget: Condition1: {destinationTile.Occupant is { Faction: Faction.Enemy }}, Condition2: {entitiesWithinAttackRangeAtCurrentPosition.Where(e => e.Faction == Faction.Enemy).Any(e => e.ID == destinationTile.Occupant.ID)}");
+                            GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitSelectTarget);
+                        } else if (conditionsNeededToMoveToDestination) {
+                            // Move unit to destination
+                            currentSelectedEntity.MoveAlongPath(manualPathList);
+                            GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitMovingToDestination);
+                        }
                     }
                     else
                     {
@@ -411,7 +458,10 @@ namespace StrategyGame.Core.Input
                     // For now, assume attack
                     GridEntity actingEntity = EntityDelegates.GetGridEntityByID(state.Combat.SelectedEntityID);
                     GridEntity targetEntity = GridDelegates.GetTileFromPosition(state.Combat.InspectedTilePosition).Occupant;
-                    if (targetEntity == null) throw new Exception("InputManager.HandleEntityTileSelection: targetEntity is null!");
+                    if (targetEntity == null || targetEntity.Faction == actingEntity.Faction) { // assumes attacking opposite faction
+                        Debug.LogWarning("InputManager.HandleEntityTileSelection: targetEntity is null!");
+                        return;
+                    }
                     
                     Debug.Log($"Attacker weapon: {actingEntity.Weapon}");
                     Debug.Log($"Defender weapon: {targetEntity.Weapon}");
@@ -455,8 +505,8 @@ namespace StrategyGame.Core.Input
             InputDelegates.InvokeOnConfirmPressed();
         }
 
-        private void ReinstateGridCursorPosition() {
-            OnGridCursorMove(_gridCursorPosition);
+        private void ReinstateGridCursorPosition(Vector2Int? position) {
+            OnGridCursorMove(position ?? _gridCursorPosition, Vector2Int.zero);
         }
 
         private void HandleCombatControls() {
@@ -475,7 +525,7 @@ namespace StrategyGame.Core.Input
             switch (currentState.Combat.PlayerPhase) {
                 case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
                     var playerUnitsDeque = currentState.Combat.PlayersCycleDeque;
-                    if (playerUnitsDeque.Count <= 1) return;
+                    if (playerUnitsDeque.Count == 0) return;
                     if (_cycleRightAction.WasPerformedThisFrame()) {
                         Debug.Log("InputManager.HandleCycleInput: Cycling right");
                         int first = playerUnitsDeque.First();  // A
@@ -483,7 +533,8 @@ namespace StrategyGame.Core.Input
                         playerUnitsDeque.AddLast(first);       // [B C D A]
                         int newID = playerUnitsDeque.First();  // B
                         currentState.Combat.InspectedEntityID = newID;
-                        GridDelegates.SetInspectedTile(EntityDelegates.GetGridEntityByID(newID).GridPosition);
+                        _gridCursorPosition = EntityDelegates.GetGridEntityByID(newID).GridPosition;
+                        GridDelegates.SetInspectedTile(_gridCursorPosition);
                     }
                     else if (_cycleLeftAction.WasPerformedThisFrame()) {
                         Debug.Log("InputManager.HandleCycleInput: Cycling left");
@@ -492,12 +543,13 @@ namespace StrategyGame.Core.Input
                         playerUnitsDeque.AddFirst(last);       // [D A B C]
                         int newID = playerUnitsDeque.First();  // D
                         currentState.Combat.InspectedEntityID = newID;
-                        GridDelegates.SetInspectedTile(EntityDelegates.GetGridEntityByID(newID).GridPosition);
+                        _gridCursorPosition = EntityDelegates.GetGridEntityByID(newID).GridPosition;
+                        GridDelegates.SetInspectedTile(_gridCursorPosition);
                     }
                     break;
                 case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
                     var enemyTargetsDeque = currentState.Combat.EnemiesCycleDeque;
-                    if (enemyTargetsDeque.Count <= 1) return;
+                    if (enemyTargetsDeque.Count == 0) return;
                     if (_cycleRightAction.WasPerformedThisFrame()) {
                         Debug.Log("InputManager.HandleCycleInput: Cycling right");
                         int first = enemyTargetsDeque.First();  // A
@@ -505,7 +557,8 @@ namespace StrategyGame.Core.Input
                         enemyTargetsDeque.AddLast(first);       // [B C D A]
                         int newID = enemyTargetsDeque.First();  // B
                         currentState.Combat.InspectedEntityID = newID;
-                        GridDelegates.SetInspectedTile(EntityDelegates.GetGridEntityByID(newID).GridPosition);
+                        _gridCursorPosition = EntityDelegates.GetGridEntityByID(newID).GridPosition;
+                        GridDelegates.SetInspectedTile(_gridCursorPosition);
                     }
                     else if (_cycleLeftAction.WasPerformedThisFrame()) {
                         Debug.Log("InputManager.HandleCycleInput: Cycling left");
@@ -514,7 +567,8 @@ namespace StrategyGame.Core.Input
                         enemyTargetsDeque.AddFirst(last);       // [D A B C]
                         int newID = enemyTargetsDeque.First();  // D
                         currentState.Combat.InspectedEntityID = newID;
-                        GridDelegates.SetInspectedTile(EntityDelegates.GetGridEntityByID(newID).GridPosition);
+                        _gridCursorPosition = EntityDelegates.GetGridEntityByID(newID).GridPosition;
+                        GridDelegates.SetInspectedTile(_gridCursorPosition);
                     }
                     GridDelegates.InvokeOnSetTileVisualSelectionAnim(currentState.Combat.InspectedTilePosition, true);
                     break;
@@ -527,6 +581,10 @@ namespace StrategyGame.Core.Input
             if (!_dangerZoneAction.WasPerformedThisFrame()) return;
             _isDangerZoneVisible = !_isDangerZoneVisible;
             GridDelegates.InvokeOnSetDangerZoneVisibility(_isDangerZoneVisible);
+        }
+
+        private void ManualSetGridCursorPosition(Vector2Int coordinate) {
+            _gridCursorPosition = coordinate;
         }
     }
 }
