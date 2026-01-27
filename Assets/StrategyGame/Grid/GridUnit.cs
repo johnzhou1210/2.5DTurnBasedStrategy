@@ -29,7 +29,7 @@ namespace StrategyGame.Grid {
         }
 
         public override HashSet<Tile> GetTilesWithinAttackRange() {
-            Debug.Log("GridUnit.GetTilesWithinAttackRange: Calling override version");
+            // Debug.Log("GridUnit.GetTilesWithinAttackRange: Calling override version");
             HashSet<Tile> reachableTiles = GetWalkableTiles(true);
             HashSet<Tile> dangerTiles = new HashSet<Tile>();
             foreach (Tile tile in reachableTiles) {

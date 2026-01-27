@@ -173,7 +173,7 @@ namespace StrategyGame.Grid {
 
         // Assumes the player has not moved yet.
         public virtual HashSet<Tile> GetTilesWithinAttackRange() {
-            Debug.Log("GridEntity.GetTilesWithinAttackRange: Calling base version");
+            // Debug.Log("GridEntity.GetTilesWithinAttackRange: Calling base version");
             HashSet<Tile> reachableTiles = GetWalkableTiles(true);
             HashSet<Tile> dangerTiles = new HashSet<Tile>();
             foreach (Tile tile in reachableTiles) {
