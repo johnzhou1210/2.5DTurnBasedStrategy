@@ -22,7 +22,8 @@ namespace StrategyGame.UI.HUD {
         [SerializeField] private TextMeshProUGUI agilityText;
         [SerializeField] private TextMeshProUGUI evasionText;
         [SerializeField] private Image entityTitleBackground;
-        [SerializeField] private Image moveSpeedBackground;
+        [SerializeField] private Image entityTitleTopGlass;
+        [SerializeField] private Image entityTitleTopGlassMove;
         
         // ==============================
         // MONOBEHAVIOUR LIFECYCLE
@@ -39,8 +40,9 @@ namespace StrategyGame.UI.HUD {
         // CORE METHODS
         // ==============================
         private void UpdateHUD(GridEntity entity) {
-            entityTitleBackground.color = entity.Faction == Faction.Player ? Color.blue : Color.red;
-            moveSpeedBackground.color = entity.Faction == Faction.Player ? new(0,0,140/255f): new Color(150/255f,0,0);
+            entityTitleBackground.color = entity.Faction == Faction.Player ? new Color(0,0,1,180/255f) : new Color(1,0,0,180/255f);
+            entityTitleTopGlass.color = entity.Faction == Faction.Player ? new Color(0,0,1,240/255f) : new Color(1,0,0,240/255f);
+            entityTitleTopGlassMove.color = entity.Faction == Faction.Player ? new Color(0,0,.5f,240/255f) : new Color(.5f,0,0,240/255f);
             entityNameText.SetText(entity.DisplayName);
             hpText.SetText($"<size=80>{entity.Health}</size>/{entity.MaxHealth}");
             moveText.SetText(entity.MovementRange.ToString());
