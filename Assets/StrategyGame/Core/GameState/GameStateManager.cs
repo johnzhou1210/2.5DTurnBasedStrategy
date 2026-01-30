@@ -9,6 +9,7 @@ using StrategyGame.Core.Enums;
 using StrategyGame.Factions;
 using StrategyGame.Grid;
 using StrategyGame.Grid.GridData;
+using StrategyGame.UI;
 using UnityEngine;
 using Random = UnityEngine.Random;
 

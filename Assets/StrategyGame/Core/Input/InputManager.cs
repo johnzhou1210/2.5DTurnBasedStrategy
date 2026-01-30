@@ -9,6 +9,7 @@ using StrategyGame.Core.Enums;
 using StrategyGame.Core.GameState;
 using StrategyGame.Factions;
 using StrategyGame.Grid;
+using StrategyGame.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;

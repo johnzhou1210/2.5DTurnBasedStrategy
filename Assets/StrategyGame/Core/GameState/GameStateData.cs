@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using StrategyGame.Combat;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
 using StrategyGame.Grid;
@@ -31,19 +33,11 @@ namespace StrategyGame.Core.GameState {
             set {
                 previousSelectedEntityID = inspectedEntityID;
                 inspectedEntityID = value;
-                if (inspectedEntityID == -1 && previousSelectedEntityID != -1) {
-                    UIAnimationDelegates.InvokeOnPlayAnimation(AnimatorCategory.EntityHUD, "TweenOut");
+                if (PlayerPhase == GameStateEnums.PlayerPhaseState.UnitSelectTarget) {
+                    HandleCombatOutcomeInspectionUI();
                     return;
                 }
-                if (previousSelectedEntityID == -1 && inspectedEntityID == -1) return;
-                if (previousSelectedEntityID != -1 && inspectedEntityID != -1) return;
-                if (inspectedEntityID != -1) {
-                    UIAnimationDelegates.InvokeOnPlayAnimation(AnimatorCategory.EntityHUD, "TweenIn");
-                }
-                else if (inspectedEntityID == -1) {
-                    UIAnimationDelegates.InvokeOnPlayAnimation(AnimatorCategory.EntityHUD, "TweenOut");
-                }
-                
+                HandleEntityInspectionUI();
             }
         }
         public int SelectedEntityID = -1;
@@ -53,8 +47,63 @@ namespace StrategyGame.Core.GameState {
             get => previousSelectedEntityID;
             set => previousSelectedEntityID = value;
         }
-        
+
         public LinkedList<int> PlayersCycleDeque = new LinkedList<int>();
-        public LinkedList<int> EnemiesCycleDeque = new  LinkedList<int>();
+        public LinkedList<int> EnemiesCycleDeque = new LinkedList<int>();
+
+        private void HandleEntityInspectionUI() {
+
+            if (InspectedEntityID == -1) {
+                UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.EntityHUD);
+                UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.BattleOutcomePreview);
+                return;
+            }
+            UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.BattleOutcomePreview);
+            UIAnimationDelegates.InvokeOnShowIfHidden(AnimatorCategory.EntityHUD);
+        }
+
+        private void HandleCombatOutcomeInspectionUI() {
+            if (InspectedEntityID == -1) {
+                UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.EntityHUD);
+                UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.BattleOutcomePreview);
+                return;
+            }
+            GridEntity inspectedEntity = EntityDelegates.GetGridEntityByID(InspectedEntityID);
+            GridEntity selectedEntity = EntityDelegates.GetGridEntityByID(SelectedEntityID);
+            if (selectedEntity.IsFriendlyWith(inspectedEntity)) {
+                UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.BattleOutcomePreview);
+                UIAnimationDelegates.InvokeOnShowIfHidden(AnimatorCategory.EntityHUD);
+                return;
+            }
+            UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.EntityHUD, true);
+            UIAnimationDelegates.InvokeOnShowIfHidden(AnimatorCategory.BattleOutcomePreview);
+
+            // Calculate combat outcome
+            HashSet<GridEntity> entitiesWithinDefenderRange = inspectedEntity.GetAttackableEntitiesAtPosition(inspectedEntity.GridPosition);
+            bool attackerInDefenderRange = entitiesWithinDefenderRange.Any(e => e.ID == selectedEntity.ID);
+            CombatPreview combatPreview = CombatResolver.SimulateAttackPreview(new CombatStats {
+                    HP = selectedEntity.Health,
+                    Attack = selectedEntity.Attack,
+                    Defense = selectedEntity.Defense,
+                    Agility = selectedEntity.Agility,
+                    Accuracy = selectedEntity.Accuracy,
+                    Resistance = selectedEntity.Resistance,
+                    Evasion = selectedEntity.Evasion,
+                    Weapon = selectedEntity.Weapon,
+                    EntityID = selectedEntity.ID
+                }, new CombatStats {
+                    HP = inspectedEntity.Health,
+                    Attack = inspectedEntity.Attack,
+                    Defense = inspectedEntity.Defense,
+                    Agility = inspectedEntity.Agility,
+                    Accuracy = inspectedEntity.Accuracy,
+                    Resistance = inspectedEntity.Resistance,
+                    Evasion = inspectedEntity.Evasion,
+                    Weapon = inspectedEntity.Weapon,
+                    EntityID = inspectedEntity.ID
+                },
+                Resources.Load<AbilityData>("ScriptableObjects/Abilities/Attack"), attackerInDefenderRange);
+            Debug.Log(combatPreview);
+        }
     }
 }
