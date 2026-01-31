@@ -83,6 +83,7 @@ namespace StrategyGame.Core.GameState {
             bool attackerInDefenderRange = entitiesWithinDefenderRange.Any(e => e.ID == selectedEntity.ID);
             CombatPreview combatPreview = CombatResolver.SimulateAttackPreview(new CombatStats {
                     HP = selectedEntity.Health,
+                    MaxHP = selectedEntity.MaxHealth,
                     Attack = selectedEntity.Attack,
                     Defense = selectedEntity.Defense,
                     Agility = selectedEntity.Agility,
@@ -93,6 +94,7 @@ namespace StrategyGame.Core.GameState {
                     EntityID = selectedEntity.ID
                 }, new CombatStats {
                     HP = inspectedEntity.Health,
+                    MaxHP = inspectedEntity.MaxHealth,
                     Attack = inspectedEntity.Attack,
                     Defense = inspectedEntity.Defense,
                     Agility = inspectedEntity.Agility,
@@ -104,6 +106,7 @@ namespace StrategyGame.Core.GameState {
                 },
                 Resources.Load<AbilityData>("ScriptableObjects/Abilities/Attack"), attackerInDefenderRange);
             Debug.Log(combatPreview);
+            UIDelegates.InvokeOnBattleOutcomePreviewUpdate(combatPreview);
         }
     }
 }

@@ -472,6 +472,7 @@ namespace StrategyGame.Core.Input
                     
                     CombatOutcome attackOutcome = CombatResolver.SimulateAttack(new CombatStats {
                         HP = actingEntity.Health,
+                        MaxHP =  actingEntity.MaxHealth,
                         Attack = actingEntity.Attack,
                         Defense = actingEntity.Defense,
                         Agility = actingEntity.Agility,
@@ -482,6 +483,7 @@ namespace StrategyGame.Core.Input
                         EntityID = actingEntity.ID
                     }, new CombatStats {
                         HP = targetEntity.Health,
+                        MaxHP =   targetEntity.MaxHealth,
                         Attack = targetEntity.Attack,
                         Defense = targetEntity.Defense,
                         Agility = targetEntity.Agility,

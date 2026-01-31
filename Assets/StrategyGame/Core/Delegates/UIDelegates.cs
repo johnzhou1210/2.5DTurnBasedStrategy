@@ -1,4 +1,5 @@
 using System;
+using StrategyGame.Combat;
 using StrategyGame.Grid;
 using StrategyGame.UI;
 
@@ -9,6 +10,7 @@ namespace StrategyGame.Core.Delegates {
         // ==============================
         public static event Action<UICategory, bool> OnSetUIActive;
         public static event Action<GridEntity> OnEntityHUDUpdate;
+        public static event Action<CombatPreview> OnBattleOutcomePreviewUpdate;
         public static event Action<Tile> OnTerrainUIUpdate;
         public static event Action<bool> OnSetCombatActionMenuVisibility;
         public static event Action OnUpdateTurnIndicatorRenderer;
@@ -34,6 +36,10 @@ namespace StrategyGame.Core.Delegates {
 
         public static void InvokeOnPlayPhaseBannerAnimationSequence() {
             OnPlayPhaseBannerAnimationSequence?.Invoke();
+        }
+
+        public static void InvokeOnBattleOutcomePreviewUpdate(CombatPreview preview) {
+            OnBattleOutcomePreviewUpdate?.Invoke(preview);
         }
         
 

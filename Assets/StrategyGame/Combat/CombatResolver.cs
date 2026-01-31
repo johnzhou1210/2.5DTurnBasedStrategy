@@ -2,11 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using StrategyGame.Combat.Weapons;
+using StrategyGame.Core.Delegates;
+using StrategyGame.Grid.GridData;
 using StrategyGame.Utils;
 using UnityEngine;
 
 namespace StrategyGame.Combat {
     public struct CombatPreview {
+        public int AttackerID;
+        public int AttackerCurrentHP;
+        public int AttackerMaxHP;
+        public string AttackerDisplayName;
+        public WeaponData AttackerWeapon;
         public float AttackerHitChance;
         public float AttackerCritChance;
         public bool WillKillDefenderIfAllHitsLand;
@@ -15,6 +22,11 @@ namespace StrategyGame.Combat {
         public int AttackerNonCritDamagePerHit;
         public float AttackerChanceToKillDefender;
 
+        public int DefenderID;
+        public int DefenderCurrentHP;
+        public int DefenderMaxHP;
+        public string DefenderDisplayName;
+        public WeaponData DefenderWeapon;
         public float DefenderHitChance;
         public float DefenderCritChance;
         public bool WillKillAttackerIfCounterLands;
@@ -26,7 +38,7 @@ namespace StrategyGame.Combat {
         public override string ToString() {
             return
                 $@"===== COMBAT PREVIEW =====
-                ATTACKER →
+                ATTACKER: {AttackerDisplayName} ({AttackerWeapon} ({AttackerWeapon.WeaponType})) →
                   Hits: {AttackerNumAttacks}
                   Damage/Hit: {AttackerNonCritDamagePerHit}
                   Hit%: {AttackerHitChance:P0}
@@ -35,7 +47,7 @@ namespace StrategyGame.Combat {
                   Kill if all crit: {WillKillDefenderIfAllHitsCrit}
                   KO Chance: {AttackerChanceToKillDefender:P1}
 
-                DEFENDER (Counter) →
+                DEFENDER: {DefenderDisplayName} ({DefenderWeapon} ({DefenderWeapon.WeaponType})) (Counter) →
                   Counters: {DefenderNumCounters}
                   Damage/Counter: {DefenderNonCritDamagePerHit}
                   Hit%: {DefenderHitChance:P0}
@@ -66,6 +78,7 @@ namespace StrategyGame.Combat {
 
     public class CombatStats {
         public int HP;
+        public int MaxHP;
         public int Attack;
         public int Defense;
         public int Agility;
@@ -204,8 +217,12 @@ namespace StrategyGame.Combat {
                 defenderCounters = 0;
                 chanceToKillAttacker = 0f;
             }
-            
             return new CombatPreview {
+                AttackerID = attacker.EntityID,
+                AttackerCurrentHP = attacker.HP,
+                AttackerMaxHP = attacker.MaxHP,
+                AttackerDisplayName = EntityDelegates.GetGridEntityByID(attacker.EntityID).DisplayName,
+                AttackerWeapon = attacker.Weapon,
                 AttackerHitChance = attackerHitChance,
                 AttackerCritChance = attackerCritChance,
                 WillKillDefenderIfAllHitsLand = attackerNonCritDamage * attackerHits >= defender.HP,
@@ -214,6 +231,11 @@ namespace StrategyGame.Combat {
                 AttackerNonCritDamagePerHit = attackerNonCritDamage,
                 AttackerChanceToKillDefender = chanceToKillDefender,
 
+                DefenderID = defender.EntityID,
+                DefenderCurrentHP = defender.HP,
+                DefenderMaxHP = defender.MaxHP,
+                DefenderDisplayName = EntityDelegates.GetGridEntityByID(defender.EntityID).DisplayName,
+                DefenderWeapon = defender.Weapon,
                 DefenderHitChance = defenderHitChance,
                 DefenderCritChance = defenderCritChance,
                 WillKillAttackerIfCounterLands = defenderNonCritDamage * defenderCounters >= attacker.HP,
@@ -255,18 +277,13 @@ namespace StrategyGame.Combat {
 
         private static float KOChanceRecursive(int hitsLeft, int remainingHP, int normalDamage, int critDamage, float hitChance, float critChance, float probability) {
             if (hitsLeft == 0) return remainingHP <= 0 ? probability : 0f;
-
             float chance = 0f;
-
             // Normal hit
             chance += KOChanceRecursive(hitsLeft - 1, remainingHP - normalDamage, normalDamage, critDamage, hitChance, critChance, probability * hitChance * (1 - critChance));
-
             // Crit hit
             chance += KOChanceRecursive(hitsLeft - 1, remainingHP - critDamage, normalDamage, critDamage, hitChance, critChance, probability * hitChance * critChance);
-
             // Miss
             chance += KOChanceRecursive(hitsLeft - 1, remainingHP, normalDamage, critDamage, hitChance, critChance, probability * (1 - hitChance));
-
             return chance;
         }
 
@@ -285,21 +302,23 @@ namespace StrategyGame.Combat {
         }
 
         private static void GetAttackAndCounterCount(float speedRatio, out int attackerHits, out int defenderCounters) {
-            if (speedRatio <= 0.5f) {
-                attackerHits = 1;
-                defenderCounters = 2;
-            }
-            else if (speedRatio < 1.5f) {
-                attackerHits = 1;
-                defenderCounters = 1;
-            }
-            else if (speedRatio <= 2f) {
-                attackerHits = 2;
-                defenderCounters = 1;
-            }
-            else {
-                attackerHits = 2;
-                defenderCounters = 0;
+            switch (speedRatio) {
+                case <= 0.5f:
+                    attackerHits = 1;
+                    defenderCounters = 2;
+                    break;
+                case < 1.5f:
+                    attackerHits = 1;
+                    defenderCounters = 1;
+                    break;
+                case <= 2f:
+                    attackerHits = 2;
+                    defenderCounters = 1;
+                    break;
+                default:
+                    attackerHits = 2;
+                    defenderCounters = 0;
+                    break;
             }
         }
 
