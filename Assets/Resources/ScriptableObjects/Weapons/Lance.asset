@@ -10,11 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe0838c1f8654979b9f53062409c4bc1, type: 3}
-  m_Name: Killer Axe
+  m_Name: Lance
   m_EditorClassIdentifier: Assembly-CSharp::StrategyGame.Combat.Weapons.WeaponData
-  weaponType: 2
-  baseAttack: 20
+  weaponType: 1
+  baseAttack: 15
   maxAttackRange: 1
   minAttackRange: 1
   damageType: 0
-  statModifiers: []
+  statModifiers:
+  - ModifierStat: 3
+    Flat: 0
+    Percent: 0.45
