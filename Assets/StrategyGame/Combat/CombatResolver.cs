@@ -20,6 +20,7 @@ namespace StrategyGame.Combat {
         public bool WillKillDefenderIfAllHitsCrit;
         public int AttackerNumAttacks;
         public int AttackerNonCritDamagePerHit;
+        public int AttackerCritDamagePerHit;
         public float AttackerChanceToKillDefender;
 
         public int DefenderID;
@@ -33,6 +34,7 @@ namespace StrategyGame.Combat {
         public bool WillKillAttackerIfCounterCrits;
         public int DefenderNumCounters;
         public int DefenderNonCritDamagePerHit;
+        public int DefenderCritDamagePerHit;
         public float DefenderChanceToKillAttacker;
 
         public override string ToString() {
@@ -60,19 +62,25 @@ namespace StrategyGame.Combat {
     }
 
     public class CombatOutcome {
-        public bool Hit = false;
-        public bool Crit = false;
+        public bool[] AttackHits = new[] { false, false };
+        public bool[] AttackHitCrits = new[] { false, false };
+        public bool[] DefendCounterHits = new[] { false, false };
+        public bool[] DefendCounterCrits = new[] { false, false };
         public int DamageDealt = 0;
         public bool DefenderDied = false;
 
-        public bool CounterOccurs = false;
-        public bool CounterHit = false;
-        public bool CounterCrit = false;
+        public int NumCounters;
+        public int NumAttacks;
+
         public int CounterDamageDealt = 0;
         public bool AttackerDied = false;
 
+        public int AttackerID;
+        public int DefenderID;
+
         public override string ToString() {
-            return $"Hit: {Hit}, Crit: {Crit}, DamageDealt: {DamageDealt}, DefenderDied: {DefenderDied}, CounterOccurs: {CounterOccurs}";
+            return $"AttackHits: {string.Join(",", AttackHits)}, AttackHitCrits: {string.Join(",", AttackHitCrits)}, DefendCounterHits: {string.Join(",", DefendCounterHits)}, DefendCounterCrits: {string.Join(",", DefendCounterCrits)}\n" +
+                $"  DamageDealt: {DamageDealt}, DefenderDied: {DefenderDied}, NumAttacks: {NumAttacks}, NumCounters: {NumCounters}, CounterDamageDealt: {CounterDamageDealt}, AttackerDied: {AttackerDied}";
         }
     }
 
@@ -116,61 +124,62 @@ namespace StrategyGame.Combat {
         private static float _baseHitChance = .85f;
         private static float _baseCritChance = .05f;
         private static DeterministicRNG _rng = new DeterministicRNG(0);
-        public static CombatOutcome SimulateAttack(CombatStats attacker, CombatStats defender, AbilityData ability, bool attackerInDefenderRange) {
-            CombatOutcome result = new CombatOutcome();
+        public static CombatOutcome ResolveCombatFromPreview(CombatPreview preview) {
+            CombatOutcome outcome = new CombatOutcome();
+            outcome.AttackerID = preview.AttackerID;
+            outcome.DefenderID = preview.DefenderID;
+            int defenderHP = preview.DefenderCurrentHP;
+            int attackerHP = preview.AttackerCurrentHP;
+            int attackerActualNumAttacks = 0;
+            int defenderActualNumCounters = 0;
 
-            // Get total flat and percentage boosts from ability and weapon
-            StatModifier attackerAccuracyModifier = GetCombinedModifier(ModifierStat.Accuracy, ability, attacker.Weapon);
-            StatModifier attackerAgilityModifier = GetCombinedModifier(ModifierStat.Agility, ability, attacker.Weapon);
-            StatModifier attackerAttackModifier = GetCombinedModifier(ModifierStat.Attack, ability, attacker.Weapon);
+            /* Attacker does their thing */
+            for (int i = 0; i < preview.AttackerNumAttacks; i++) {
+                if (defenderHP <= 0) break;
+                attackerActualNumAttacks += 1;
+                bool hit = _rng.Chance(preview.AttackerHitChance);
+                if (!hit) continue;
 
-            StatModifier defenderEvasionModifier = GetModifierOfWeapon(defender.Weapon, ModifierStat.Evasion) ?? new StatModifier();
-            StatModifier defenderAgilityModifier = GetModifierOfWeapon(defender.Weapon, ModifierStat.Agility) ?? new StatModifier();
-            StatModifier defenderDefenseModifier = GetModifierOfWeapon(defender.Weapon, ModifierStat.Defense) ?? new StatModifier();
-            StatModifier defenderResistanceModifier = GetModifierOfWeapon(defender.Weapon, ModifierStat.Resistance) ?? new StatModifier();
+                bool crit = _rng.Chance(preview.AttackerCritChance);
+                int damage = crit
+                    ? preview.AttackerCritDamagePerHit
+                    : preview.AttackerNonCritDamagePerHit;
 
-            int attackerAccuracy = (int)((attacker.Accuracy * attackerAccuracyModifier.Percent) + attackerAccuracyModifier.Flat);
-            int attackerAgility = (int)((attacker.Agility * attackerAgilityModifier.Percent) + attackerAgilityModifier.Flat);
-            int attackerAttack = (int)(((attacker.Attack + attacker.Weapon.BaseAttack) * attackerAttackModifier.Percent) + attackerAttackModifier.Flat);
-            Debug.Log($"CombatResolver.SimulateAttack: {ability}, {ability?.OverrideDamageType}, {ability?.DamageTypeOverride}, {attacker}, {attacker?.Weapon}, {attacker?.Weapon?.DamageType}");
-
-            DamageType attackerDamageType = ability && ability.OverrideDamageType ? ability.DamageTypeOverride : attacker.Weapon != null ? attacker.Weapon.DamageType : DamageType.Physical;
-            int defenderEvasion = (int)(defender.Evasion * defenderEvasionModifier.Percent + defenderEvasionModifier.Flat);
-            int defenderAgility = (int)(defender.Agility * defenderAgilityModifier.Percent + defenderAgilityModifier.Flat);
-            int defenderDefense = (int)(defender.Defense * defenderDefenseModifier.Percent + defenderDefenseModifier.Flat);
-            int defenderResistance = (int)(defender.Resistance * defenderResistanceModifier.Percent + defenderResistanceModifier.Flat);
-
-            /* HIT CHECK */
-            float hitChance = _baseHitChance + ((((4f * attackerAccuracy + attackerAgility) / 2f) - ((4 * defenderEvasion + defenderAgility) / 2f)) / 100f);
-            hitChance = Mathf.Clamp01(hitChance);
-            result.Hit = _rng.Chance(hitChance);
-
-            if (result.Hit) {
-                /* CRIT CHECK */
-                float critChance = _baseCritChance + (Mathf.Log(4 * attackerAccuracy + 2 * attackerAgility + 1) - Mathf.Log(4 * defenderEvasion + 2 * defenderAgility + 1)) / 11f;
-                critChance = Mathf.Clamp(critChance, .01f, 1f);
-                result.Crit = _rng.Chance(critChance);
-
-                /* DAMAGE CALCULATION */
-                int defense = attackerDamageType == DamageType.Physical ? defenderDefense : defenderResistance;
-                float critMultiplier = result.Crit ? 1.5f : 1f;
-                float defenseMultiplier = result.Crit ? 0.5f : 1f;
-
-                Debug.Log($"Attacker attack: {attackerAttack}, Defender defense stat: {defense}");
-
-                float damage = attackerAttack * critMultiplier - defense * defenseMultiplier;
-                result.DamageDealt = Mathf.Max(1, Mathf.RoundToInt(damage));
-
-                /* DEFENDER DEATH CHECK */
-                int defenderHPAfter = Math.Max(0, defender.HP - result.DamageDealt);
-                result.DefenderDied = defenderHPAfter == 0;
+                defenderHP -= damage;
+                outcome.AttackHits[i] = true;
+                outcome.AttackHitCrits[i] = crit;
+                outcome.DamageDealt += damage;
             }
 
-            /* COUNTER CHECK */
-            // Check from defender if attacker is within their attack range
-            result.CounterOccurs = attackerInDefenderRange;
-            return result;
+            outcome.DefenderDied = defenderHP <= 0;
+            outcome.NumAttacks = attackerActualNumAttacks;
+
+            /* Defender does their thing */
+            if (!outcome.DefenderDied && preview.DefenderNumCounters > 0) {
+                for (int i = 0; i < preview.DefenderNumCounters; i++) {
+                    if (attackerHP <= 0) break;
+                    defenderActualNumCounters += 1;
+
+                    bool hit = _rng.Chance(preview.DefenderHitChance);
+                    if (!hit) continue;
+
+                    bool crit = _rng.Chance(preview.DefenderCritChance);
+                    int damage = crit
+                        ? preview.DefenderCritDamagePerHit
+                        : preview.DefenderNonCritDamagePerHit;
+
+                    attackerHP -= damage;
+                    outcome.DefendCounterHits[i] = true;
+                    outcome.DefendCounterCrits[i] = crit;
+                    outcome.CounterDamageDealt += damage;
+                }
+            }
+
+            outcome.AttackerDied = attackerHP <= 0;
+            outcome.NumCounters = defenderActualNumCounters;
+            return outcome;
         }
+
 
         public static CombatPreview SimulateAttackPreview(CombatStats attacker, CombatStats defender, AbilityData ability, bool attackerInDefenderRange) {
             // Compute effective stats
@@ -200,7 +209,7 @@ namespace StrategyGame.Combat {
             float speedRatio = (float)atkAgi / Mathf.Max(defAgi, 1);
             GetAttackAndCounterCount(speedRatio, out int attackerHits, out int defenderCounters);
             if (!attackerInDefenderRange) defenderCounters = 0;
-            
+
             // Damage per hit
             int defenderEffectiveDefense = atkDamageType == DamageType.Physical ? defDef : defRes;
             int attackerEffectiveDefense = defDamageType == DamageType.Physical ? atkDef : atkRes;
@@ -211,8 +220,15 @@ namespace StrategyGame.Combat {
 
             // KO chances
             bool defenderAlwaysDiesBeforeCounter = attackerNonCritDamage * attackerHits >= defender.HP;
-            float chanceToKillDefender = CalculateKOChance(attackerHits, defender.HP, attackerNonCritDamage, attackerCritDamage, attackerHitChance, attackerCritChance);
-            float chanceToKillAttacker = CalculateKOChance(defenderCounters, attacker.HP, defenderNonCritDamage, defenderCritDamage, defenderHitChance, defenderCritChance);
+
+            float chanceToKillDefender = 0f;
+            float chanceToKillAttacker = 0f;
+            
+            SimulateCombatBranches(attackerHits, defenderCounters, attacker.HP, defender.HP,
+                attackerNonCritDamage, attackerCritDamage, attackerHitChance, attackerCritChance,
+                defenderNonCritDamage, defenderCritDamage, defenderHitChance, defenderCritChance,
+                1f, ref chanceToKillDefender, ref chanceToKillAttacker);
+            
             if (defenderAlwaysDiesBeforeCounter) {
                 defenderCounters = 0;
                 chanceToKillAttacker = 0f;
@@ -229,6 +245,7 @@ namespace StrategyGame.Combat {
                 WillKillDefenderIfAllHitsCrit = attackerCritDamage * attackerHits >= defender.HP,
                 AttackerNumAttacks = attackerHits,
                 AttackerNonCritDamagePerHit = attackerNonCritDamage,
+                AttackerCritDamagePerHit = attackerCritDamage,
                 AttackerChanceToKillDefender = chanceToKillDefender,
 
                 DefenderID = defender.EntityID,
@@ -242,6 +259,7 @@ namespace StrategyGame.Combat {
                 WillKillAttackerIfCounterCrits = defenderCritDamage * defenderCounters >= attacker.HP,
                 DefenderNumCounters = defenderCounters,
                 DefenderNonCritDamagePerHit = defenderNonCritDamage,
+                DefenderCritDamagePerHit = defenderCritDamage,
                 DefenderChanceToKillAttacker = chanceToKillAttacker
             };
         }
@@ -271,21 +289,96 @@ namespace StrategyGame.Combat {
             return weaponData.StatModifiers.FirstOrDefault(m => m.ModifierStat == stat);
         }
 
-        private static float CalculateKOChance(int numHits, int HP, int normalDamage, int critDamage, float hitChance, float critChance) {
-            return KOChanceRecursive(numHits, HP, normalDamage, critDamage, hitChance, critChance, 1f);
+        private static void SimulateCombatBranches(
+            int atkHitsLeft,
+            int defHitsLeft,
+            int attackerHP,
+            int defenderHP,
+            int atkNormal,
+            int atkCrit,
+            float atkHitChance,
+            float atkCritChance,
+            int defNormal,
+            int defCrit,
+            float defHitChance,
+            float defCritChance,
+            float probability,
+            ref float attackerKills,
+            ref float defenderKills
+        ) {
+            // Stop if someone already dead
+            if (attackerHP <= 0) {
+                defenderKills += probability;
+                return;
+            }
+            if (defenderHP <= 0) {
+                attackerKills += probability;
+                return;
+            }
+
+            // Attacker phase first
+            if (atkHitsLeft > 0) {
+                // Miss
+                SimulateCombatBranches(
+                    atkHitsLeft - 1, defHitsLeft,
+                    attackerHP, defenderHP,
+                    atkNormal, atkCrit, atkHitChance, atkCritChance,
+                    defNormal, defCrit, defHitChance, defCritChance,
+                    probability * (1 - atkHitChance),
+                    ref attackerKills, ref defenderKills);
+
+                // Normal hit
+                SimulateCombatBranches(
+                    atkHitsLeft - 1, defHitsLeft,
+                    attackerHP, defenderHP - atkNormal,
+                    atkNormal, atkCrit, atkHitChance, atkCritChance,
+                    defNormal, defCrit, defHitChance, defCritChance,
+                    probability * atkHitChance * (1 - atkCritChance),
+                    ref attackerKills, ref defenderKills);
+
+                // Crit
+                SimulateCombatBranches(
+                    atkHitsLeft - 1, defHitsLeft,
+                    attackerHP, defenderHP - atkCrit,
+                    atkNormal, atkCrit, atkHitChance, atkCritChance,
+                    defNormal, defCrit, defHitChance, defCritChance,
+                    probability * atkHitChance * atkCritChance,
+                    ref attackerKills, ref defenderKills);
+
+                return;
+            }
+
+            // Defender counter phase
+            if (defHitsLeft > 0) {
+                // Miss
+                SimulateCombatBranches(
+                    atkHitsLeft, defHitsLeft - 1,
+                    attackerHP, defenderHP,
+                    atkNormal, atkCrit, atkHitChance, atkCritChance,
+                    defNormal, defCrit, defHitChance, defCritChance,
+                    probability * (1 - defHitChance),
+                    ref attackerKills, ref defenderKills);
+
+                // Normal
+                SimulateCombatBranches(
+                    atkHitsLeft, defHitsLeft - 1,
+                    attackerHP - defNormal, defenderHP,
+                    atkNormal, atkCrit, atkHitChance, atkCritChance,
+                    defNormal, defCrit, defHitChance, defCritChance,
+                    probability * defHitChance * (1 - defCritChance),
+                    ref attackerKills, ref defenderKills);
+
+                // Crit
+                SimulateCombatBranches(
+                    atkHitsLeft, defHitsLeft - 1,
+                    attackerHP - defCrit, defenderHP,
+                    atkNormal, atkCrit, atkHitChance, atkCritChance,
+                    defNormal, defCrit, defHitChance, defCritChance,
+                    probability * defHitChance * defCritChance,
+                    ref attackerKills, ref defenderKills);
+            }
         }
 
-        private static float KOChanceRecursive(int hitsLeft, int remainingHP, int normalDamage, int critDamage, float hitChance, float critChance, float probability) {
-            if (hitsLeft == 0) return remainingHP <= 0 ? probability : 0f;
-            float chance = 0f;
-            // Normal hit
-            chance += KOChanceRecursive(hitsLeft - 1, remainingHP - normalDamage, normalDamage, critDamage, hitChance, critChance, probability * hitChance * (1 - critChance));
-            // Crit hit
-            chance += KOChanceRecursive(hitsLeft - 1, remainingHP - critDamage, normalDamage, critDamage, hitChance, critChance, probability * hitChance * critChance);
-            // Miss
-            chance += KOChanceRecursive(hitsLeft - 1, remainingHP, normalDamage, critDamage, hitChance, critChance, probability * (1 - hitChance));
-            return chance;
-        }
 
 
         private static int GetEffectiveStat(int baseStat, StatModifier modifier) => Mathf.RoundToInt(baseStat * modifier.Percent + modifier.Flat);

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using StrategyGame.AI;
+using StrategyGame.Combat;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
 using StrategyGame.Factions;
@@ -89,6 +90,8 @@ namespace StrategyGame.Core.GameState {
             GameStateDelegates.OnUnitMoveSelectionChanged += SetCurrentUnitMoveSelectionMode;
             GameStateDelegates.OnPlayerPhaseStateChanged += SetCurrentPlayerPhaseState;
             GameStateDelegates.OnAdvanceTurnPhase += AdvancePhase;
+            GameStateDelegates.OnApplyAttackOutcome += ApplyAttackOutcome;
+            GameStateDelegates.OnFinalizePlayerAction += FinalizePlayerAction;
             GameStateDelegates.GetManualPath = () => ManualPath;
             GameStateDelegates.GetCurrentGameState = GetCurrentGameState;
             GridDelegates.SetInspectedTile = HandleSetInspectedTile;
@@ -100,6 +103,8 @@ namespace StrategyGame.Core.GameState {
             GameStateDelegates.OnUnitMoveSelectionChanged -= SetCurrentUnitMoveSelectionMode;
             GameStateDelegates.OnPlayerPhaseStateChanged -= SetCurrentPlayerPhaseState;
             GameStateDelegates.OnAdvanceTurnPhase -= AdvancePhase;
+            GameStateDelegates.OnApplyAttackOutcome -= ApplyAttackOutcome;
+            GameStateDelegates.OnFinalizePlayerAction -= FinalizePlayerAction;
             GameStateDelegates.GetManualPath = null;
             GameStateDelegates.GetCurrentGameState = null;
             GridDelegates.SetInspectedTile = null;
@@ -186,7 +191,7 @@ namespace StrategyGame.Core.GameState {
                 case GameStateEnums.TurnPhase.Player:
                     // Clear danger zone highlights
                     if (InputDelegates.GetDangerZoneVisible()) GridDelegates.InvokeOnSetDangerZoneVisibility(true); // doesn't change input state
-                    CurrentState.Combat.ActorIDsRemaining = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Player);
+                    CurrentState.Combat.ActorIDsRemaining = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Player, false);
                     CurrentState.Combat.PlayersCycleDeque = new LinkedList<int>(CurrentState.Combat.ActorIDsRemaining);
                     CurrentState.Combat.PlayerPhase = GameStateEnums.PlayerPhaseState.SelectUnitToControl;
                     InputDelegates.InvokeOnReinstateGridCursorPosition(null);
@@ -194,7 +199,7 @@ namespace StrategyGame.Core.GameState {
                 case GameStateEnums.TurnPhase.Enemy:
                     // Clear danger zone highlights
                     GridDelegates.InvokeOnSetDangerZoneVisibility(false); // doesn't change input state
-                    CurrentState.Combat.ActorIDsRemaining = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Enemy);
+                    CurrentState.Combat.ActorIDsRemaining = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Enemy, false);
                     // Automate enemy actions
                     _enemyPhaseCoroutine = StartCoroutine(RunEnemyPhaseCoroutine());
                     break;
@@ -249,7 +254,7 @@ namespace StrategyGame.Core.GameState {
 
                     // Focus camera rig onto position
                     // Debug.Log("Current selected entity: " + CurrentSelectedEntity);
-                    Vector3 visualPosition = EntityDelegates
+                    Vector3 visualPosition = EntityVisualDelegates
                         .GetEntityVisualTransformByID(CurrentState.Combat.SelectedEntityID).position;
                     CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y,
                         visualPosition.z));
@@ -266,7 +271,7 @@ namespace StrategyGame.Core.GameState {
 
         private void HandleEnemyPhaseState() {
             Transform entityVisualTransform =
-                EntityDelegates.GetEntityVisualTransformByID(CurrentState.Combat.SelectedEntityID);
+                EntityVisualDelegates.GetEntityVisualTransformByID(CurrentState.Combat.SelectedEntityID);
             if (entityVisualTransform != null) {
                 Vector3 visualPosition = entityVisualTransform.position;
                 switch (CurrentState.Combat.EnemyPhase) {
@@ -591,5 +596,23 @@ namespace StrategyGame.Core.GameState {
             yield return new WaitForSeconds(2f);
             AdvancePhase();
         }
+
+        private void ApplyAttackOutcome(CombatOutcome outcome) {
+            GridEntity attackerEntity = EntityDelegates.GetGridEntityByID(outcome.AttackerID);
+            GridEntity defenderEntity = EntityDelegates.GetGridEntityByID(outcome.DefenderID);
+            defenderEntity.TakeDamage(outcome.DamageDealt);
+            attackerEntity.TakeDamage(outcome.CounterDamageDealt);
+        }
+
+        private void FinalizePlayerAction() {
+           CurrentState.Combat.ActorIDsRemaining.Remove(CurrentState.Combat.SelectedEntityID);
+           CurrentState.Combat.PlayersCycleDeque.Remove(CurrentState.Combat.SelectedEntityID);
+            GameStateDelegates.InvokeOnPlayerPhaseStateChanged(CurrentState.Combat.ActorIDsRemaining.Count == 0 ? GameStateEnums.PlayerPhaseState.None : GameStateEnums.PlayerPhaseState.SelectUnitToControl);
+            if (CurrentState.Combat.ActorIDsRemaining.Count == 0) {
+                GameStateDelegates.InvokeOnAdvanceTurnPhase();
+            }
+            Debug.Log("GameStateManager.FinalizePlayerAction: Finalized player action.");
+        }
+        
     }
 }

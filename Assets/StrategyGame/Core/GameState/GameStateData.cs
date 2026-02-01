@@ -21,11 +21,13 @@ namespace StrategyGame.Core.GameState {
         public int TurnPhaseCycle = 0;
         public GameStateEnums.TurnPhase TurnPhase = GameStateEnums.TurnPhase.None;
         [SerializeReference] public List<int> ActorIDsRemaining = new List<int>();
+        [SerializeReference] public HashSet<int> DeadEntityIDs = new HashSet<int>();
         public GameStateEnums.PlayerPhaseState PlayerPhase = GameStateEnums.PlayerPhaseState.None;
         public GameStateEnums.EnemyPhaseState EnemyPhase = GameStateEnums.EnemyPhaseState.None;
         public GameStateEnums.UnitMoveSelectionMode UnitMoveSelectionMode = GameStateEnums.UnitMoveSelectionMode.None;
         public Vector2Int InspectedTilePosition;
         public bool NextActorReady = true;
+        public CombatPreview CombatPreview;
 
         [SerializeField] private int inspectedEntityID = -1;
         public int InspectedEntityID {
@@ -107,6 +109,7 @@ namespace StrategyGame.Core.GameState {
                 Resources.Load<AbilityData>("ScriptableObjects/Abilities/Attack"), attackerInDefenderRange);
             Debug.Log(combatPreview);
             UIDelegates.InvokeOnBattleOutcomePreviewUpdate(combatPreview);
+            CombatPreview = combatPreview;
         }
     }
 }

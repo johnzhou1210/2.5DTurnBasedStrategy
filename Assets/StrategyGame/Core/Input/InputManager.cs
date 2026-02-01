@@ -463,37 +463,13 @@ namespace StrategyGame.Core.Input
                         Debug.LogWarning("InputManager.HandleEntityTileSelection: targetEntity is null!");
                         return;
                     }
-                    
-                    Debug.Log($"Attacker weapon: {actingEntity.Weapon}");
-                    Debug.Log($"Defender weapon: {targetEntity.Weapon}");
-                    
-                    HashSet<GridEntity> entitiesWithinDefenderRange = targetEntity.GetAttackableEntitiesAtPosition(targetEntity.GridPosition);
-                    bool attackerInDefenderRange = entitiesWithinDefenderRange.Any(e => e.ID == actingEntity.ID);
-                    
-                    CombatOutcome attackOutcome = CombatResolver.SimulateAttack(new CombatStats {
-                        HP = actingEntity.Health,
-                        MaxHP =  actingEntity.MaxHealth,
-                        Attack = actingEntity.Attack,
-                        Defense = actingEntity.Defense,
-                        Agility = actingEntity.Agility,
-                        Accuracy = actingEntity.Accuracy,
-                        Resistance = actingEntity.Resistance,
-                        Evasion = actingEntity.Evasion,
-                        Weapon = actingEntity.Weapon,
-                        EntityID = actingEntity.ID
-                    }, new CombatStats {
-                        HP = targetEntity.Health,
-                        MaxHP =   targetEntity.MaxHealth,
-                        Attack = targetEntity.Attack,
-                        Defense = targetEntity.Defense,
-                        Agility = targetEntity.Agility,
-                        Accuracy = targetEntity.Accuracy,
-                        Resistance = targetEntity.Resistance,
-                        Evasion = targetEntity.Evasion,
-                        Weapon = targetEntity.Weapon,
-                        EntityID = targetEntity.ID
-                    }, Resources.Load<AbilityData>("ScriptableObjects/Abilities/Attack"), attackerInDefenderRange);
-                    Debug.Log($"Attack outcome: {attackOutcome}");
+                    CombatOutcome attackOutcome = CombatResolver.ResolveCombatFromPreview(state.Combat.CombatPreview);
+                    GameStateDelegates.InvokeOnApplyAttackOutcome(attackOutcome);
+                    GameStateDelegates.InvokeOnFinalizePlayerAction();
+                    UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.BattleOutcomePreview);
+                    GridDelegates.InvokeOnInspectedTileChanged(GridDelegates.GetTileFromPosition(state.Combat.InspectedTilePosition), GridDelegates.GetTileFromPosition(actingEntity.GridPosition));
+                    state.Combat.InspectedTilePosition = actingEntity.GridPosition;
+                    InputDelegates.InvokeOnReinstateGridCursorPosition(actingEntity.GridPosition);
                     break;
                 default:
                     throw new Exception(

@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.ComponentModel;
 using DG.Tweening;
 using StrategyGame.Core.Delegates;
@@ -11,18 +13,34 @@ namespace StrategyGame.UI.World {
         private int _targetID;
         [SerializeField] private Image weaponTypeImage, weaponTypeFrame;
     
+        private CanvasGroup _canvasGroup;
+        private Coroutine _fadeCoroutine;
+
+        private void Awake() {
+            _canvasGroup = GetComponent<CanvasGroup>();
+        }
+
+        private void OnDestroy() {
+            if (_fadeCoroutine != null) {
+                StopCoroutine(_fadeCoroutine);
+                _fadeCoroutine = null;
+            }
+        }
+
         private void OnEnable() {
             BillboardDelegates.OnUnitWeaponTypeChanged += UpdateUnitWeaponType;
+            EntityVisualDelegates.OnFadeEntityVisuals += FadeBillboard;
         }
 
         private void OnDisable() {
             BillboardDelegates.OnUnitWeaponTypeChanged -= UpdateUnitWeaponType;
+            EntityVisualDelegates.OnFadeEntityVisuals -= FadeBillboard;
         }
 
         public void Initialize(GridUnit unit) {
             _targetID = unit.ID;
             if (TryGetComponent(out BillboardFollow billboardFollow)) {
-                Transform targetTransform = EntityDelegates.GetEntityVisualTransformByID(unit.ID);
+                Transform targetTransform = EntityVisualDelegates.GetEntityVisualTransformByID(unit.ID);
                 billboardFollow.SetTarget(targetTransform);
             }
             if (unit.GridUnitData.Weapon == null) {
@@ -73,6 +91,21 @@ namespace StrategyGame.UI.World {
                 default:
                     throw new InvalidEnumArgumentException("Invalid WeaponType enum!");
             }
+        }
+        private void FadeBillboard() {
+            _fadeCoroutine = StartCoroutine(FadeCoroutine());
+        }
+        
+        private IEnumerator FadeCoroutine() {
+            float startAlpha = _canvasGroup.alpha;
+            int steps = 200;
+            for (int i = 0; i < steps; i++) {
+                float alpha = Mathf.Lerp(startAlpha, 0f, (i + 1f) / steps);
+                _canvasGroup.alpha = alpha;
+                yield return new WaitForEndOfFrame();
+            }
+            // gameObject.SetActive(false);
+            _fadeCoroutine = null;
         }
     }
 }

@@ -27,7 +27,7 @@ namespace StrategyGame.Grid.Rendering {
 
         private void OnEnable() {
             GridDelegates.OnEntitySpawned += OnEntitySpawned;
-            EntityDelegates.GetEntityVisualTransformByID = GetEntityVisualTransformByID;
+            EntityVisualDelegates.GetEntityVisualTransformByID = GetEntityVisualTransformByID;
         }
         
         private void OnDisable() {
@@ -44,6 +44,7 @@ namespace StrategyGame.Grid.Rendering {
         }
         
         private void OnEntitySpawned(GridEntity entity, Vector2Int newPosition) {
+            // Instantiate entity visual and attach billboards
             GameObject entityVisual = Instantiate(entityPrefab, transform);
             entityVisual.name =  $"{entity.ID} : {entity.GridEntityData.name}";
             Debug.Log($"{entity.ID} : {entity.GetSpritePrefab()}");
@@ -51,13 +52,11 @@ namespace StrategyGame.Grid.Rendering {
             entitySpriteGameObject.transform.position += new Vector3(0, .75f, 0);
             _entityVisuals[entity.ID] = entityVisual;
             entityVisual.transform.position = VectorUtils.Vector2IntToVector3(newPosition);
-
             if (entityVisual.TryGetComponent(out EntityVisual entityVisualScript)) {
                 entityVisualScript.SetColor(entity.Faction == Faction.Player ? new Color(.05f,.05f,1,1) : new Color(1,.05f,.05f,1));
+                entityVisualScript.SetEntitySprite(entitySpriteGameObject.GetComponent<SpriteRenderer>());
             }
-            
             AttachBillboards(entity);
-            
             Debug.Log(DictionaryUtils.FormatDictionary(_entityVisuals));
         }
         

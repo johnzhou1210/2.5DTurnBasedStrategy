@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 8798838311423325521}
   - component: {fileID: 7980809740793817329}
   - component: {fileID: -4408583031366645703}
+  - component: {fileID: -2054707555682147885}
   m_Layer: 5
   m_Name: WeaponTypeBillboard
   m_TagString: Untagged
@@ -90,6 +91,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   weaponTypeImage: {fileID: 985303195695902959}
   weaponTypeFrame: {fileID: 6601982848473418905}
+--- !u!225 &-2054707555682147885
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 432172801547459356}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!1 &2182708918275607797
 GameObject:
   m_ObjectHideFlags: 0

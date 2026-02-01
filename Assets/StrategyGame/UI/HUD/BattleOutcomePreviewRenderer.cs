@@ -90,9 +90,9 @@ namespace StrategyGame.UI.HUD {
                     break;
                 case < .67f:
                     attackerMediumRisk.alpha = 1f;
-                    attackerMediumRisk.transform.GetComponentInChildren<TextMeshProUGUI>().SetText($"{Mathf.CeilToInt(preview.DefenderChanceToKillAttacker*100f)}%");
+                    attackerMediumRisk.transform.GetComponentInChildren<TextMeshProUGUI>().SetText($"{Math.Max(Mathf.CeilToInt(preview.DefenderChanceToKillAttacker*100f), 99)}%");
                     break;
-                case < 1f:
+                case < .9995f:
                     attackerHighRisk.alpha = 1f;
                     attackerHighRisk.transform.GetComponentInChildren<TextMeshProUGUI>().SetText($"{Mathf.CeilToInt(preview.DefenderChanceToKillAttacker*100f)}%");
                     break;
@@ -151,9 +151,9 @@ namespace StrategyGame.UI.HUD {
                     break;
                 case < .67f:
                     defenderMediumRisk.alpha = 1f;
-                    defenderMediumRisk.transform.GetComponentInChildren<TextMeshProUGUI>().SetText($"{Mathf.CeilToInt(preview.AttackerChanceToKillDefender*100f)}%");
+                    defenderMediumRisk.transform.GetComponentInChildren<TextMeshProUGUI>().SetText($"{Math.Max(Mathf.CeilToInt(preview.AttackerChanceToKillDefender*100f), 99)}%");
                     break;
-                case < 1f:
+                case < .9995f:
                     defenderHighRisk.alpha = 1f;
                     defenderHighRisk.transform.GetComponentInChildren<TextMeshProUGUI>().SetText($"{Mathf.CeilToInt(preview.AttackerChanceToKillDefender*100f)}%");
                     break;

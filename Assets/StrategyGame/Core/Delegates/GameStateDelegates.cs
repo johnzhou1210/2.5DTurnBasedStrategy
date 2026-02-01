@@ -1,4 +1,5 @@
 using System;
+using StrategyGame.Combat;
 using StrategyGame.Core.Enums;
 using StrategyGame.Core.GameState;
 using StrategyGame.Grid;
@@ -14,6 +15,8 @@ namespace StrategyGame.Core.Delegates {
         public static event Action<GameStateEnums.PlayerPhaseState> OnPlayerPhaseStateChanged;
         public static event Action OnAdvanceTurnPhase;
         public static event Action<GameStateEnums.TurnPhase> OnTurnPhaseChanged;
+        public static event Action<CombatOutcome> OnApplyAttackOutcome;
+        public static event Action OnFinalizePlayerAction;
         
         public static void InvokeOnGameStarted() {
             OnGameStarted?.Invoke();
@@ -29,6 +32,12 @@ namespace StrategyGame.Core.Delegates {
         }
         public static void InvokeOnTurnPhaseChanged(GameStateEnums.TurnPhase phase) {
             OnTurnPhaseChanged?.Invoke(phase);
+        }
+        public static void InvokeOnApplyAttackOutcome(CombatOutcome outcome) {
+            OnApplyAttackOutcome?.Invoke(outcome);
+        }
+        public static void InvokeOnFinalizePlayerAction() {
+            OnFinalizePlayerAction?.Invoke();
         }
      
         

@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 8798838311423325521}
   - component: {fileID: 7980809740793817329}
   - component: {fileID: 6587983220924128340}
+  - component: {fileID: 1955574297151502962}
   m_Layer: 5
   m_Name: HealthBillboard
   m_TagString: Untagged
@@ -144,6 +145,19 @@ MonoBehaviour:
   slider: {fileID: 4540935085620162490}
   weaponTypeImage: {fileID: 0}
   weaponTypeFrame: {fileID: 0}
+  healthTransitionDuration: 1
+--- !u!225 &1955574297151502962
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 432172801547459356}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!1 &3710305034706838971
 GameObject:
   m_ObjectHideFlags: 0

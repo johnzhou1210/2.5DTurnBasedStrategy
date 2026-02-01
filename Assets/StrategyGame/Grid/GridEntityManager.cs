@@ -90,10 +90,11 @@ namespace StrategyGame.Grid {
             GridDelegates.InvokeOnEntitySpawned(newStructure, position);
             return newStructure;
         }
-        private List<int> GetAllGridEntityIDsByFaction(Faction faction) {
+        private List<int> GetAllGridEntityIDsByFaction(Faction faction, bool includeDead = false) {
             List<int> result = new List<int>();
             foreach (GridEntity entity in Entities.Values) {
                 if (entity.Faction == faction) {
+                    if (entity.Health == 0 && !includeDead) continue;
                     result.Add(entity.ID);
                 }
             }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using StrategyGame.Combat.Weapons;
 using StrategyGame.Core.Delegates;
+using StrategyGame.Core.GameState;
 using StrategyGame.Factions;
 using StrategyGame.Grid.GridData;
 using UnityEngine;
@@ -204,6 +205,34 @@ namespace StrategyGame.Grid {
         
         public bool IsFriendlyWith(GridEntity other) {
             return Faction == other.Faction;
+        }
+
+        public void TakeDamage(int amount) {
+            Health = Math.Max(Health - amount, 0);
+            FireHealthChangedEvents();
+            if (Health == 0) {
+                Die();
+            }
+        }
+
+        private void FireHealthChangedEvents() {
+            BillboardDelegates.InvokeOnHealthChanged(ID, Health, MaxHealth);
+            UIDelegates.InvokeOnEntityHUDUpdate(this);
+        }
+
+        private void FireDeathEvents() {
+            
+        }
+
+        public void Die() {
+            // Free up tile since they died
+            GridDelegates.GetTileFromPosition(GridPosition).RemoveOccupant();
+            GameStateData currentState = GameStateDelegates.GetCurrentGameState();
+            currentState.Combat.DeadEntityIDs.Add(ID);
+            if (currentState.Combat.ActorIDsRemaining.Contains(ID)) {
+                currentState.Combat.ActorIDsRemaining.Remove(ID);
+            }
+            FireDeathEvents();
         }
 
 

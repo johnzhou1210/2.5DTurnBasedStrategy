@@ -397,7 +397,7 @@ namespace StrategyGame.Grid.Rendering {
 
         private IEnumerator EntityPathMovementCoroutine(GridEntity entity, List<Tile> path) {
             // Get entity transform
-            Transform entityTransform = EntityDelegates.GetEntityVisualTransformByID(entity.ID);
+            Transform entityTransform = EntityVisualDelegates.GetEntityVisualTransformByID(entity.ID);
             List<Tile> pathCopy = new List<Tile>(path);
             Debug.Log(string.Join(", ", pathCopy));
             foreach (Tile tile in pathCopy) {
@@ -426,7 +426,7 @@ namespace StrategyGame.Grid.Rendering {
         private void SetDangerZoneVisibility(bool val) {
             if (val) {
                 // add tiles to danger zone
-                List<int> allEnemyIDs = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Enemy);
+                List<int> allEnemyIDs = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Enemy, false);
                 foreach (int enemyID in allEnemyIDs) {
                     GridEntity currentEnemy = EntityDelegates.GetGridEntityByID(enemyID);
                     HashSet<Tile> dangerTiles = currentEnemy.GetTilesWithinAttackRange();
