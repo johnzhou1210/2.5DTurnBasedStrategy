@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Calvary
   m_EditorClassIdentifier: 
   visualPrefab: {fileID: 9023742116720488871, guid: c8048f696780590958344de3c61be54e, type: 3}
-  baseHealth: 26
+  baseHealth: 30
   factionData: {fileID: 11400000, guid: f5e87dfeb9e124d96ad5b12a049afd7e, type: 2}
   movementRange: 5
   visionRange: 10

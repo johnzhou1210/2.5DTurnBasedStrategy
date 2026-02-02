@@ -398,10 +398,15 @@ namespace StrategyGame.Grid.Rendering {
         private IEnumerator EntityPathMovementCoroutine(GridEntity entity, List<Tile> path) {
             // Get entity transform
             Transform entityTransform = EntityVisualDelegates.GetEntityVisualTransformByID(entity.ID);
+            SpriteRenderer spriteRenderer = entityTransform.GetComponentInChildren<SpriteRenderer>();
+            if (spriteRenderer == null) throw new Exception("GridRenderer.EntityPathMovementCoroutine: No SpriteRenderer found!");
             List<Tile> pathCopy = new List<Tile>(path);
             Debug.Log(string.Join(", ", pathCopy));
             foreach (Tile tile in pathCopy) {
                 Tween tween = entityTransform.DOMove(new Vector3(tile.Position.x, 0f, tile.Position.y), 0.33f).SetEase(Ease.Linear);
+                Debug.Log($"Current x: {entityTransform.position.x}, Tile x: {tile.Position.x}");
+                if (!Mathf.Approximately(entityTransform.position.x, tile.Position.x)) spriteRenderer.flipX = entityTransform.transform.position.x > tile.Position.x;
+                
                 yield return tween.WaitForCompletion();
             }
             GameStateData currentState = GameStateDelegates.GetCurrentGameState();
