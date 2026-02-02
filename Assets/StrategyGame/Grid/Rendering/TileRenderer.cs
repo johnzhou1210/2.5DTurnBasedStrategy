@@ -152,7 +152,7 @@ namespace StrategyGame.Grid.Rendering {
             }
             // Rotate visual based on RouteSegmentData
             if (activeVisual == null) return;
-            activeVisual.transform.localEulerAngles = new Vector3(90, routeSegmentData.Angle, 0);
+            activeVisual.transform.localEulerAngles = new Vector3(0, 0, -routeSegmentData.Angle);
         }
 
         private void HideAllRouteVisuals() {

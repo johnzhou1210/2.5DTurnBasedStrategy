@@ -49,7 +49,7 @@ namespace StrategyGame.Grid.Rendering {
             entityVisual.name =  $"{entity.ID} : {entity.GridEntityData.name}";
             Debug.Log($"{entity.ID} : {entity.GetSpritePrefab()}");
             GameObject entitySpriteGameObject = Instantiate(entity.GetSpritePrefab(), entityVisual.transform);
-            entitySpriteGameObject.transform.position += new Vector3(0, .75f, 0);
+            entitySpriteGameObject.transform.position += new Vector3(0, .2f, .1f);
             _entityVisuals[entity.ID] = entityVisual;
             entityVisual.transform.position = VectorUtils.Vector2IntToVector3(newPosition);
             if (entityVisual.TryGetComponent(out EntityVisual entityVisualScript)) {
