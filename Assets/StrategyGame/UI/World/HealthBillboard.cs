@@ -53,7 +53,7 @@ namespace StrategyGame.UI.World {
 
         private void UpdateHealth(int id, int health, int maxHealth) {
             if (_targetID != id) {
-                Debug.Log($"Expected id of {_targetID}, but got {id}");
+                // Debug.Log($"Expected id of {_targetID}, but got {id}");
                 return;
             }
             Debug.Log($"Updating health {id} to {health} / {maxHealth}");
@@ -75,7 +75,7 @@ namespace StrategyGame.UI.World {
                 throw new Exception("HealthBillboard.DeathCoroutine: targetVisual not found!");
             }
             _fadeCoroutine = StartCoroutine(FadeCoroutine());
-            EntityVisualDelegates.InvokeOnFadeEntityVisuals();
+            EntityVisualDelegates.InvokeOnFadeEntityVisuals(_targetID);
             targetVisual.Die();
             _deathCoroutine = null;
         }

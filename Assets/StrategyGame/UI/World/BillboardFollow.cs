@@ -3,7 +3,7 @@ using UnityEngine;
 namespace StrategyGame.UI.World {
     public class BillboardFollow : MonoBehaviour {
         [SerializeField] private Transform target;
-        private Vector3 offset = new Vector3(0, 1.25f, 0.25f);
+        [SerializeField] Vector3 offset = new Vector3(0, -1f, 0.25f);
 
         private void LateUpdate() {
             if (target != null) {

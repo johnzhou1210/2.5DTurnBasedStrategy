@@ -92,7 +92,8 @@ namespace StrategyGame.UI.World {
                     throw new InvalidEnumArgumentException("Invalid WeaponType enum!");
             }
         }
-        private void FadeBillboard() {
+        private void FadeBillboard(int id) {
+            if (id != _targetID) return;
             _fadeCoroutine = StartCoroutine(FadeCoroutine());
         }
         
