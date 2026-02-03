@@ -67,7 +67,7 @@ namespace StrategyGame.Grid.Rendering {
             { (TileHighlightType.Attackable, Faction.Player), new Color(0f, 1.5f, 1.5f, .2f) },
             { (TileHighlightType.AttackRange, Faction.Player), new Color(0, 0, 1.5f, .2f) },
             { (TileHighlightType.AttackRange, Faction.Enemy), new Color(1.25f, 0, 0, .2f) },
-            { (TileHighlightType.Danger, Faction.Enemy), new Color(.5f, 0, 0, .2f) }
+            { (TileHighlightType.Danger, Faction.Enemy), new Color(.75f, 0, 0, .4f) }
         };
 
 
