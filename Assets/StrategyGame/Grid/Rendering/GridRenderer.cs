@@ -406,7 +406,7 @@ namespace StrategyGame.Grid.Rendering {
                 Tween tween = entityTransform.DOMove(new Vector3(tile.Position.x, 0f, tile.Position.y), 0.33f).SetEase(Ease.Linear);
                 Debug.Log($"Current x: {entityTransform.position.x}, Tile x: {tile.Position.x}");
                 if (!Mathf.Approximately(entityTransform.position.x, tile.Position.x)) spriteRenderer.flipX = entityTransform.transform.position.x > tile.Position.x;
-                
+                Debug.Log($"GridRenderer.EntityPathMovementCoroutine: {entityTransform.position.x}, {tile.Position.x}");
                 yield return tween.WaitForCompletion();
             }
             GameStateData currentState = GameStateDelegates.GetCurrentGameState();
