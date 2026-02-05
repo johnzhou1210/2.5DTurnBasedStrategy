@@ -143,6 +143,13 @@ namespace StrategyGame.Grid.Rendering {
                                 MarkTilesWithinAttackRange(Faction.Player, currSelectedEntity.GetAttackableTilesAtPosition(currSelectedEntity.GridPosition));
                                 break;
                             case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
+                                Transform entityTransform = EntityVisualDelegates.GetEntityVisualTransformByID(currentGameState.Combat.SelectedEntityID);
+                                Tile inspectedTile = GridDelegates.GetTileFromPosition(currentGameState.Combat.InspectedTilePosition);
+                                SpriteRenderer spriteRenderer = entityTransform.GetComponentInChildren<SpriteRenderer>();
+                                if (spriteRenderer == null) {
+                                    throw new Exception("GridRenderer.UpdateInspectedTileVisuals: EntityVisual's SpriteRenderer not found!");
+                                }
+                                if (!Mathf.Approximately(entityTransform.position.x, inspectedTile.Position.x)) spriteRenderer.flipX = entityTransform.transform.position.x > inspectedTile.Position.x;                                
                                 break;
                             case GameStateEnums.PlayerPhaseState.UnitAttackCutscene:
                                 break;
