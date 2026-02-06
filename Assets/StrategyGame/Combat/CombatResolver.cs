@@ -66,6 +66,9 @@ namespace StrategyGame.Combat {
         public bool[] AttackHitCrits = new[] { false, false };
         public bool[] DefendCounterHits = new[] { false, false };
         public bool[] DefendCounterCrits = new[] { false, false };
+        public int[] AttackDamageInstances = new[] { 0, 0 };
+        public int[] CounterDamageInstances = new[] { 0, 0 };
+        
         public int DamageDealt = 0;
         public bool DefenderDied = false;
 
@@ -149,6 +152,7 @@ namespace StrategyGame.Combat {
                 outcome.AttackHits[i] = true;
                 outcome.AttackHitCrits[i] = crit;
                 outcome.DamageDealt += damage;
+                outcome.AttackDamageInstances[i] = damage;
             }
 
             outcome.DefenderDied = defenderHP <= 0;
@@ -172,6 +176,7 @@ namespace StrategyGame.Combat {
                     outcome.DefendCounterHits[i] = true;
                     outcome.DefendCounterCrits[i] = crit;
                     outcome.CounterDamageDealt += damage;
+                    outcome.CounterDamageInstances[i] = damage;
                 }
             }
 

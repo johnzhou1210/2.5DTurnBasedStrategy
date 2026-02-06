@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 3611319719570439973}
   - component: {fileID: 3434561105849835275}
   - component: {fileID: 3219072973112476087}
-  - component: {fileID: 3720738662498749537}
   m_Layer: 0
   m_Name: ArcherSprite
   m_TagString: Untagged
@@ -107,25 +106,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetTransform: {fileID: 0}
   lookAtTarget: 0
---- !u!95 &3720738662498749537
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 374549065707966590}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 33938afd899f54f64ad322a1090f4ec4, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
