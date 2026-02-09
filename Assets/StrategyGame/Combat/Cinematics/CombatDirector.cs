@@ -17,6 +17,9 @@ namespace StrategyGame.Combat.Cinematics {
     public class CombatDirector : MonoBehaviour {
         private static readonly int Attack = Animator.StringToHash("Attack");
         private static readonly int AttackType = Animator.StringToHash("AttackType");
+        private static readonly int Dodge = Animator.StringToHash("Dodge");
+        private static readonly int Hurt = Animator.StringToHash("Hurt");
+        private static readonly int Death = Animator.StringToHash("Death");
         /* Timelines needed:
          * CombatIntro: Sets the scene for combat and combatants are visible
          * CombatOutro
@@ -54,7 +57,10 @@ namespace StrategyGame.Combat.Cinematics {
         private Camera _camera;
         private CombatTimeline _currCombatEvent;
         private bool _isAttackerTurn = true;
-
+        private int _currAttackIndex = 0;
+        private int _currCounterIndex = 0;
+        private int _currAttackerHP;
+        private int _currDefenderHP;
 
 
         public enum CombatTimeline {
@@ -106,6 +112,12 @@ namespace StrategyGame.Combat.Cinematics {
             // Director play intro cutscene
             defenderRigAdapter.localPosition = new Vector3(1.5f, 0, 0);
             int currEventIndex = 0;
+            _currAttackIndex = 0;
+            _currCounterIndex = 0;
+            _currAttackerHP = _attackerEntity.Health;
+            _currDefenderHP = _defenderEntity.Health;
+            
+           
             DirectorLoadAndPlay(combatIntroPlayable);
             yield return new WaitUntil((() => director.state != PlayState.Playing));
 
@@ -131,6 +143,7 @@ namespace StrategyGame.Combat.Cinematics {
                 DirectorLoadAndPlay(playableAsset);
                 yield return new WaitUntil((() => director.state != PlayState.Playing));
                 // defenderRigAdapter.localPosition = new Vector3(0f, 0, 0);
+                if (_isAttackerTurn) { _currAttackIndex++; } else { _currCounterIndex++;}
                 currEventIndex++;
             }
             
@@ -201,19 +214,30 @@ namespace StrategyGame.Combat.Cinematics {
             targetAnimator.SetInteger(AttackType, _currCombatEvent is CombatTimeline.AttackerMeleeNormal or CombatTimeline.AttackerMeleeCrit or CombatTimeline.DefenderMeleeNormal or CombatTimeline.DefenderMeleeCrit ? 0 : 1);
         }
         
-        public void OnAttackImpact(int attackIndex) {
-            bool hit = _combatOutcome.AttackHits[attackIndex];
-            bool crit = _combatOutcome.AttackHitCrits[attackIndex];
-            int impactDamage = _combatOutcome.AttackDamageInstances[attackIndex];
+        public void OnAttackImpact() {
+            Animator targetAnimator = _isAttackerTurn ? defenderPuppet.GetComponent<Animator>() : attackerPuppet.GetComponent<Animator>();
+            bool[] hitsArr = _isAttackerTurn ? _combatOutcome.AttackHits : _combatOutcome.DefendCounterHits;
+            bool[] critsArr = _isAttackerTurn ? _combatOutcome.AttackHitCrits :  _combatOutcome.DefendCounterCrits;
+            int[] dmgInstancesArr = _isAttackerTurn ? _combatOutcome.AttackDamageInstances : _combatOutcome.CounterDamageInstances;
+            int currIndex = _isAttackerTurn ? _currAttackIndex : _currCounterIndex;
+            bool hit = hitsArr[currIndex];
+            bool crit = critsArr[currIndex];
+            int impactDamage = dmgInstancesArr[currIndex];
+            if (_isAttackerTurn) {
+                _currDefenderHP = Math.Max(_currDefenderHP - impactDamage, 0);
+            } else {
+                _currAttackerHP = Math.Max(_currAttackerHP - impactDamage, 0);
+            }
+            int victimHPAfterImpact = _isAttackerTurn ?  _currDefenderHP : _currAttackerHP;
             if (!hit) {
-                defenderPuppet.PlayDodge();
+                targetAnimator.SetTrigger(Dodge);
                 // Any miss SFX/VFX
                 return;
             }
-            defenderPuppet.PlayHit(crit);
+            targetAnimator.SetTrigger(Hurt);
             SpawnDamageNumber(impactDamage, crit);
-            if (_combatOutcome.DefenderDied) {
-                defenderPuppet.PlayDeath();
+            if (victimHPAfterImpact <= 0) {
+                targetAnimator.SetTrigger(Death);
             }
         }
         public void OnCounterImpact(int counterIndex) {

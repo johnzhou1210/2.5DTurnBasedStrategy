@@ -166,7 +166,8 @@ namespace StrategyGame.Combat {
                         if (defenderHP <= 0) {
                             outcome.OrderOfEvents.Add(CombatDirector.CombatTimeline.DefenderDies);
                             outcome.DefenderDied = true;
-                            break;
+                            countersLeft = 0;
+                            attacksLeft = 0;
                         }
                     }
                     currAttackIndex++;
@@ -192,7 +193,8 @@ namespace StrategyGame.Combat {
                         if (attackerHP <= 0) {
                             outcome.OrderOfEvents.Add(CombatDirector.CombatTimeline.AttackerDies);
                             outcome.AttackerDied = true;
-                            break;
+                            attacksLeft = 0;
+                            countersLeft = 0;
                         }
                     }
                     currCounterIndex++;
@@ -243,10 +245,11 @@ namespace StrategyGame.Combat {
             int defenderCritDamage = GetDamage(defAtk, attackerEffectiveDefense, true);
 
             // KO chances
-            bool defenderAlwaysDiesBeforeCounter = attackerNonCritDamage * attackerHits >= defender.HP;
+           
 
             float chanceToKillDefender = 0f;
             float chanceToKillAttacker = 0f;
+            bool defenderAlwaysDiesBeforeCounter = Mathf.Approximately(attackerHitChance, 1) && attackerNonCritDamage >= defender.HP;
             
             SimulateCombatBranches(attackerHits, defenderCounters, attacker.HP, defender.HP,
                 attackerNonCritDamage, attackerCritDamage, attackerHitChance, attackerCritChance,

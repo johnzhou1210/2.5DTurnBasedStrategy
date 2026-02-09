@@ -17,6 +17,7 @@ namespace StrategyGame.Combat.Cinematics {
         public void Setup(GridEntity entity) {
             // Set animator controller
             Animator.runtimeAnimatorController = entity.AnimatorController;
+            Animator.Play("Idle");
         }
 
         public void PlayDodge() {
