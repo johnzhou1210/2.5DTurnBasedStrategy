@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using StrategyGame.Combat.Cinematics;
 using StrategyGame.Combat.Weapons;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Grid.GridData;
@@ -62,6 +63,8 @@ namespace StrategyGame.Combat {
     }
 
     public class CombatOutcome {
+        public List<CombatDirector.CombatTimeline> OrderOfEvents;
+        
         public bool[] AttackHits = new[] { false, false };
         public bool[] AttackHitCrits = new[] { false, false };
         public bool[] DefendCounterHits = new[] { false, false };
@@ -129,6 +132,7 @@ namespace StrategyGame.Combat {
         private static DeterministicRNG _rng = new DeterministicRNG(0);
         public static CombatOutcome ResolveCombatFromPreview(CombatPreview preview) {
             CombatOutcome outcome = new CombatOutcome();
+            outcome.OrderOfEvents = new  List<CombatDirector.CombatTimeline>();
             outcome.AttackerID = preview.AttackerID;
             outcome.DefenderID = preview.DefenderID;
             int defenderHP = preview.DefenderCurrentHP;
@@ -140,15 +144,25 @@ namespace StrategyGame.Combat {
             for (int i = 0; i < preview.AttackerNumAttacks; i++) {
                 if (defenderHP <= 0) break;
                 attackerActualNumAttacks += 1;
-                bool hit = _rng.Chance(preview.AttackerHitChance);
-                if (!hit) continue;
-
                 bool crit = _rng.Chance(preview.AttackerCritChance);
+                bool hit = _rng.Chance(preview.AttackerHitChance);
+                if (crit) {
+                    outcome.OrderOfEvents.Add(preview.AttackerWeapon.MinAttackRange > 1 ? CombatDirector.CombatTimeline.AttackerRangedCrit : CombatDirector.CombatTimeline.AttackerMeleeCrit);
+                } else {
+                    outcome.OrderOfEvents.Add(preview.AttackerWeapon.MinAttackRange > 1 ? CombatDirector.CombatTimeline.AttackerRangedNormal : CombatDirector.CombatTimeline.AttackerMeleeNormal);
+                }
+                
+                if (!hit) continue;
                 int damage = crit
                     ? preview.AttackerCritDamagePerHit
                     : preview.AttackerNonCritDamagePerHit;
 
                 defenderHP -= damage;
+
+                if (defenderHP <= 0) {
+                    outcome.OrderOfEvents.Add(CombatDirector.CombatTimeline.DefenderDies);
+                }
+                
                 outcome.AttackHits[i] = true;
                 outcome.AttackHitCrits[i] = crit;
                 outcome.DamageDealt += damage;
@@ -164,15 +178,25 @@ namespace StrategyGame.Combat {
                     if (attackerHP <= 0) break;
                     defenderActualNumCounters += 1;
 
-                    bool hit = _rng.Chance(preview.DefenderHitChance);
-                    if (!hit) continue;
-
                     bool crit = _rng.Chance(preview.DefenderCritChance);
+                    bool hit = _rng.Chance(preview.DefenderHitChance);
+                    if (crit) {
+                        outcome.OrderOfEvents.Add(preview.DefenderWeapon.MinAttackRange > 1 ? CombatDirector.CombatTimeline.DefenderRangedCrit : CombatDirector.CombatTimeline.DefenderMeleeCrit);
+                    } else {
+                        outcome.OrderOfEvents.Add(preview.DefenderWeapon.MinAttackRange > 1 ? CombatDirector.CombatTimeline.DefenderRangedNormal : CombatDirector.CombatTimeline.DefenderMeleeNormal);
+                    }
+                    
+                    if (!hit) continue;
                     int damage = crit
                         ? preview.DefenderCritDamagePerHit
                         : preview.DefenderNonCritDamagePerHit;
 
                     attackerHP -= damage;
+                    
+                    if (attackerHP <= 0) {
+                        outcome.OrderOfEvents.Add(CombatDirector.CombatTimeline.AttackerDies);
+                    }
+                    
                     outcome.DefendCounterHits[i] = true;
                     outcome.DefendCounterCrits[i] = crit;
                     outcome.CounterDamageDealt += damage;

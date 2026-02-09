@@ -72,6 +72,7 @@ namespace StrategyGame.Core.GameState {
         private Coroutine _coreGameLoop;
         private Coroutine _enemyPhaseCoroutine;
         private Coroutine _eventPhaseCoroutine;
+        private Coroutine _combatCinematicsCoroutine;
 
         // ==============================
         // MONOBEHAVIOUR LIFECYCLE
@@ -120,6 +121,10 @@ namespace StrategyGame.Core.GameState {
             if (_eventPhaseCoroutine != null) {
                 StopCoroutine(_eventPhaseCoroutine);
                 _eventPhaseCoroutine = null;
+            }
+            if (_combatCinematicsCoroutine != null) {
+                StopCoroutine(_combatCinematicsCoroutine);
+                _combatCinematicsCoroutine = null;
             }
         }
 
@@ -389,9 +394,8 @@ namespace StrategyGame.Core.GameState {
                     GridDelegates.InvokeOnManualMarkTilesWithAttackableEntities();
                     GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, true);
                     break;
-                case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: 
-                    
-                    
+                case GameStateEnums.PlayerPhaseState.UnitAttackCutscene:
+                    _combatCinematicsCoroutine = StartCoroutine(CombatCinematicsDelegates.GetDirector().PlayCombat());
                     break;
                 case GameStateEnums.PlayerPhaseState.None: break;
             }
@@ -588,7 +592,6 @@ namespace StrategyGame.Core.GameState {
                 CurrentState.Combat.InspectedEntityID = -1;
             }
 
-         
             GridDelegates.InvokeOnInspectedTileChanged(GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition), null);
             
             CurrentState.Combat.EnemyPhase = GameStateEnums.EnemyPhaseState.None;

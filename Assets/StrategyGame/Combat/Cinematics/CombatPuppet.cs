@@ -16,7 +16,8 @@ namespace StrategyGame.Combat.Cinematics {
         public Animator Animator;
         
         public void Setup(GridEntity entity) {
-            
+            // Get visual data
+            // Fetch 
         }
 
         public void PlayDodge() {
