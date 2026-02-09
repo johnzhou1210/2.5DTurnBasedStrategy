@@ -22,5 +22,5 @@ MonoBehaviour:
     Flat: 0
     Percent: 0
   - ModifierStat: 6
-    Flat: 0.33
+    Flat: 50
     Percent: 0

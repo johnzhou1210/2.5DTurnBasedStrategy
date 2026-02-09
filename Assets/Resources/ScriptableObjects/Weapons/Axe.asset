@@ -21,3 +21,6 @@ MonoBehaviour:
   - ModifierStat: 3
     Flat: 0
     Percent: 0
+  - ModifierStat: 6
+    Flat: 50
+    Percent: 0
