@@ -109,7 +109,8 @@ namespace StrategyGame.Combat {
         Agility,
         Accuracy,
         Resistance,
-        Evasion
+        Evasion,
+        CritRate
     }
 
     [System.Serializable]
@@ -210,6 +211,7 @@ namespace StrategyGame.Combat {
             int atkEvasion = GetEffectiveStat(attacker.Evasion, GetCombinedModifier(ModifierStat.Evasion, ability, attacker.Weapon));
             int atkDef = GetEffectiveStat(attacker.Defense, GetCombinedModifier(ModifierStat.Defense, ability, attacker.Weapon));
             int atkRes = GetEffectiveStat(attacker.Resistance, GetCombinedModifier(ModifierStat.Resistance, ability, attacker.Weapon));
+            float atkCrit = GetEffectiveStat(_baseCritChance, GetCombinedModifier(ModifierStat.CritRate, ability, attacker.Weapon));
             DamageType atkDamageType = ability && ability.OverrideDamageType ? ability.DamageTypeOverride : attacker.Weapon != null ? attacker.Weapon.DamageType : DamageType.Physical;
 
             int defAcc = GetEffectiveStat(defender.Accuracy, GetModifierOfWeapon(defender.Weapon, ModifierStat.Accuracy) ?? new StatModifier());
@@ -218,13 +220,14 @@ namespace StrategyGame.Combat {
             int defEvasion = GetEffectiveStat(defender.Evasion, GetModifierOfWeapon(defender.Weapon, ModifierStat.Evasion) ?? new StatModifier());
             int defDef = GetEffectiveStat(defender.Defense, GetModifierOfWeapon(defender.Weapon, ModifierStat.Defense) ?? new StatModifier());
             int defRes = GetEffectiveStat(defender.Resistance, GetModifierOfWeapon(defender.Weapon, ModifierStat.Resistance) ?? new StatModifier());
+            float defCrit = GetEffectiveStat(_baseCritChance, GetModifierOfWeapon(defender.Weapon, ModifierStat.CritRate) ?? new StatModifier());
             DamageType defDamageType = defender.Weapon.DamageType;
 
             // Hit & Crit chances
             float attackerHitChance = GetHitChance(atkAcc, atkAgi, defEvasion, defAgi);
-            float attackerCritChance = GetCritChance(atkAcc, atkAgi, defEvasion, defAgi);
+            float attackerCritChance = GetCritChance(atkAcc, atkAgi, defEvasion, defAgi, atkCrit);
             float defenderHitChance = GetHitChance(defAcc, defAgi, atkEvasion, atkAgi);
-            float defenderCritChance = GetCritChance(defAcc, defAgi, atkEvasion, atkAgi);
+            float defenderCritChance = GetCritChance(defAcc, defAgi, atkEvasion, atkAgi, defCrit);
 
             // Hits & counters
             float speedRatio = (float)atkAgi / Mathf.Max(defAgi, 1);
@@ -404,11 +407,17 @@ namespace StrategyGame.Combat {
 
         private static int GetEffectiveStat(int baseStat, StatModifier modifier) => Mathf.RoundToInt(baseStat * modifier.Percent + modifier.Flat);
 
+        private static float GetEffectiveStat(float baseStat, StatModifier modifier) => baseStat * modifier.Percent + modifier.Flat;
+
         private static float GetHitChance(int attackerAccuracy, int attackerAgility, int defenderEvasion, int defenderAgility) =>
             Mathf.Clamp01(_baseHitChance + ((((4f * attackerAccuracy + attackerAgility) / 2f) - ((4 * defenderEvasion + defenderAgility) / 2f)) / 100f));
 
-        private static float GetCritChance(int attackerAccuracy, int attackerAgility, int defenderEvasion, int defenderAgility) =>
-            Mathf.Clamp(_baseCritChance + (Mathf.Log(4 * attackerAccuracy + 2 * attackerAgility + 1) - Mathf.Log(4 * defenderEvasion + 2 * defenderAgility + 1)) / 11f, .01f, 1f);
+        private static float GetCritChance(int attackerAccuracy, int attackerAgility, int defenderEvasion, int defenderAgility, float attackerBaseCrit) {
+            float atkTerm = Mathf.Max(1f, 4f * attackerAccuracy + 2f * attackerAgility + 1f);
+            float defTerm = Mathf.Max(1f, 4f * defenderEvasion + 2f * defenderAgility + 1f);
+            float crit = attackerBaseCrit + (Mathf.Log(atkTerm) - Mathf.Log(defTerm)) / 11f;
+            return Mathf.Clamp(crit, 0f, 1f);
+        }
 
         private static int GetDamage(int attack, int defense, bool crit, float critMultiplier = 1.5f, float critDefenseMultiplier = 0.5f) {
             float damage = crit ? attack * critMultiplier - defense * critDefenseMultiplier : attack - defense;

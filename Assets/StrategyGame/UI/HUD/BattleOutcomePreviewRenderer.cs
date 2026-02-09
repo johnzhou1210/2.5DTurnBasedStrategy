@@ -78,6 +78,7 @@ namespace StrategyGame.UI.HUD {
             attackerMediumRisk.alpha = 0;
             attackerHighRisk.alpha = 0;
             attackerGuaranteedDeath.alpha = 0;
+            Debug.Log($"BattleOutcomePreviewRenderer.UpdateBattleOutcomePreview: Chance to kill attacker is {preview.DefenderChanceToKillAttacker}");
             switch (preview.DefenderChanceToKillAttacker) {
                 case <= 0f:
                     // Don't show risk
@@ -139,6 +140,7 @@ namespace StrategyGame.UI.HUD {
            defenderMediumRisk.alpha = 0;
            defenderHighRisk.alpha = 0;
            defenderGuaranteedDeath.alpha = 0;
+           Debug.Log($"BattleOutcomePreviewRenderer.UpdateBattleOutcomePreview: Chance to kill defender is {preview.AttackerChanceToKillDefender}");
             switch (preview.AttackerChanceToKillDefender) {
                 case <= 0f:
                     // Don't show risk

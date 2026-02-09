@@ -15,6 +15,8 @@ using UnityEngine.Timeline;
 
 namespace StrategyGame.Combat.Cinematics {
     public class CombatDirector : MonoBehaviour {
+        private static readonly int Attack = Animator.StringToHash("Attack");
+        private static readonly int AttackType = Animator.StringToHash("AttackType");
         /* Timelines needed:
          * CombatIntro: Sets the scene for combat and combatants are visible
          * CombatOutro
@@ -50,6 +52,8 @@ namespace StrategyGame.Combat.Cinematics {
         private GridEntity _defenderEntity;
         private CombatOutcome _combatOutcome;
         private Camera _camera;
+        private CombatTimeline _currCombatEvent;
+        private bool _isAttackerTurn = true;
 
 
 
@@ -94,7 +98,6 @@ namespace StrategyGame.Combat.Cinematics {
             
             EnterCinematicMode();
             SpawnPuppets();
-            BindTimeline();
 
             Debug.Log($"Order of events: {string.Join(",", _combatOutcome.OrderOfEvents)}");
             
@@ -109,16 +112,18 @@ namespace StrategyGame.Combat.Cinematics {
             bool defenderActed = false;
             
             while (currEventIndex < _combatOutcome.OrderOfEvents.Count) {
-                CombatTimeline currEvent = _combatOutcome.OrderOfEvents[currEventIndex];
-                if (currEvent is CombatTimeline.AttackerDies or CombatTimeline.DefenderDies) break;
+                _currCombatEvent = _combatOutcome.OrderOfEvents[currEventIndex];
+                if (_currCombatEvent is CombatTimeline.AttackerDies or CombatTimeline.DefenderDies) break;
                 
                 // Set the needed generic bindings
-                PlayableAsset playableAsset = GetPlayableAssetFromCombatTimelineEnum(currEvent);
-                if (currEvent is CombatTimeline.AttackerMeleeNormal or CombatTimeline.AttackerMeleeCrit or CombatTimeline.AttackerRangedNormal or CombatTimeline.AttackerRangedCrit) {
+                PlayableAsset playableAsset = GetPlayableAssetFromCombatTimelineEnum(_currCombatEvent);
+                if (_currCombatEvent is CombatTimeline.AttackerMeleeNormal or CombatTimeline.AttackerMeleeCrit or CombatTimeline.AttackerRangedNormal or CombatTimeline.AttackerRangedCrit) {
+                    _isAttackerTurn = true;
                     defenderRigAdapter.localPosition = new Vector3(defenderActed ? 0f : 1.5f, 0, 0);
                     BindActingRig(playableAsset, attackerAnimatedRig.GetComponent<Animator>());
                 }
-                if (currEvent is CombatTimeline.DefenderMeleeNormal or CombatTimeline.DefenderMeleeCrit or CombatTimeline.DefenderRangedNormal or CombatTimeline.DefenderRangedCrit) {
+                if (_currCombatEvent is CombatTimeline.DefenderMeleeNormal or CombatTimeline.DefenderMeleeCrit or CombatTimeline.DefenderRangedNormal or CombatTimeline.DefenderRangedCrit) {
+                    _isAttackerTurn = false;
                     defenderActed = true;
                     defenderRigAdapter.localPosition = new Vector3(0f, 0, 0);
                     BindActingRig(playableAsset, defenderAnimatedRig.GetComponent<Animator>());
@@ -169,25 +174,33 @@ namespace StrategyGame.Combat.Cinematics {
             attackerPuppet.Setup(_attackerEntity);
             defenderPuppet.Setup(_defenderEntity);
         }
-        private void BindTimeline() {
-            // director.SetGenericBinding(attackerTrack, _attackerPuppet.Animator);
-            // director.SetGenericBinding(defenderTrack, _defenderPuppet.Animator);
-        }
+       
         private void CleanupPuppets() {
             
         }
         private void ExitCinematicMode() {
-            GameStateDelegates.InvokeOnFinalizePlayerAction();
             GameStateData currState = GameStateDelegates.GetCurrentGameState();
             UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.BattleOutcomePreview);
             GridDelegates.InvokeOnInspectedTileChanged(GridDelegates.GetTileFromPosition(currState.Combat.InspectedTilePosition), GridDelegates.GetTileFromPosition(_attackerEntity.GridPosition));
             currState.Combat.InspectedTilePosition = _attackerEntity.GridPosition;
             InputDelegates.InvokeOnReinstateGridCursorPosition(_attackerEntity.GridPosition);
+            GameStateDelegates.InvokeOnApplyAttackOutcome(_combatOutcome);
+            Invoke(nameof(FinalizeAction), 1f);
             // Unlock user grid input
             // Undo camera override
         }
 
+        private void FinalizeAction() {
+            GameStateDelegates.InvokeOnFinalizePlayerAction();
+        }
+
         /* Methods called via animation events */
+        public void OnAttackStart() {
+            Animator targetAnimator = _isAttackerTurn ? attackerPuppet.GetComponent<Animator>() : defenderPuppet.GetComponent<Animator>();
+            targetAnimator.SetTrigger(Attack);
+            targetAnimator.SetInteger(AttackType, _currCombatEvent is CombatTimeline.AttackerMeleeNormal or CombatTimeline.AttackerMeleeCrit or CombatTimeline.DefenderMeleeNormal or CombatTimeline.DefenderMeleeCrit ? 0 : 1);
+        }
+        
         public void OnAttackImpact(int attackIndex) {
             bool hit = _combatOutcome.AttackHits[attackIndex];
             bool crit = _combatOutcome.AttackHitCrits[attackIndex];
@@ -226,58 +239,6 @@ namespace StrategyGame.Combat.Cinematics {
         private void SpawnDamageNumber(int damage, bool crit) {
             
         }
-        
-
-        // private void Update() {
-        //     if (playerInput.actions["Test1"].WasPressedThisFrame()) {
-        //         Debug.Log("Testing puppet");
-        //         testPuppet.PlayAttack(AttackType.Melee, false, 0); // Melee1
-        //     }
-        //     if (playerInput.actions["Test2"].WasPressedThisFrame()) {
-        //         Debug.Log("Testing puppet");
-        //         testPuppet.PlayAttack(AttackType.Melee, false, 1); // Melee2
-        //     }
-        //     if (playerInput.actions["Test3"].WasPressedThisFrame()) {
-        //         Debug.Log("Testing puppet");
-        //         testPuppet.PlayAttack(AttackType.Ranged, false, 1); // Attack3
-        //     }
-        //     if (playerInput.actions["Test4"].WasPressedThisFrame()) {
-        //         Debug.Log("Testing puppet");
-        //         testPuppet.PlayAttack(AttackType.Melee, false, 1);
-        //     }
-        //     if (playerInput.actions["Test5"].WasPressedThisFrame()) {
-        //         Debug.Log("Testing puppet");
-        //         testPuppet.PlayAttack(AttackType.Melee, false, 1);
-        //     }
-        //     if (playerInput.actions["Test6"].WasPressedThisFrame()) {
-        //         Debug.Log("Testing puppet");
-        //         testPuppet.PlayAttack(AttackType.Melee, false, 1);
-        //     }
-        //     if (playerInput.actions["Test7"].WasPressedThisFrame()) {
-        //         Debug.Log("Testing puppet");
-        //         testPuppet.PlayAttack(AttackType.Melee, false, 1);
-        //     }
-        //     if (playerInput.actions["Test8"].WasPressedThisFrame()) {
-        //         Debug.Log("Testing puppet");
-        //         testPuppet.PlayAttack(AttackType.Melee, false, 1);
-        //     }
-        //     if (playerInput.actions["Test9"].WasPressedThisFrame()) {
-        //         Debug.Log("Testing puppet");
-        //         testPuppet.PlayAttack(AttackType.Melee, false, 1);
-        //     }
-        //     if (playerInput.actions["Test10"].WasPressedThisFrame()) {
-        //         Debug.Log("Testing puppet");
-        //         testPuppet.PlayAttack(AttackType.Melee, false, 1);
-        //     }
-        //     if (playerInput.actions["Test11"].WasPressedThisFrame()) {
-        //         Debug.Log("Testing puppet");
-        //         testPuppet.PlayAttack(AttackType.Melee, false, 1);
-        //     }
-        //     if (playerInput.actions["Test12"].WasPressedThisFrame()) {
-        //         Debug.Log("Testing puppet");
-        //         testPuppet.PlayAttack(AttackType.Melee, false, 1);
-        //     }
-        // }
 
 
     }

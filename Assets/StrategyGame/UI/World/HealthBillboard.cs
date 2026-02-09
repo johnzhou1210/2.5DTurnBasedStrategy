@@ -69,14 +69,14 @@ namespace StrategyGame.UI.World {
         }
 
         private IEnumerator DeathCoroutine() {
-            yield return new WaitForSeconds(healthTransitionDuration);
             EntityVisual targetVisual = EntityVisualDelegates.GetEntityVisualTransformByID(_targetID).GetComponent<EntityVisual>();
             if (targetVisual == null) {
                 throw new Exception("HealthBillboard.DeathCoroutine: targetVisual not found!");
             }
+            targetVisual.Die();
+            yield return new WaitForSeconds(healthTransitionDuration);
             _fadeCoroutine = StartCoroutine(FadeCoroutine());
             EntityVisualDelegates.InvokeOnFadeEntityVisuals(_targetID);
-            targetVisual.Die();
             _deathCoroutine = null;
         }
         

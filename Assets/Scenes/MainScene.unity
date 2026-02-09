@@ -380,7 +380,7 @@ PlayableDirector:
   m_GameObject: {fileID: 56456705}
   m_Enabled: 1
   serializedVersion: 3
-  m_PlayableAsset: {fileID: 11400000, guid: bd493559fec2b435496259282cac2fb8, type: 2}
+  m_PlayableAsset: {fileID: 11400000, guid: 78337d26ea72d46e88acb1ae16c104ca, type: 2}
   m_InitialState: 0
   m_WrapMode: 2
   m_DirectorUpdateMode: 1
@@ -460,6 +460,14 @@ PlayableDirector:
     value: {fileID: 144049704}
   - key: {fileID: -5833579621566245035, guid: c1db70d506f0049cb8f3401e610878ad, type: 2}
     value: {fileID: 144049704}
+  - key: {fileID: 1838391320314644632, guid: f4d2809e8a87446f2ac9405b9e033833, type: 2}
+    value: {fileID: 2062070587}
+  - key: {fileID: 6472315781709471543, guid: b90b60b8b54f44af8989548a3fbbf47a, type: 2}
+    value: {fileID: 2062070587}
+  - key: {fileID: 6566879566873147228, guid: 78337d26ea72d46e88acb1ae16c104ca, type: 2}
+    value: {fileID: 2062070587}
+  - key: {fileID: -1292609902506076035, guid: d2ea545e9db6347fe85f126cbbf121e4, type: 2}
+    value: {fileID: 2062070587}
   m_ExposedReferences:
     m_References:
     - 632462683452d4319857eb414cc3bb2d: {fileID: 1621476692}
@@ -5541,11 +5549,11 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
-  far clip plane: 1000
-  field of view: 105
+  near clip plane: 0.1
+  far clip plane: 5000
+  field of view: 53
   orthographic: 0
-  orthographic size: 5
+  orthographic size: 10
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -5569,8 +5577,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.38268343, y: 0, z: 0, w: 0.92387956}
-  m_LocalPosition: {x: 0, y: 0.60141164, z: -3.907434}
+  m_LocalRotation: {x: -0.09627989, y: 0, z: 0, w: -0.99535435}
+  m_LocalPosition: {x: -0.23795, y: 1000.00275, z: -2.5199974}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -18877,18 +18885,6 @@ PrefabInstance:
     m_TransformParent: {fileID: 943945748}
     m_Modifications:
     - target: {fileID: 4494709934084631806, guid: 293bbc4df5bd346359789acdaa4d82ca, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4494709934084631806, guid: 293bbc4df5bd346359789acdaa4d82ca, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4494709934084631806, guid: 293bbc4df5bd346359789acdaa4d82ca, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4494709934084631806, guid: 293bbc4df5bd346359789acdaa4d82ca, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -25448,6 +25444,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2062070585}
   - component: {fileID: 2062070586}
+  - component: {fileID: 2062070587}
   m_Layer: 0
   m_Name: CombatSequenceRoot
   m_TagString: Untagged
@@ -25500,6 +25497,37 @@ MonoBehaviour:
   meleeCritPlayable: {fileID: 11400000, guid: b90b60b8b54f44af8989548a3fbbf47a, type: 2}
   rangedNormalPlayable: {fileID: 11400000, guid: 78337d26ea72d46e88acb1ae16c104ca, type: 2}
   rangedCritPlayable: {fileID: 11400000, guid: d2ea545e9db6347fe85f126cbbf121e4, type: 2}
+--- !u!114 &2062070587
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2062070584}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e52de21a22b6dd44c9cc19f810c65059, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Timeline::UnityEngine.Timeline.SignalReceiver
+  m_Events:
+    m_Signals:
+    - {fileID: 11400000, guid: 6325e849092da4bab98cfa90b11ad8f4, type: 2}
+    m_Events:
+    - m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 2062070586}
+          m_TargetAssemblyTypeName: StrategyGame.Combat.Cinematics.CombatDirector,
+            Assembly-CSharp
+          m_MethodName: OnAttackStart
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
 --- !u!1 &2064380248
 GameObject:
   m_ObjectHideFlags: 0
