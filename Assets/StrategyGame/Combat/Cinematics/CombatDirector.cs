@@ -105,6 +105,8 @@ namespace StrategyGame.Combat.Cinematics {
             int currEventIndex = 0;
             DirectorLoadAndPlay(combatIntroPlayable);
             yield return new WaitUntil((() => director.state != PlayState.Playing));
+
+            bool defenderActed = false;
             
             while (currEventIndex < _combatOutcome.OrderOfEvents.Count) {
                 CombatTimeline currEvent = _combatOutcome.OrderOfEvents[currEventIndex];
@@ -113,15 +115,17 @@ namespace StrategyGame.Combat.Cinematics {
                 // Set the needed generic bindings
                 PlayableAsset playableAsset = GetPlayableAssetFromCombatTimelineEnum(currEvent);
                 if (currEvent is CombatTimeline.AttackerMeleeNormal or CombatTimeline.AttackerMeleeCrit or CombatTimeline.AttackerRangedNormal or CombatTimeline.AttackerRangedCrit) {
-                    defenderRigAdapter.localPosition = new Vector3(1.5f, 0, 0);
+                    defenderRigAdapter.localPosition = new Vector3(defenderActed ? 0f : 1.5f, 0, 0);
                     BindActingRig(playableAsset, attackerAnimatedRig.GetComponent<Animator>());
                 }
                 if (currEvent is CombatTimeline.DefenderMeleeNormal or CombatTimeline.DefenderMeleeCrit or CombatTimeline.DefenderRangedNormal or CombatTimeline.DefenderRangedCrit) {
+                    defenderActed = true;
                     defenderRigAdapter.localPosition = new Vector3(0f, 0, 0);
                     BindActingRig(playableAsset, defenderAnimatedRig.GetComponent<Animator>());
                 }
                 DirectorLoadAndPlay(playableAsset);
                 yield return new WaitUntil((() => director.state != PlayState.Playing));
+                // defenderRigAdapter.localPosition = new Vector3(0f, 0, 0);
                 currEventIndex++;
             }
             

@@ -1,4 +1,5 @@
 using StrategyGame.Grid;
+using UnityEditor.Animations;
 using UnityEngine;
 
 namespace StrategyGame.Combat.Cinematics {
@@ -16,8 +17,8 @@ namespace StrategyGame.Combat.Cinematics {
         public Animator Animator;
         
         public void Setup(GridEntity entity) {
-            // Get visual data
-            // Fetch 
+            // Set animator controller
+            Animator.runtimeAnimatorController = entity.AnimatorController;
         }
 
         public void PlayDodge() {

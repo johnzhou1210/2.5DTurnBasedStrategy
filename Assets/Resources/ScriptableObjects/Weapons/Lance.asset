@@ -19,5 +19,5 @@ MonoBehaviour:
   damageType: 0
   statModifiers:
   - ModifierStat: 3
-    Flat: 0
+    Flat: 999
     Percent: 0.45

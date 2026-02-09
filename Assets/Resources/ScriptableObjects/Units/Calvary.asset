@@ -21,6 +21,7 @@ MonoBehaviour:
   baseAccuracy: 16
   baseDefense: 8
   baseResistance: 6
-  baseAgility: 24
+  baseAgility: 36
   baseEvasion: 18
   weapon: {fileID: 11400000, guid: dd0bdb58b79fda3499a732c2d980d34a, type: 2}
+  animatorController: {fileID: 9100000, guid: a8f1411b0e0674848b0df29c0f9b4cfa, type: 2}

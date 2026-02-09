@@ -137,75 +137,67 @@ namespace StrategyGame.Combat {
             outcome.DefenderID = preview.DefenderID;
             int defenderHP = preview.DefenderCurrentHP;
             int attackerHP = preview.AttackerCurrentHP;
-            int attackerActualNumAttacks = 0;
-            int defenderActualNumCounters = 0;
-
-            /* Attacker does their thing */
-            for (int i = 0; i < preview.AttackerNumAttacks; i++) {
-                if (defenderHP <= 0) break;
-                attackerActualNumAttacks += 1;
-                bool crit = _rng.Chance(preview.AttackerCritChance);
-                bool hit = _rng.Chance(preview.AttackerHitChance);
-                if (crit) {
-                    outcome.OrderOfEvents.Add(preview.AttackerWeapon.MinAttackRange > 1 ? CombatDirector.CombatTimeline.AttackerRangedCrit : CombatDirector.CombatTimeline.AttackerMeleeCrit);
-                } else {
-                    outcome.OrderOfEvents.Add(preview.AttackerWeapon.MinAttackRange > 1 ? CombatDirector.CombatTimeline.AttackerRangedNormal : CombatDirector.CombatTimeline.AttackerMeleeNormal);
+            
+            
+            int attacksLeft = preview.AttackerNumAttacks;
+            int countersLeft = preview.DefenderNumCounters;
+            int currAttackIndex = 0;
+            int currCounterIndex = 0;
+            
+            while (attacksLeft > 0 || countersLeft > 0) {
+                /* Attacker does their thing */
+                if (attacksLeft > 0 && defenderHP > 0) {
+                    attacksLeft--;
+                    outcome.NumAttacks++;
+                    bool crit = _rng.Chance(preview.AttackerCritChance);
+                    bool hit = _rng.Chance(preview.AttackerHitChance);
+                    outcome.OrderOfEvents.Add(
+                            crit ? (preview.AttackerWeapon.MinAttackRange > 1 ? CombatDirector.CombatTimeline.AttackerRangedCrit : CombatDirector.CombatTimeline.AttackerMeleeCrit)
+                                : (preview.AttackerWeapon.MinAttackRange > 1 ? CombatDirector.CombatTimeline.AttackerRangedNormal : CombatDirector.CombatTimeline.AttackerMeleeNormal)
+                        );
+                    if (hit) {
+                        int damage = crit ? preview.AttackerCritDamagePerHit : preview.AttackerNonCritDamagePerHit;
+                        defenderHP -= damage;
+                        outcome.AttackHits[currAttackIndex] = true;
+                        outcome.AttackHitCrits[currAttackIndex] = crit;
+                        outcome.AttackDamageInstances[currAttackIndex] = damage;
+                        outcome.DamageDealt += damage;
+                        if (defenderHP <= 0) {
+                            outcome.OrderOfEvents.Add(CombatDirector.CombatTimeline.DefenderDies);
+                            outcome.DefenderDied = true;
+                            break;
+                        }
+                    }
+                    currAttackIndex++;
                 }
                 
-                if (!hit) continue;
-                int damage = crit
-                    ? preview.AttackerCritDamagePerHit
-                    : preview.AttackerNonCritDamagePerHit;
-
-                defenderHP -= damage;
-
-                if (defenderHP <= 0) {
-                    outcome.OrderOfEvents.Add(CombatDirector.CombatTimeline.DefenderDies);
-                }
-                
-                outcome.AttackHits[i] = true;
-                outcome.AttackHitCrits[i] = crit;
-                outcome.DamageDealt += damage;
-                outcome.AttackDamageInstances[i] = damage;
-            }
-
-            outcome.DefenderDied = defenderHP <= 0;
-            outcome.NumAttacks = attackerActualNumAttacks;
-
-            /* Defender does their thing */
-            if (!outcome.DefenderDied && preview.DefenderNumCounters > 0) {
-                for (int i = 0; i < preview.DefenderNumCounters; i++) {
-                    if (attackerHP <= 0) break;
-                    defenderActualNumCounters += 1;
-
+                /* Defender does their thing */
+                if (countersLeft > 0 && attackerHP > 0 && defenderHP > 0) {
+                    countersLeft--;
+                    outcome.NumCounters++;
                     bool crit = _rng.Chance(preview.DefenderCritChance);
                     bool hit = _rng.Chance(preview.DefenderHitChance);
-                    if (crit) {
-                        outcome.OrderOfEvents.Add(preview.DefenderWeapon.MinAttackRange > 1 ? CombatDirector.CombatTimeline.DefenderRangedCrit : CombatDirector.CombatTimeline.DefenderMeleeCrit);
-                    } else {
-                        outcome.OrderOfEvents.Add(preview.DefenderWeapon.MinAttackRange > 1 ? CombatDirector.CombatTimeline.DefenderRangedNormal : CombatDirector.CombatTimeline.DefenderMeleeNormal);
+                    outcome.OrderOfEvents.Add(
+                        crit ? (preview.DefenderWeapon.MinAttackRange > 1 ? CombatDirector.CombatTimeline.DefenderRangedCrit : CombatDirector.CombatTimeline.DefenderMeleeCrit)
+                            : (preview.DefenderWeapon.MinAttackRange > 1 ? CombatDirector.CombatTimeline.DefenderRangedNormal : CombatDirector.CombatTimeline.DefenderMeleeNormal)
+                    );
+                    if (hit) {
+                        int damage = crit ? preview.DefenderCritDamagePerHit : preview.DefenderNonCritDamagePerHit;
+                        attackerHP -= damage;
+                        outcome.DefendCounterHits[currCounterIndex] = true;
+                        outcome.DefendCounterCrits[currCounterIndex] = crit;
+                        outcome.CounterDamageInstances[currCounterIndex] = damage;
+                        outcome.CounterDamageDealt += damage;
+                        if (attackerHP <= 0) {
+                            outcome.OrderOfEvents.Add(CombatDirector.CombatTimeline.AttackerDies);
+                            outcome.AttackerDied = true;
+                            break;
+                        }
                     }
-                    
-                    if (!hit) continue;
-                    int damage = crit
-                        ? preview.DefenderCritDamagePerHit
-                        : preview.DefenderNonCritDamagePerHit;
-
-                    attackerHP -= damage;
-                    
-                    if (attackerHP <= 0) {
-                        outcome.OrderOfEvents.Add(CombatDirector.CombatTimeline.AttackerDies);
-                    }
-                    
-                    outcome.DefendCounterHits[i] = true;
-                    outcome.DefendCounterCrits[i] = crit;
-                    outcome.CounterDamageDealt += damage;
-                    outcome.CounterDamageInstances[i] = damage;
+                    currCounterIndex++;
                 }
+                
             }
-
-            outcome.AttackerDied = attackerHP <= 0;
-            outcome.NumCounters = defenderActualNumCounters;
             return outcome;
         }
 

@@ -6,6 +6,7 @@ using StrategyGame.Core.Delegates;
 using StrategyGame.Core.GameState;
 using StrategyGame.Factions;
 using StrategyGame.Grid.GridData;
+using UnityEditor.Animations;
 using UnityEngine;
 
 namespace StrategyGame.Grid {
@@ -53,6 +54,7 @@ namespace StrategyGame.Grid {
         /* VISUAL */
         public bool IsSelected { get; private set; } = false;
         public bool IsVisible { get; private set; } = true;
+        public AnimatorController AnimatorController { get; private set; }
 
         
         // ==============================
@@ -81,6 +83,7 @@ namespace StrategyGame.Grid {
             Resistance = GridEntityData.BaseResistance;
             Agility = GridEntityData.BaseAgility;
             Evasion = GridEntityData.BaseEvasion;
+            AnimatorController = GridEntityData.AnimatorController;
         }
         
         

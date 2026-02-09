@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using StrategyGame.Combat;
+using StrategyGame.Combat.Cinematics;
 using StrategyGame.Combat.Weapons;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Factions;
@@ -90,7 +92,7 @@ namespace StrategyGame.UI.HUD {
                     break;
                 case < .67f:
                     attackerMediumRisk.alpha = 1f;
-                    attackerMediumRisk.transform.GetComponentInChildren<TextMeshProUGUI>().SetText($"{Math.Max(Mathf.CeilToInt(preview.DefenderChanceToKillAttacker*100f), 99)}%");
+                    attackerMediumRisk.transform.GetComponentInChildren<TextMeshProUGUI>().SetText($"{Math.Clamp(Mathf.CeilToInt(preview.DefenderChanceToKillAttacker*100f), 0, 99)}%");
                     break;
                 case < .9995f:
                     attackerHighRisk.alpha = 1f;
@@ -151,7 +153,7 @@ namespace StrategyGame.UI.HUD {
                     break;
                 case < .67f:
                     defenderMediumRisk.alpha = 1f;
-                    defenderMediumRisk.transform.GetComponentInChildren<TextMeshProUGUI>().SetText($"{Math.Max(Mathf.CeilToInt(preview.AttackerChanceToKillDefender*100f), 99)}%");
+                    defenderMediumRisk.transform.GetComponentInChildren<TextMeshProUGUI>().SetText($"{Math.Clamp(Mathf.CeilToInt(preview.AttackerChanceToKillDefender*100f), 0, 99)}%");
                     break;
                 case < .9995f:
                     defenderHighRisk.alpha = 1f;
@@ -184,6 +186,7 @@ namespace StrategyGame.UI.HUD {
             foreach (Transform child in blowExchangeContainer.transform) {
                 Destroy(child.gameObject);
             }
+            
             int attackerHitsLeft = preview.AttackerNumAttacks;
             int defenderHitsLeft = preview.DefenderNumCounters;
             while (attackerHitsLeft > 0 && defenderHitsLeft > 0) {

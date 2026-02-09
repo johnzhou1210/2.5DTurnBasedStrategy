@@ -24,3 +24,4 @@ MonoBehaviour:
   baseAgility: 8
   baseEvasion: 5
   weapon: {fileID: 11400000, guid: bed3ea0cc64043127bceb7714b2fd8a5, type: 2}
+  animatorController: {fileID: 9100000, guid: 7d464ddc640b544fca7bcd913021b06f, type: 2}
