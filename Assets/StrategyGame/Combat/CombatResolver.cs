@@ -64,7 +64,7 @@ namespace StrategyGame.Combat {
 
     public class CombatOutcome {
         public List<CombatDirector.CombatTimeline> OrderOfEvents;
-        
+        public int AttackerSkillID = -1;
         public bool[] AttackHits = new[] { false, false };
         public bool[] AttackHitCrits = new[] { false, false };
         public bool[] DefendCounterHits = new[] { false, false };

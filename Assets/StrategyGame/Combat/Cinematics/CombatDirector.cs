@@ -11,6 +11,8 @@ using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Playables;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.Timeline;
 
 namespace StrategyGame.Combat.Cinematics {
@@ -42,6 +44,7 @@ namespace StrategyGame.Combat.Cinematics {
         
         [SerializeField] private CombatPuppet attackerPuppet;
         [SerializeField] private CombatPuppet defenderPuppet;
+        [SerializeField] private Volume globalVolume;
         
         [Header("Timeline Playable Assets")]
         [SerializeField] private PlayableAsset combatIntroPlayable;
@@ -51,6 +54,7 @@ namespace StrategyGame.Combat.Cinematics {
         [SerializeField] private PlayableAsset rangedNormalPlayable;
         [SerializeField] private PlayableAsset rangedCritPlayable;
 
+        private DepthOfField _depthOfField;
         private GridEntity _attackerEntity;
         private GridEntity _defenderEntity;
         private CombatOutcome _combatOutcome;
@@ -74,11 +78,13 @@ namespace StrategyGame.Combat.Cinematics {
             DefenderRangedCrit,
             // Not actual timelines, but signals
             AttackerDies, // for if anyone dies
-            DefenderDies
+            DefenderDies,
+            AttackerSkill
         }
 
         private void Start() {
             _camera = Camera.main;
+            globalVolume.profile.TryGet(out _depthOfField);
         }
 
         private void OnEnable() {
@@ -104,9 +110,9 @@ namespace StrategyGame.Combat.Cinematics {
             
             EnterCinematicMode();
             SpawnPuppets();
-            
-           
 
+            SetDepthOfFieldAperture(6.33f);
+            
             Debug.Log($"Order of events: {string.Join(",", _combatOutcome.OrderOfEvents)}");
             
             BillboardDelegates.InvokeOnSetLookatTargetTransform(combatCam.transform);
@@ -119,9 +125,8 @@ namespace StrategyGame.Combat.Cinematics {
             _currAttackerHP = _attackerEntity.Health;
             _currDefenderHP = _defenderEntity.Health;
             
-            UIDelegates.InvokeOnCombatCinematicHUDUpdate(true, _currAttackerHP, _attackerEntity.MaxHealth, _currAttackerHP, _attackerEntity.DisplayName);
-            UIDelegates.InvokeOnCombatCinematicHUDUpdate(false, _currDefenderHP, _defenderEntity.MaxHealth, _currDefenderHP, _defenderEntity.DisplayName);
-            
+            UIDelegates.InvokeOnCombatCinematicHUDUpdate(true, _currAttackerHP, _attackerEntity.MaxHealth, _currAttackerHP, _attackerEntity.ID);
+            UIDelegates.InvokeOnCombatCinematicHUDUpdate(false, _currDefenderHP, _defenderEntity.MaxHealth, _currDefenderHP, _defenderEntity.ID);
            
             DirectorLoadAndPlay(combatIntroPlayable);
             yield return new WaitForSeconds(3f);
@@ -155,9 +160,13 @@ namespace StrategyGame.Combat.Cinematics {
             }
             
             UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.BattleCinematicHUD);
+
+            yield return new WaitForSeconds(1f);
             
             // Director play outro cutscene
             DirectorLoadAndPlay(combatOutroPlayable);
+            yield return new WaitForSeconds(1f);
+            SetDepthOfFieldAperture(16f);
             yield return new WaitUntil((() => director.state != PlayState.Playing));
             defenderAnimatedRig.localPosition = new Vector3(0, 0, 0);
             CleanupPuppets();
@@ -217,7 +226,11 @@ namespace StrategyGame.Combat.Cinematics {
             GameStateDelegates.InvokeOnFinalizePlayerAction();
         }
 
-        /* Methods called via animation events */
+        /* Methods called via Signals */
+        public void OnSpawnProjectile() {
+            // Decide which projectile to spawn based on context
+            
+        }
         public void StartSlowMo() {
             Time.timeScale = .5f;
         }
@@ -231,6 +244,7 @@ namespace StrategyGame.Combat.Cinematics {
         }
         
         public void OnAttackImpact() {
+            GridEntity victimEntity = _isAttackerTurn ? _defenderEntity : _attackerEntity;
             Animator targetAnimator = _isAttackerTurn ? defenderPuppet.GetComponent<Animator>() : attackerPuppet.GetComponent<Animator>();
             CombatPuppet targetPuppet = _isAttackerTurn ? defenderPuppet : attackerPuppet;
             bool[] hitsArr = _isAttackerTurn ? _combatOutcome.AttackHits : _combatOutcome.DefendCounterHits;
@@ -249,7 +263,7 @@ namespace StrategyGame.Combat.Cinematics {
             int victimHPAfterImpact = _isAttackerTurn ?  _currDefenderHP : _currAttackerHP;
             int victimMaxHP = _isAttackerTurn ? _defenderEntity.MaxHealth : _attackerEntity.MaxHealth;
             string victimName = _isAttackerTurn ? _defenderEntity.DisplayName : _attackerEntity.DisplayName;
-            UIDelegates.InvokeOnCombatCinematicHUDUpdate(!_isAttackerTurn, victimHPAfterImpact, victimMaxHP, victimHPBeforeImpact, victimName);
+            UIDelegates.InvokeOnCombatCinematicHUDUpdate(!_isAttackerTurn, victimHPAfterImpact, victimMaxHP, victimHPBeforeImpact, victimEntity.ID);
             if (!hit) {
                 targetAnimator.SetTrigger(Dodge);
                 // Any miss SFX/VFX
@@ -262,13 +276,12 @@ namespace StrategyGame.Combat.Cinematics {
             }
         }
         // ===================================== //
+
+        private void SetDepthOfFieldAperture(float newVal) {
+            if (_depthOfField == null) return;
+            _depthOfField.aperture.value = newVal;
+        }
         
-        private Vector3 GetAttackPosition() {
-            return Vector3.zero;
-        }
-        private Vector3 GetDefendPosition() {
-            return Vector3.zero;
-        }
         
  
 

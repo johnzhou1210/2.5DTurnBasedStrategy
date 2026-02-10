@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1609389061859331606}
   - component: {fileID: 3494261320134608365}
   - component: {fileID: 1610352607855172828}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: ProjectileSpawnPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -40,7 +40,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3866411271018651209}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -99,7 +99,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1092009782655465729}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: VFXSpawnPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -130,7 +130,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6150360555050412373}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: DamageIndicatorSpawnPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -163,7 +163,7 @@ GameObject:
   - component: {fileID: 3623127717664030225}
   - component: {fileID: 3113880964606469063}
   - component: {fileID: 4978665045905021586}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: DefaultPuppetSprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}

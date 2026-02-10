@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Orc
   m_EditorClassIdentifier: 
   visualPrefab: {fileID: 374549065707966590, guid: ead840e7aeb03464782a96ba34b102a8, type: 3}
-  baseHealth: 15
+  baseHealth: 16
   factionData: {fileID: 11400000, guid: a0b59abac260b427e80dffda475e6fd6, type: 2}
   movementRange: 3
   visionRange: 5

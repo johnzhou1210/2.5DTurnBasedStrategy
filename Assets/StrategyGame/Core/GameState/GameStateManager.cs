@@ -176,6 +176,14 @@ namespace StrategyGame.Core.GameState {
                 UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Calvary"),
                 SpawnPosition = new Vector2Int(5, 5)
             });
+            units.Add(new UnitSpawnQuery {
+                UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Calvary"),
+                SpawnPosition = new Vector2Int(8, 8)
+            });
+            units.Add(new UnitSpawnQuery {
+                UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Skeleton Archer"),
+                SpawnPosition = new Vector2Int(8, 6)
+            });
             EntityDelegates.SpawnUnits(units);
             GenerateRandomBiome(Resources.Load<TileData>("ScriptableObjects/Tiles/Mountains"));
             GenerateRandomBiome(Resources.Load<TileData>("ScriptableObjects/Tiles/Forest"));

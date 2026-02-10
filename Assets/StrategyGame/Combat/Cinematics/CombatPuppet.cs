@@ -1,6 +1,5 @@
 using StrategyGame.Grid;
 using StrategyGame.UI.World;
-using UnityEditor.Animations;
 using UnityEngine;
 
 namespace StrategyGame.Combat.Cinematics {

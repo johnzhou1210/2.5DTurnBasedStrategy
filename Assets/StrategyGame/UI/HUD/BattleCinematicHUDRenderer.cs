@@ -1,6 +1,10 @@
 using System;
 using DG.Tweening;
+using StrategyGame.Combat;
+using StrategyGame.Combat.Weapons;
 using StrategyGame.Core.Delegates;
+using StrategyGame.Grid;
+using StrategyGame.Grid.GridData;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,6 +24,18 @@ namespace StrategyGame.UI.HUD {
       [SerializeField] private TextMeshProUGUI attackerNameText;
       [SerializeField] private TextMeshProUGUI defenderNameText;
 
+      [SerializeField] private TextMeshProUGUI attackerDamageText;
+      [SerializeField] private TextMeshProUGUI attackerHitChanceText;
+      [SerializeField] private TextMeshProUGUI attackerCritChanceText;
+      [SerializeField] private TextMeshProUGUI defenderDamageText;
+      [SerializeField] private TextMeshProUGUI defenderHitChanceText;
+      [SerializeField] private TextMeshProUGUI defenderCritChanceText;
+
+      [SerializeField] private Image attackerWeaponImage;
+      [SerializeField] private Image defenderWeaponImage;
+      [SerializeField] private TextMeshProUGUI attackerWeaponText;
+      [SerializeField] private TextMeshProUGUI defenderWeaponText;
+
       private void OnEnable() {
          UIDelegates.OnCombatCinematicHUDUpdate += UpdateUI;
       }
@@ -29,16 +45,19 @@ namespace StrategyGame.UI.HUD {
       }
       
 
-      private void UpdateUI(bool isAttacker, int health, int maxHealth, int oldHealth, string displayName) {
+      private void UpdateUI(bool isAttacker, int health, int maxHealth, int oldHealth, int entityID) {
+         GridEntity targetEntity = EntityDelegates.GetGridEntityByID(entityID);
+         Image targetWeaponImage = isAttacker ? attackerWeaponImage : defenderWeaponImage;
+         TextMeshProUGUI targetWeaponText = isAttacker ? attackerWeaponText : defenderWeaponText;
+         
          // Name update
          TextMeshProUGUI targetNameText = isAttacker ? attackerNameText : defenderNameText;
-         targetNameText.SetText(displayName);
+         targetNameText.SetText(targetEntity.DisplayName);
          
          // Health update
          Slider targetFillSlider = isAttacker ? attackerFillSlider : defenderFillSlider;
          Slider targetLossSlider = isAttacker ? attackerLossSlider : defenderLossSlider;
          TextMeshProUGUI targetHPText = isAttacker ? attackerHPText : defenderHPText;
-         Image targetLossFill = isAttacker ? attackerLossFill : defenderLossFill;
          float targetHealth = (float)health / maxHealth;
          // targetLossSlider.value = (float)oldHealth / maxHealth;
          // targetLossFill.DOFade(0f, 1f);
@@ -48,6 +67,17 @@ namespace StrategyGame.UI.HUD {
          DOTween.To(()=> targetLossSlider.value, x => targetLossSlider.value = x, targetHealth, healthTransitionDuration);
          targetHPText.color = health != 0 ? Color.white : Color.red;
          targetHPText.SetText(health.ToString());
+
+         CombatPreview preview = GameStateDelegates.GetCurrentGameState().Combat.CombatPreview;
+         attackerDamageText.SetText(preview.AttackerNonCritDamagePerHit.ToString());
+         defenderDamageText.SetText(preview.DefenderNonCritDamagePerHit.ToString());
+         attackerHitChanceText.SetText($"{Mathf.CeilToInt(preview.AttackerHitChance*100f).ToString()}%");
+         defenderHitChanceText.SetText($"{Mathf.CeilToInt(preview.DefenderHitChance*100f).ToString()}%");
+         attackerCritChanceText.SetText($"{Mathf.CeilToInt(preview.AttackerCritChance*100f).ToString()}%");
+         defenderCritChanceText.SetText($"{Mathf.CeilToInt(preview.DefenderCritChance*100f).ToString()}%");
+
+         targetWeaponImage.sprite = WeaponData.GetSpriteFromWeaponType(targetEntity.Weapon.WeaponType);
+         targetWeaponText.SetText(targetEntity.Weapon.name);
       }
 
    }

@@ -1,6 +1,5 @@
 using StrategyGame.Combat.Weapons;
 using StrategyGame.Factions;
-using UnityEditor.Animations;
 using UnityEngine;
 
 namespace StrategyGame.Grid.GridData {
@@ -17,7 +16,8 @@ namespace StrategyGame.Grid.GridData {
         [SerializeField] private int baseAgility = 5;
         [SerializeField] private int baseEvasion = 5;
         [SerializeField] private WeaponData weapon;
-        [SerializeField] private AnimatorController animatorController;
+        [SerializeField] private RuntimeAnimatorController animatorController;
+        
 
         public GameObject VisualPrefab { get => visualPrefab; }
         public int BaseHealth { get => baseHealth; }
@@ -35,6 +35,6 @@ namespace StrategyGame.Grid.GridData {
             get => weapon;
             set => weapon = value;
         }
-        public AnimatorController AnimatorController { get => animatorController; }
+        public RuntimeAnimatorController AnimatorController { get => animatorController; }
     }
 }

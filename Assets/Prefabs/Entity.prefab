@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3031115709406158048}
   - component: {fileID: 505717500060693178}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Entity
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -58,7 +58,7 @@ GameObject:
   - component: {fileID: 3125087858936535395}
   - component: {fileID: 5809897094646383295}
   - component: {fileID: 4949327740833744364}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Ring
   m_TagString: Untagged
   m_Icon: {fileID: 0}

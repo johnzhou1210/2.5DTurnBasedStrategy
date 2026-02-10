@@ -14,11 +14,15 @@ namespace StrategyGame.UI.World {
             TextMeshProUGUI targetText = (isCrit ? critAttackNumberText : normalAttackNumberText);
             targetText.SetText(damage.ToString());
             transform.localScale = Vector3.zero;
+            
+            Vector3 directionToCamera = (Camera.main.transform.position - transform.position).normalized;
+            float popDistance = 2f;
+            Vector3 targetPosition = transform.position + (Vector3.up * .2f) + (directionToCamera * popDistance);
+            
             Sequence sequence = DOTween.Sequence();
-            sequence.Append(transform.DOScale(isCrit ? .45f : .4f, 0.15f))
-                .Join(transform.DOMoveY(transform.position.y + .8f, .6f))
-                .Join(canvasGroup.DOFade(1, .5f))
-                .Join(canvasGroup.DOFade(0, 1f))
+            sequence.Append(transform.DOScale(isCrit ? .15f : .1f, 0.15f))
+                .Join(transform.DOMove(targetPosition, 0.6f))
+                .Append(canvasGroup.DOFade(0, 1f))
                 .OnComplete(() => Destroy(gameObject));
         }
     }
