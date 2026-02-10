@@ -39,6 +39,7 @@ namespace StrategyGame.Core.GameState {
                     HandleCombatOutcomeInspectionUI();
                     return;
                 }
+                UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.BattleOutcomePreview);
                 HandleEntityInspectionUI();
             }
         }

@@ -104,6 +104,8 @@ namespace StrategyGame.Combat.Cinematics {
             
             EnterCinematicMode();
             SpawnPuppets();
+            
+           
 
             Debug.Log($"Order of events: {string.Join(",", _combatOutcome.OrderOfEvents)}");
             
@@ -117,8 +119,13 @@ namespace StrategyGame.Combat.Cinematics {
             _currAttackerHP = _attackerEntity.Health;
             _currDefenderHP = _defenderEntity.Health;
             
+            UIDelegates.InvokeOnCombatCinematicHUDUpdate(true, _currAttackerHP, _attackerEntity.MaxHealth, _currAttackerHP, _attackerEntity.DisplayName);
+            UIDelegates.InvokeOnCombatCinematicHUDUpdate(false, _currDefenderHP, _defenderEntity.MaxHealth, _currDefenderHP, _defenderEntity.DisplayName);
+            
            
             DirectorLoadAndPlay(combatIntroPlayable);
+            yield return new WaitForSeconds(3f);
+            UIAnimationDelegates.InvokeOnShowIfHidden(AnimatorCategory.BattleCinematicHUD);
             yield return new WaitUntil((() => director.state != PlayState.Playing));
 
             bool defenderActed = false;
@@ -147,11 +154,12 @@ namespace StrategyGame.Combat.Cinematics {
                 currEventIndex++;
             }
             
+            UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.BattleCinematicHUD);
+            
             // Director play outro cutscene
             DirectorLoadAndPlay(combatOutroPlayable);
             yield return new WaitUntil((() => director.state != PlayState.Playing));
             defenderAnimatedRig.localPosition = new Vector3(0, 0, 0);
-
             CleanupPuppets();
             ExitCinematicMode();
         }
@@ -178,6 +186,8 @@ namespace StrategyGame.Combat.Cinematics {
         
 
         private void EnterCinematicMode() {
+            GameStateData currState = GameStateDelegates.GetCurrentGameState();
+            UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.BattleOutcomePreview);
             // Lock user grid input
             // Override camera
         }
@@ -208,6 +218,12 @@ namespace StrategyGame.Combat.Cinematics {
         }
 
         /* Methods called via animation events */
+        public void StartSlowMo() {
+            Time.timeScale = .5f;
+        }
+        public void EndSlowMo() {
+            Time.timeScale = 1f;
+        }
         public void OnAttackStart() {
             Animator targetAnimator = _isAttackerTurn ? attackerPuppet.GetComponent<Animator>() : defenderPuppet.GetComponent<Animator>();
             targetAnimator.SetTrigger(Attack);
@@ -216,6 +232,7 @@ namespace StrategyGame.Combat.Cinematics {
         
         public void OnAttackImpact() {
             Animator targetAnimator = _isAttackerTurn ? defenderPuppet.GetComponent<Animator>() : attackerPuppet.GetComponent<Animator>();
+            CombatPuppet targetPuppet = _isAttackerTurn ? defenderPuppet : attackerPuppet;
             bool[] hitsArr = _isAttackerTurn ? _combatOutcome.AttackHits : _combatOutcome.DefendCounterHits;
             bool[] critsArr = _isAttackerTurn ? _combatOutcome.AttackHitCrits :  _combatOutcome.DefendCounterCrits;
             int[] dmgInstancesArr = _isAttackerTurn ? _combatOutcome.AttackDamageInstances : _combatOutcome.CounterDamageInstances;
@@ -223,33 +240,26 @@ namespace StrategyGame.Combat.Cinematics {
             bool hit = hitsArr[currIndex];
             bool crit = critsArr[currIndex];
             int impactDamage = dmgInstancesArr[currIndex];
+            int victimHPBeforeImpact = _isAttackerTurn ? _currDefenderHP : _currAttackerHP;
             if (_isAttackerTurn) {
                 _currDefenderHP = Math.Max(_currDefenderHP - impactDamage, 0);
             } else {
                 _currAttackerHP = Math.Max(_currAttackerHP - impactDamage, 0);
             }
             int victimHPAfterImpact = _isAttackerTurn ?  _currDefenderHP : _currAttackerHP;
+            int victimMaxHP = _isAttackerTurn ? _defenderEntity.MaxHealth : _attackerEntity.MaxHealth;
+            string victimName = _isAttackerTurn ? _defenderEntity.DisplayName : _attackerEntity.DisplayName;
+            UIDelegates.InvokeOnCombatCinematicHUDUpdate(!_isAttackerTurn, victimHPAfterImpact, victimMaxHP, victimHPBeforeImpact, victimName);
             if (!hit) {
                 targetAnimator.SetTrigger(Dodge);
                 // Any miss SFX/VFX
                 return;
             }
             targetAnimator.SetTrigger(Hurt);
-            SpawnDamageNumber(impactDamage, crit);
+            targetPuppet.SpawnDamageNumber(impactDamage, crit);
             if (victimHPAfterImpact <= 0) {
                 targetAnimator.SetTrigger(Death);
             }
-        }
-        public void OnCounterImpact(int counterIndex) {
-            bool hit = _combatOutcome.DefendCounterHits[counterIndex];
-            bool crit  = _combatOutcome.DefendCounterCrits[counterIndex];
-            int counterDamage = _combatOutcome.CounterDamageInstances[counterIndex];
-            if (!hit) {
-                attackerPuppet.PlayDodge();
-                return;
-            }
-            attackerPuppet.PlayHit(crit);
-            SpawnDamageNumber(counterDamage, crit);
         }
         // ===================================== //
         
@@ -260,9 +270,7 @@ namespace StrategyGame.Combat.Cinematics {
             return Vector3.zero;
         }
         
-        private void SpawnDamageNumber(int damage, bool crit) {
-            
-        }
+ 
 
 
     }

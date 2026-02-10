@@ -69,6 +69,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StrategyGame.Combat.Cinematics.CombatPuppet
   Animator: {fileID: 874327414049239690}
+  damageIndicatorPrefab: {fileID: 432172801547459356, guid: 1ebd9a36490bf49cbba6d262a6d57087, type: 3}
+  damageIndicatorSpawnPoint: {fileID: 1881036539448081421}
+  billboardCanvasTransform: {fileID: 0}
 --- !u!1001 &5710758470950557016
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -126,6 +129,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e73926ba17e7c4a28a3b507036a102ab, type: 3}
+--- !u!4 &1881036539448081421 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6150360555050412373, guid: e73926ba17e7c4a28a3b507036a102ab, type: 3}
+  m_PrefabInstance: {fileID: 5710758470950557016}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &9009275012438551369 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3623127717664030225, guid: e73926ba17e7c4a28a3b507036a102ab, type: 3}

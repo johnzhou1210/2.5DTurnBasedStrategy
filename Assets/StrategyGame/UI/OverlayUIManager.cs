@@ -8,7 +8,8 @@ namespace StrategyGame.UI {
         CanvasRoot,
         EntityHUD,
         WinLoseConditions,
-        BattleOutcomePreview
+        BattleOutcomePreview,
+        BattleCinematicHUD
     }
     public class OverlayUIManager : MonoBehaviour {
         // ==============================
@@ -18,7 +19,7 @@ namespace StrategyGame.UI {
         [SerializeField] private Animator entityHUDAnimator;
         [SerializeField] private Animator winLoseConditionsAnimator;
         [SerializeField] private Animator battleOutcomePreviewAnimator;
-        
+        [SerializeField] private Animator battleCinematicHUDAnimator;
         
         // ==============================
         // MONOBEHAVIOUR LIFECYCLE
@@ -58,6 +59,9 @@ namespace StrategyGame.UI {
                 case AnimatorCategory.BattleOutcomePreview:
                     battleOutcomePreviewAnimator.Play(animationName);
                     break;
+                case AnimatorCategory.BattleCinematicHUD:
+                    battleCinematicHUDAnimator.Play(animationName);
+                    break;
                 default:
                     throw new InvalidEnumArgumentException("Invalid animator category!");
             }
@@ -78,6 +82,8 @@ namespace StrategyGame.UI {
                     return winLoseConditionsAnimator;
                 case AnimatorCategory.BattleOutcomePreview:
                     return battleOutcomePreviewAnimator;
+                case AnimatorCategory.BattleCinematicHUD:
+                    return battleCinematicHUDAnimator;
                 default:
                     throw new Exception("OverlayUIManager.GetIsPlaying: Invalid animator category!");
             }
@@ -98,7 +104,6 @@ namespace StrategyGame.UI {
 
         private void ShowIfHidden(AnimatorCategory cat, bool instant = false)
         {
-     
             if (UIAnimationDelegates.GetIsPlaying(cat, "Invisible") || UIAnimationDelegates.GetIsPlaying(cat, "TweenOut")) Show(cat, instant);
         }
 

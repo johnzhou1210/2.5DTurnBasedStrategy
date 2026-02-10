@@ -1,4 +1,5 @@
 using StrategyGame.Grid;
+using StrategyGame.UI.World;
 using UnityEditor.Animations;
 using UnityEngine;
 
@@ -13,6 +14,9 @@ namespace StrategyGame.Combat.Cinematics {
 
       
         public Animator Animator;
+        [SerializeField] private GameObject damageIndicatorPrefab;
+        [SerializeField] private Transform damageIndicatorSpawnPoint;
+        [SerializeField] private Transform billboardCanvasTransform;
         
         public void Setup(GridEntity entity) {
             // Set animator controller
@@ -20,16 +24,11 @@ namespace StrategyGame.Combat.Cinematics {
             Animator.Play("Idle");
         }
 
-        public void PlayDodge() {
-            
-        }
-
-        public void PlayDeath() {
-            
-        }
-
-        public void PlayHit(bool crit) {
-            
+        public void SpawnDamageNumber(int damage, bool isCrit) {
+            GameObject damageIndicator = Instantiate(damageIndicatorPrefab, billboardCanvasTransform);
+            damageIndicator.transform.position = damageIndicatorSpawnPoint.position;
+            DamageIndicatorBillboard damageIndicatorComponent = damageIndicator.GetComponent<DamageIndicatorBillboard>();
+            damageIndicatorComponent.Setup(damage, isCrit);
         }
         
 

@@ -15,6 +15,7 @@ namespace StrategyGame.Core.Delegates {
         public static event Action<bool> OnSetCombatActionMenuVisibility;
         public static event Action OnUpdateTurnIndicatorRenderer;
         public static event Action OnPlayPhaseBannerAnimationSequence;
+        public static event Action<bool, int, int, int, string> OnCombatCinematicHUDUpdate;
 
         public static void InvokeOnSetUIActive(UICategory category, bool active) {
             OnSetUIActive?.Invoke(category, active);
@@ -41,7 +42,9 @@ namespace StrategyGame.Core.Delegates {
         public static void InvokeOnBattleOutcomePreviewUpdate(CombatPreview preview) {
             OnBattleOutcomePreviewUpdate?.Invoke(preview);
         }
-        
+        public static void InvokeOnCombatCinematicHUDUpdate(bool isAttacker, int health, int maxHealth, int oldHealth, string displayName) {
+            OnCombatCinematicHUDUpdate?.Invoke(isAttacker, health, maxHealth, oldHealth, displayName);
+        }
 
         
 

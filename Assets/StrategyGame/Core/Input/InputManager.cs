@@ -377,6 +377,7 @@ namespace StrategyGame.Core.Input {
                         Debug.LogWarning("InputManager.HandleEntityTileSelection: targetEntity is null!");
                         return;
                     }
+                    
                     CombatOutcome attackOutcome = CombatResolver.ResolveCombatFromPreview(state.Combat.CombatPreview);
                     CombatCinematicsDelegates.GetDirector().InitializeCinematicData(actingEntity, targetEntity, attackOutcome);
                     GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitAttackCutscene);

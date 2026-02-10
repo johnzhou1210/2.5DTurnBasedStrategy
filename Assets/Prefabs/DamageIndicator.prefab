@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &3305212083630622990
 RectTransform:
   m_ObjectHideFlags: 0
@@ -150,6 +150,7 @@ GameObject:
   - component: {fileID: 8798838311423325521}
   - component: {fileID: 7980809740793817329}
   - component: {fileID: 1955574297151502962}
+  - component: {fileID: 2717454186977172631}
   m_Layer: 5
   m_Name: DamageIndicator
   m_TagString: Untagged
@@ -207,7 +208,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 432172801547459356}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 26f052965b4db4750905f627c5156a36, type: 3}
   m_Name: 
@@ -226,6 +227,23 @@ CanvasGroup:
   m_Interactable: 0
   m_BlocksRaycasts: 0
   m_IgnoreParentGroups: 0
+--- !u!114 &2717454186977172631
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 432172801547459356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0eb999078bd54a029f9fdb6c95880a6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StrategyGame.UI.World.DamageIndicatorBillboard
+  normalAttackNumber: {fileID: 238928523177236133}
+  critAttackNumber: {fileID: 5277066267746325538}
+  normalAttackNumberText: {fileID: 6170217268083870185}
+  critAttackNumberText: {fileID: 6318691904036314124}
+  canvasGroup: {fileID: 1955574297151502962}
 --- !u!1 &5277066267746325538
 GameObject:
   m_ObjectHideFlags: 0
