@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using DG.Tweening.Core.Easing;
 using StrategyGame.Combat;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
@@ -27,6 +28,7 @@ namespace StrategyGame.Core.GameState {
         public GameStateEnums.UnitMoveSelectionMode UnitMoveSelectionMode = GameStateEnums.UnitMoveSelectionMode.None;
         public Vector2Int InspectedTilePosition;
         public bool NextActorReady = true;
+        public bool PlayerDirectAttackAvailable = false;
         public CombatPreview CombatPreview;
 
         [SerializeField] private int inspectedEntityID = -1;

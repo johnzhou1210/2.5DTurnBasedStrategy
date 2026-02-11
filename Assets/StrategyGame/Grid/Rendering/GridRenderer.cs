@@ -82,7 +82,6 @@ namespace StrategyGame.Grid.Rendering {
                 }
                 // ClearWalkableTiles();
             }
-
             if (newTile == null) {
                 Debug.Log("GridRenderer.UpdateInspectedTileVisuals: New tile is null, returning early.");
                 return;
@@ -99,18 +98,15 @@ namespace StrategyGame.Grid.Rendering {
                 // If currently selecting an entity or hovering over an entity outside of path selection mode, show entity's walkable tiles
                 // Do not update walkable tiles if currently selecting a unit's movement path
                 GameStateData currentGameState = GameStateDelegates.GetCurrentGameState();
-
                 ClearWalkableTiles();
-                if (currentGameState.Combat.PlayerPhase != GameStateEnums.PlayerPhaseState.UnitSelectTarget) ClearAttackableTiles();
-
+                if (currentGameState.Combat.PlayerPhase != GameStateEnums.PlayerPhaseState.UnitSelectTarget)
+                    ClearAttackableTiles();
                 HashSet<Tile> walkableTiles = new HashSet<Tile>();
                 HashSet<GridEntity> attackableEntities = new HashSet<GridEntity>();
                 GridEntity currSelectedEntity = EntityDelegates.GetGridEntityByID(currentGameState.Combat.SelectedEntityID);
-
                 if (currSelectedEntity != null) {
                     attackableEntities = currSelectedEntity.GetAttackableEntitiesAtPosition(currentGameState.Combat.InspectedTilePosition);
                 }
-
                 switch (currentGameState.Combat.TurnPhase) {
                     case GameStateEnums.TurnPhase.Player:
                         switch (currentGameState.Combat.PlayerPhase) {
@@ -127,21 +123,15 @@ namespace StrategyGame.Grid.Rendering {
                                 walkableTiles = currSelectedEntity.GetWalkableTilesAtPosition(newTile.Position, movementCostRemaining, true);
                                 walkableTiles.UnionWith(GameStateDelegates.GetManualPath().Unique);
                                 MarkWalkableTiles(walkableTiles);
-
                                 if (newTile.Occupant is { Faction: Faction.Enemy }) {
                                     // Highlight enemy
                                     MarkTilesWithAttackableEntities(new HashSet<GridEntity> { newTile.Occupant });
                                 } else {
                                     MarkTilesWithAttackableEntities(attackableEntities);
                                 }
-
-
                                 break;
-                            case GameStateEnums.PlayerPhaseState.UnitMovingToDestination:
-                                break;
-                            case GameStateEnums.PlayerPhaseState.UnitActionMenu:
-                                MarkTilesWithinAttackRange(Faction.Player, currSelectedEntity.GetAttackableTilesAtPosition(currSelectedEntity.GridPosition));
-                                break;
+                            case GameStateEnums.PlayerPhaseState.UnitMovingToDestination: break;
+                            case GameStateEnums.PlayerPhaseState.UnitActionMenu: MarkTilesWithinAttackRange(Faction.Player, currSelectedEntity.GetAttackableTilesAtPosition(currSelectedEntity.GridPosition)); break;
                             case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
                                 Transform entityTransform = EntityVisualDelegates.GetEntityVisualTransformByID(currentGameState.Combat.SelectedEntityID);
                                 Tile inspectedTile = GridDelegates.GetTileFromPosition(currentGameState.Combat.InspectedTilePosition);
@@ -149,25 +139,18 @@ namespace StrategyGame.Grid.Rendering {
                                 if (spriteRenderer == null) {
                                     throw new Exception("GridRenderer.UpdateInspectedTileVisuals: EntityVisual's SpriteRenderer not found!");
                                 }
-                                if (!Mathf.Approximately(entityTransform.position.x, inspectedTile.Position.x)) spriteRenderer.flipX = entityTransform.transform.position.x > inspectedTile.Position.x;                                
+                                if (!Mathf.Approximately(entityTransform.position.x, inspectedTile.Position.x))
+                                    spriteRenderer.flipX = entityTransform.transform.position.x > inspectedTile.Position.x;
                                 break;
-                            case GameStateEnums.PlayerPhaseState.UnitAttackCutscene:
-                                break;
-                            case GameStateEnums.PlayerPhaseState.None:
-                                break;
-                            default:
-                                throw new Exception("GridRenderer.UpdateInspectedTileVisuals: Invalid PlayerPhaseState!");
+                            case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: break;
+                            case GameStateEnums.PlayerPhaseState.None: break;
+                            default: throw new Exception("GridRenderer.UpdateInspectedTileVisuals: Invalid PlayerPhaseState!");
                         }
                         break;
-                    case GameStateEnums.TurnPhase.Enemy:
-                        ClearTilesWithinAttackRange();
-                        break;
+                    case GameStateEnums.TurnPhase.Enemy: ClearTilesWithinAttackRange(); break;
                 }
-
             }
         }
-
-
         /// <summary>
         /// Visually marks walkable tiles.
         /// </summary>
@@ -183,13 +166,11 @@ namespace StrategyGame.Grid.Rendering {
                 }
             }
         }
-
         private void MarkTilesWithAttackableEntities(HashSet<GridEntity> attackableEntities) {
             foreach (GridEntity attackableEntity in attackableEntities) {
                 Debug.Log($"GridRenderer.MarkTilesWithAttackableEntities: {string.Join(",", attackableEntities)}");
                 _tilesWithAttackableEntities.Add(_tileVisuals[attackableEntity.GridPosition.x, attackableEntity.GridPosition.y]);
             }
-
             foreach (GameObject attackableTile in _tilesWithAttackableEntities) {
                 if (attackableTile.TryGetComponent(out TileRenderer tileRenderer)) {
                     tileRenderer.SetHighlight(TileHighlightType.Attackable, Faction.Player, true);
@@ -197,7 +178,6 @@ namespace StrategyGame.Grid.Rendering {
                 }
             }
         }
-
         private void MarkTilesWithinAttackRange(Faction faction, HashSet<Tile> tilesWithinAttackRange) {
             foreach (Tile tile in tilesWithinAttackRange) {
                 _tilesWithinAttackRange.Add(_tileVisuals[tile.Position.x, tile.Position.y]);
@@ -209,8 +189,6 @@ namespace StrategyGame.Grid.Rendering {
                 }
             }
         }
-
-
         /// <summary>
         /// Renders a visual route of a path.
         /// This method is ONLY for Automatic Move Selection Mode (It uses A*).
@@ -237,7 +215,6 @@ namespace StrategyGame.Grid.Rendering {
                 }
             }
         }
-
         private void PreviewManualPath(ManualPath manualPath) {
             ClearAllPathTileVisuals();
             foreach (Tile tile in manualPath.Tiles) {
@@ -250,7 +227,6 @@ namespace StrategyGame.Grid.Rendering {
                 }
             }
         }
-
         private void ClearAllPathTileVisuals() {
             // Clear all path tiles before rendering new ones
             for (int i = 0; i < _pathTiles.Count; i++) {
@@ -261,15 +237,14 @@ namespace StrategyGame.Grid.Rendering {
             }
             _pathTiles.Clear();
         }
-
         private void UpdateTileVisualSelection(Vector2Int newPosition, bool animated) {
             GameObject tileToUpdate = _tileVisuals[newPosition.x, newPosition.y];
-            if (!tileToUpdate.activeInHierarchy) return;
+            if (!tileToUpdate.activeInHierarchy)
+                return;
             if (tileToUpdate.TryGetComponent(out TileRenderer tileRenderer)) {
                 tileRenderer.SetSelectionVisualIsAnimated(animated);
             }
         }
-
         private void RenderEntityMovementAlongPath(GridEntity entity, List<Tile> path) {
             StartCoroutine(EntityPathMovementCoroutine(entity, path));
         }
@@ -296,8 +271,6 @@ namespace StrategyGame.Grid.Rendering {
                 selectable.RedrawHighlights();
             }
         }
-
-
 
         // ==============================
         // HELPERS
@@ -339,16 +312,13 @@ namespace StrategyGame.Grid.Rendering {
                 isTurn = incomingDirection.Value != outcomingDirection.Value;
                 if (isTurn) {
                     (angle, flip) = GetCornerRotationAngleFromIncomingOutcoming(incomingDirection.Value, outcomingDirection.Value);
-                }
-                else {
+                } else {
                     angle = GetStraightRotationAngleFromIncomingOutcoming(incomingDirection.Value, outcomingDirection.Value);
                 }
-            }
-            else if (incomingDirection.HasValue) {
+            } else if (incomingDirection.HasValue) {
                 // Last tile: use incoming direction to orient route end
                 angle = GetStraightRotationAngleFromIncomingOutcoming(incomingDirection.Value, incomingDirection.Value);
-            }
-            else if (outcomingDirection.HasValue) {
+            } else if (outcomingDirection.HasValue) {
                 // First tile: use outcoming direction to orient route start
                 angle = GetStraightRotationAngleFromIncomingOutcoming(outcomingDirection.Value, outcomingDirection.Value);
             }
@@ -370,7 +340,6 @@ namespace StrategyGame.Grid.Rendering {
             }
             _walkableTiles.Clear();
         }
-
         private void ClearAttackableTiles() {
             foreach (GameObject attackableTile in _tilesWithAttackableEntities) {
                 if (attackableTile.TryGetComponent(out TileRenderer tileRenderer)) {
@@ -380,7 +349,6 @@ namespace StrategyGame.Grid.Rendering {
             }
             _tilesWithAttackableEntities.Clear();
         }
-
         private void ClearTilesWithinAttackRange() {
             foreach (GameObject tile in _tilesWithinAttackRange) {
                 if (tile.TryGetComponent(out TileRenderer tileRenderer)) {
@@ -391,7 +359,6 @@ namespace StrategyGame.Grid.Rendering {
             }
             _tilesWithinAttackRange.Clear();
         }
-
         private void ClearTilesWithinDangerZone() {
             foreach (GameObject tile in _tilesWithinDangerZone) {
                 if (tile.TryGetComponent(out TileRenderer tileRenderer)) {
@@ -401,40 +368,37 @@ namespace StrategyGame.Grid.Rendering {
             }
             _tilesWithinDangerZone.Clear();
         }
-
         private IEnumerator EntityPathMovementCoroutine(GridEntity entity, List<Tile> path) {
             // Get entity transform
             Transform entityTransform = EntityVisualDelegates.GetEntityVisualTransformByID(entity.ID);
             SpriteRenderer spriteRenderer = entityTransform.GetComponentInChildren<SpriteRenderer>();
-            if (spriteRenderer == null) throw new Exception("GridRenderer.EntityPathMovementCoroutine: No SpriteRenderer found!");
+            if (spriteRenderer == null)
+                throw new Exception("GridRenderer.EntityPathMovementCoroutine: No SpriteRenderer found!");
             List<Tile> pathCopy = new List<Tile>(path);
             Debug.Log(string.Join(", ", pathCopy));
             foreach (Tile tile in pathCopy) {
                 Tween tween = entityTransform.DOMove(new Vector3(tile.Position.x, 0f, tile.Position.y), 0.33f).SetEase(Ease.Linear);
                 Debug.Log($"Current x: {entityTransform.position.x}, Tile x: {tile.Position.x}");
-                if (!Mathf.Approximately(entityTransform.position.x, tile.Position.x)) spriteRenderer.flipX = entityTransform.transform.position.x > tile.Position.x;
-                
+                if (!Mathf.Approximately(entityTransform.position.x, tile.Position.x))
+                    spriteRenderer.flipX = entityTransform.transform.position.x > tile.Position.x;
                 yield return tween.WaitForCompletion();
             }
             GameStateData currentState = GameStateDelegates.GetCurrentGameState();
             switch (currentState.Combat.TurnPhase) {
                 case GameStateEnums.TurnPhase.Player:
                     // Notify game state to change immediately to unit action menu
-                    GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitActionMenu);
+                    // Check game state to see if quick attack is available
+                    GameStateDelegates.InvokeOnPlayerPhaseStateChanged(currentState.Combat.PlayerDirectAttackAvailable ? GameStateEnums.PlayerPhaseState.UnitSelectTarget : GameStateEnums.PlayerPhaseState.UnitActionMenu);
+                    currentState.Combat.PlayerDirectAttackAvailable = false;
                     break;
                 case GameStateEnums.TurnPhase.Enemy:
                     // Notify game state to continue to next enemy actor.
-                    currentState.Combat.NextActorReady = true;
-                    break;
-                case GameStateEnums.TurnPhase.Event:
-                    break;
-                case GameStateEnums.TurnPhase.None:
-                    break;
-                default:
-                    throw new Exception("GridRenderer.EntityPathMovementCoroutine: Invalid turn phase!");
+                    currentState.Combat.NextActorReady = true; break;
+                case GameStateEnums.TurnPhase.Event: break;
+                case GameStateEnums.TurnPhase.None: break;
+                default: throw new Exception("GridRenderer.EntityPathMovementCoroutine: Invalid turn phase!");
             }
         }
-
         private void SetDangerZoneVisibility(bool val) {
             if (val) {
                 // add tiles to danger zone
@@ -442,7 +406,6 @@ namespace StrategyGame.Grid.Rendering {
                 foreach (int enemyID in allEnemyIDs) {
                     GridEntity currentEnemy = EntityDelegates.GetGridEntityByID(enemyID);
                     HashSet<Tile> dangerTiles = currentEnemy.GetTilesWithinAttackRange();
-
                     foreach (Tile tile in dangerTiles) {
                         _tilesWithinDangerZone.Add(_tileVisuals[tile.Position.x, tile.Position.y]);
                     }
@@ -453,8 +416,7 @@ namespace StrategyGame.Grid.Rendering {
                         // tileRenderer.SetOppositeReactionHighlightVisualVisibility(true);
                     }
                 }
-            }
-            else {
+            } else {
                 // clear tiles from danger zone
                 ClearTilesWithinDangerZone();
                 GameStateData currState = GameStateDelegates.GetCurrentGameState();
@@ -464,17 +426,14 @@ namespace StrategyGame.Grid.Rendering {
                 }
             }
         }
-
         private void MarkAttackRange(Faction faction, GridEntity entity) {
             HashSet<Tile> tilesWithinAttackRange = entity.GetTilesWithinAttackRange();
             MarkTilesWithinAttackRange(faction, tilesWithinAttackRange);
         }
-
         private void HandleManualMarkTilesWithAttackableEntities() {
             GameStateData currentState = GameStateDelegates.GetCurrentGameState();
             GridEntity selectedEntity = EntityDelegates.GetGridEntityByID(currentState.Combat.SelectedEntityID);
             MarkTilesWithAttackableEntities(selectedEntity.GetAttackableEntitiesAtPosition(selectedEntity.GridPosition));
         }
-
     }
 }

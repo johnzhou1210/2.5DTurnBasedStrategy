@@ -390,6 +390,7 @@ namespace StrategyGame.Core.GameState {
                     GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, true);
                     break;
                 case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
+                    ManualPath.Clear();
                     // Populate the EnemiesCycleDeque
                     GridEntity attackingEntity = EntityDelegates.GetGridEntityByID(CurrentState.Combat.SelectedEntityID);
                     HashSet<GridEntity> attackableEntities = attackingEntity.GetAttackableEntitiesAtPosition(attackingEntity.GridPosition);
@@ -450,6 +451,8 @@ namespace StrategyGame.Core.GameState {
                         "GameStateManager.AddCoordinateToManualPath: An entity of an opposing faction is blocking movement to this tile.");
                     return false;
                 }
+                
+                // Allow melee units that can reach the target to immediately attack
 
                 int movementCostUsed = GetManualPathUsedMovementCost();
                 if (selectedEntity.MovementRange - movementCostUsed - tileAtCoordinate.MovementCost < 0) {

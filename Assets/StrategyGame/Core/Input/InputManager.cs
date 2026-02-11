@@ -325,7 +325,7 @@ namespace StrategyGame.Core.Input {
                 case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination: {
                     GridEntity currentSelectedEntity = EntityDelegates.GetGridEntityByID(state.Combat.SelectedEntityID);
                     if (currentSelectedEntity == null) {
-                        Debug.LogWarning("InputManager.HandleSelectionInput: Current selected entity is null!");
+                        Debug.LogWarning("InputManager.HandleEntityTileSelection: Current selected entity is null!");
                         return;
                     }
                     Debug.Log("InputManager.HandleEntityTileSelection: STOP FORMING PATH");
@@ -345,22 +345,29 @@ namespace StrategyGame.Core.Input {
                         $"InputManager.HandleSelectionInput: Manual path tiles: {string.Join(", ", manualPathList)} | Selected entity movement range: {currentSelectedEntity.MovementRange} | Manual path set: {string.Join(", ", manualPathSet)}");
                     bool isDestinationValid = manualPathList.Count - 1 <= currentSelectedEntity.MovementRange;
                     // Debug.Log($"Condition1: {manualPathList.Count - 1 <= currentSelectedEntity.MovementRange}");
+                    Debug.Log($"InputManager.HandleSelectionInput: IsDestinationValid: {isDestinationValid}");
                     if (isDestinationValid) {
                         // Check if the tile at the destination has an occupant.
                         // If enemy occupant, directly go to choose target phase state, else, go to moving to destination state.
                         Tile destinationTile = manualPathList[^1];
                         bool conditionsNeededToMoveToDestination = manualPathList.ToHashSet().IsSubsetOf(manualPathSet) && (destinationTile.Occupant == null || destinationTile.Occupant == currentSelectedEntity);
-                        HashSet<GridEntity> entitiesWithinAttackRangeAtCurrentPosition = currentSelectedEntity.GetAttackableEntitiesAtPosition(currentSelectedEntity.GridPosition);
-                        bool conditionsNeededToDirectlyAttackTarget = destinationTile.Occupant is { Faction: Faction.Enemy } && entitiesWithinAttackRangeAtCurrentPosition.Any(e => e.ID == destinationTile.Occupant.ID);
+                        HashSet<GridEntity> attackerTrueAttackRange = currentSelectedEntity.GetEntitiesWithinAttackRange();
+                        bool conditionsNeededToDirectlyAttackTarget = destinationTile.Occupant is { Faction: Faction.Enemy } && attackerTrueAttackRange.Any(e => e.ID == destinationTile.Occupant.ID);
                         if (conditionsNeededToDirectlyAttackTarget) { // Assumes enemy
                             // Give player ability to directly attack the target
-                            Debug.Log(
-                                $"ConditionsNeededToAttackTarget: Condition1: {destinationTile.Occupant is { Faction: Faction.Enemy }}, Condition2: {entitiesWithinAttackRangeAtCurrentPosition.Where(e => e.Faction == Faction.Enemy).Any(e => e.ID == destinationTile.Occupant.ID)}");
-                            GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitSelectTarget);
-                        } else if (conditionsNeededToMoveToDestination) {
-                            // Move unit to destination
+                            // Change state to moving to destination
+                            // Remove the last item on the list because that one is occupied by an enemy
+                            GameStateDelegates.GetCurrentGameState().Combat.PlayerDirectAttackAvailable = true;
+                            manualPathList.RemoveAt(manualPathList.Count - 1);
                             currentSelectedEntity.MoveAlongPath(manualPathList);
                             GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitMovingToDestination);
+                        } else if (conditionsNeededToMoveToDestination) {
+                            // Move unit to destination
+                            Debug.Log($"ConditionsNeededToMoveToDestination is true");
+                            currentSelectedEntity.MoveAlongPath(manualPathList);
+                            GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitMovingToDestination);
+                        } else {
+                            Debug.Log($"InputManager.HandleEntityTileSelection: conditionsNeededToDirectlyAttackTarget is {conditionsNeededToDirectlyAttackTarget} and conditionsNeededToMoveToDestination is {conditionsNeededToMoveToDestination}");
                         }
                     } else {
                         Debug.Log($"InputManager.HandleSelectionInput: Current manual path is not allowed!");

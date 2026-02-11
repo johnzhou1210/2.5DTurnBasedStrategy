@@ -175,7 +175,7 @@ namespace StrategyGame.Grid {
         }
 
         // Assumes the player has not moved yet.
-        public virtual HashSet<Tile> GetTilesWithinAttackRange() {
+        public HashSet<Tile> GetTilesWithinAttackRange() {
             // Debug.Log("GridEntity.GetTilesWithinAttackRange: Calling base version");
             HashSet<Tile> reachableTiles = GetWalkableTiles(true);
             HashSet<Tile> dangerTiles = new HashSet<Tile>();
@@ -183,6 +183,17 @@ namespace StrategyGame.Grid {
                 dangerTiles.UnionWith(GetAttackableTilesAtPosition(tile.Position));
             }
             return dangerTiles;
+        }
+
+        public HashSet<GridEntity> GetEntitiesWithinAttackRange() {
+            HashSet<Tile> tilesWithinAttackRange = GetTilesWithinAttackRange();
+            HashSet<GridEntity> attackableEntities = new HashSet<GridEntity>();
+            foreach (Tile tile in tilesWithinAttackRange) {
+                if (tile.Occupant != null) {
+                    attackableEntities.Add(tile.Occupant);
+                }
+            }
+            return attackableEntities;
         }
 
         public virtual HashSet<GridEntity> GetAttackableEntitiesAtPosition(Vector2Int position) {
