@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using DG.Tweening;
+using Mono.CSharp;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
 using StrategyGame.Core.GameState;
@@ -37,13 +39,13 @@ namespace StrategyGame.Combat.Cinematics {
         [SerializeField] private PlayableDirector director;
         [SerializeField] private CinemachineCamera combatCam;
         [SerializeField] private PlayerInput playerInput;
-        [SerializeField] private CombatPuppet testPuppet;
+        [SerializeField] private ProjectileVisualDatabase projectileVisualsDatabase;
         [SerializeField] private Transform attackerAnimatedRig;
         [SerializeField] private Transform defenderAnimatedRig;
         [SerializeField] private Transform defenderRigAdapter;
         
-        [SerializeField] private CombatPuppet attackerPuppet;
-        [SerializeField] private CombatPuppet defenderPuppet;
+        [SerializeField] public CombatPuppet attackerPuppet;
+        [SerializeField] public CombatPuppet defenderPuppet;
         [SerializeField] private Volume globalVolume;
         
         [Header("Timeline Playable Assets")]
@@ -55,17 +57,21 @@ namespace StrategyGame.Combat.Cinematics {
         [SerializeField] private PlayableAsset rangedCritPlayable;
 
         private DepthOfField _depthOfField;
+        private ColorAdjustments _colorAdjustments;
+        private ChromaticAberration _chromaticAberration;
+        
         private GridEntity _attackerEntity;
         private GridEntity _defenderEntity;
         private CombatOutcome _combatOutcome;
         private Camera _camera;
         private CombatTimeline _currCombatEvent;
-        private bool _isAttackerTurn = true;
+        public bool IsAttackerTurn { get; private set; } = true;
         private int _currAttackIndex = 0;
         private int _currCounterIndex = 0;
         private int _currAttackerHP;
         private int _currDefenderHP;
 
+        private Coroutine _slowMotionCoroutine;
 
         public enum CombatTimeline {
             AttackerMeleeNormal,
@@ -85,14 +91,23 @@ namespace StrategyGame.Combat.Cinematics {
         private void Start() {
             _camera = Camera.main;
             globalVolume.profile.TryGet(out _depthOfField);
+            globalVolume.profile.TryGet(out _colorAdjustments);
+            globalVolume.profile.TryGet(out _chromaticAberration);
         }
 
         private void OnEnable() {
             CombatCinematicsDelegates.GetDirector = () => this;
+            CombatCinematicsDelegates.GetProjectileVisualData = GetProjectileVisualDataFromID;
         }
 
         private void OnDisable() {
             CombatCinematicsDelegates.GetDirector = null;
+            CombatCinematicsDelegates.GetProjectileVisualData = null;
+
+            if (_slowMotionCoroutine != null) {
+                StopCoroutine(_slowMotionCoroutine);
+                _slowMotionCoroutine = null;
+            }
         }
 
         public void InitializeCinematicData(GridEntity attacker, GridEntity defender, CombatOutcome combatOutcome) {
@@ -142,12 +157,12 @@ namespace StrategyGame.Combat.Cinematics {
                 // Set the needed generic bindings
                 PlayableAsset playableAsset = GetPlayableAssetFromCombatTimelineEnum(_currCombatEvent);
                 if (_currCombatEvent is CombatTimeline.AttackerMeleeNormal or CombatTimeline.AttackerMeleeCrit or CombatTimeline.AttackerRangedNormal or CombatTimeline.AttackerRangedCrit) {
-                    _isAttackerTurn = true;
+                    IsAttackerTurn = true;
                     defenderRigAdapter.localPosition = new Vector3(defenderActed ? 0f : 1.5f, 0, 0);
                     BindActingRig(playableAsset, attackerAnimatedRig.GetComponent<Animator>());
                 }
                 if (_currCombatEvent is CombatTimeline.DefenderMeleeNormal or CombatTimeline.DefenderMeleeCrit or CombatTimeline.DefenderRangedNormal or CombatTimeline.DefenderRangedCrit) {
-                    _isAttackerTurn = false;
+                    IsAttackerTurn = false;
                     defenderActed = true;
                     defenderRigAdapter.localPosition = new Vector3(0f, 0, 0);
                     BindActingRig(playableAsset, defenderAnimatedRig.GetComponent<Animator>());
@@ -155,7 +170,7 @@ namespace StrategyGame.Combat.Cinematics {
                 DirectorLoadAndPlay(playableAsset);
                 yield return new WaitUntil((() => director.state != PlayState.Playing));
                 // defenderRigAdapter.localPosition = new Vector3(0f, 0, 0);
-                if (_isAttackerTurn) { _currAttackIndex++; } else { _currCounterIndex++;}
+                if (IsAttackerTurn) { _currAttackIndex++; } else { _currCounterIndex++;}
                 currEventIndex++;
             }
             
@@ -203,8 +218,8 @@ namespace StrategyGame.Combat.Cinematics {
 
         private void SpawnPuppets() {
             
-            attackerPuppet.Setup(_attackerEntity);
-            defenderPuppet.Setup(_defenderEntity);
+            attackerPuppet.Setup(this, _attackerEntity);
+            defenderPuppet.Setup(this, _defenderEntity);
         }
        
         private void CleanupPuppets() {
@@ -229,7 +244,13 @@ namespace StrategyGame.Combat.Cinematics {
         /* Methods called via Signals */
         public void OnSpawnProjectile() {
             // Decide which projectile to spawn based on context
-            
+            // Decide which puppet to call the spawn on
+            CombatPuppet targetPuppet = IsAttackerTurn ? attackerPuppet : defenderPuppet;
+            SpawnProjectile(targetPuppet, 0);
+
+           
+
+
         }
         public void StartSlowMo() {
             Time.timeScale = .5f;
@@ -238,51 +259,114 @@ namespace StrategyGame.Combat.Cinematics {
             Time.timeScale = 1f;
         }
         public void OnAttackStart() {
-            Animator targetAnimator = _isAttackerTurn ? attackerPuppet.GetComponent<Animator>() : defenderPuppet.GetComponent<Animator>();
+            Animator targetAnimator = IsAttackerTurn ? attackerPuppet.GetComponent<Animator>() : defenderPuppet.GetComponent<Animator>();
             targetAnimator.SetTrigger(Attack);
             targetAnimator.SetInteger(AttackType, _currCombatEvent is CombatTimeline.AttackerMeleeNormal or CombatTimeline.AttackerMeleeCrit or CombatTimeline.DefenderMeleeNormal or CombatTimeline.DefenderMeleeCrit ? 0 : 1);
         }
         
         public void OnAttackImpact() {
-            GridEntity victimEntity = _isAttackerTurn ? _defenderEntity : _attackerEntity;
-            Animator targetAnimator = _isAttackerTurn ? defenderPuppet.GetComponent<Animator>() : attackerPuppet.GetComponent<Animator>();
-            CombatPuppet targetPuppet = _isAttackerTurn ? defenderPuppet : attackerPuppet;
-            bool[] hitsArr = _isAttackerTurn ? _combatOutcome.AttackHits : _combatOutcome.DefendCounterHits;
-            bool[] critsArr = _isAttackerTurn ? _combatOutcome.AttackHitCrits :  _combatOutcome.DefendCounterCrits;
-            int[] dmgInstancesArr = _isAttackerTurn ? _combatOutcome.AttackDamageInstances : _combatOutcome.CounterDamageInstances;
-            int currIndex = _isAttackerTurn ? _currAttackIndex : _currCounterIndex;
+            GridEntity victimEntity = IsAttackerTurn ? _defenderEntity : _attackerEntity;
+            Animator targetAnimator = IsAttackerTurn ? defenderPuppet.GetComponent<Animator>() : attackerPuppet.GetComponent<Animator>();
+            CombatPuppet initiatorPuppet = IsAttackerTurn ? attackerPuppet : defenderPuppet;
+            CombatPuppet targetPuppet = IsAttackerTurn ? defenderPuppet : attackerPuppet;
+            bool[] hitsArr = IsAttackerTurn ? _combatOutcome.AttackHits : _combatOutcome.DefendCounterHits;
+            bool[] critsArr = IsAttackerTurn ? _combatOutcome.AttackHitCrits :  _combatOutcome.DefendCounterCrits;
+            int[] dmgInstancesArr = IsAttackerTurn ? _combatOutcome.AttackDamageInstances : _combatOutcome.CounterDamageInstances;
+            int currIndex = IsAttackerTurn ? _currAttackIndex : _currCounterIndex;
             bool hit = hitsArr[currIndex];
             bool crit = critsArr[currIndex];
             int impactDamage = dmgInstancesArr[currIndex];
-            int victimHPBeforeImpact = _isAttackerTurn ? _currDefenderHP : _currAttackerHP;
-            if (_isAttackerTurn) {
+            int victimHPBeforeImpact = IsAttackerTurn ? _currDefenderHP : _currAttackerHP;
+            
+            if (_currCombatEvent is CombatTimeline.AttackerMeleeNormal or CombatTimeline.AttackerMeleeCrit or CombatTimeline.DefenderMeleeNormal or CombatTimeline.DefenderMeleeCrit) {
+                SpawnImpactVFX(GetProjectileVisualDataFromID(0).ImpactVFXPrefab, initiatorPuppet.VFXTransform, targetPuppet.transform.position, hit, true); // temp
+            }
+            
+            if (IsAttackerTurn) {
                 _currDefenderHP = Math.Max(_currDefenderHP - impactDamage, 0);
             } else {
                 _currAttackerHP = Math.Max(_currAttackerHP - impactDamage, 0);
             }
-            int victimHPAfterImpact = _isAttackerTurn ?  _currDefenderHP : _currAttackerHP;
-            int victimMaxHP = _isAttackerTurn ? _defenderEntity.MaxHealth : _attackerEntity.MaxHealth;
-            string victimName = _isAttackerTurn ? _defenderEntity.DisplayName : _attackerEntity.DisplayName;
-            UIDelegates.InvokeOnCombatCinematicHUDUpdate(!_isAttackerTurn, victimHPAfterImpact, victimMaxHP, victimHPBeforeImpact, victimEntity.ID);
+            int victimHPAfterImpact = IsAttackerTurn ?  _currDefenderHP : _currAttackerHP;
+            int victimMaxHP = IsAttackerTurn ? _defenderEntity.MaxHealth : _attackerEntity.MaxHealth;
+            string victimName = IsAttackerTurn ? _defenderEntity.DisplayName : _attackerEntity.DisplayName;
+            UIDelegates.InvokeOnCombatCinematicHUDUpdate(!IsAttackerTurn, victimHPAfterImpact, victimMaxHP, victimHPBeforeImpact, victimEntity.ID);
             if (!hit) {
                 targetAnimator.SetTrigger(Dodge);
                 // Any miss SFX/VFX
                 return;
             }
             targetAnimator.SetTrigger(Hurt);
+            if (crit) {
+                if (_slowMotionCoroutine != null) {
+                    StopCoroutine(_slowMotionCoroutine);
+                    _slowMotionCoroutine = null;
+                }
+                _slowMotionCoroutine = StartCoroutine(SlowMotionCoroutine());
+            }
             targetPuppet.SpawnDamageNumber(impactDamage, crit);
             if (victimHPAfterImpact <= 0) {
                 targetAnimator.SetTrigger(Death);
             }
         }
-        // ===================================== //
 
+        
+        
+        // ===================================== //
+        public void SpawnProjectile(CombatPuppet spawner, int projectileID) {
+            bool[] hitsArr = IsAttackerTurn ? _combatOutcome.AttackHits : _combatOutcome.DefendCounterHits;
+            bool[] critsArr = IsAttackerTurn ? _combatOutcome.AttackHitCrits :  _combatOutcome.DefendCounterCrits;
+            int currIndex = IsAttackerTurn ? _currAttackIndex : _currCounterIndex;
+            bool hit = hitsArr[currIndex];
+            bool crit = critsArr[currIndex];
+            
+            ProjectileVisualData projectileVisualData = CombatCinematicsDelegates.GetProjectileVisualData(projectileID);
+            GameObject projectile = Instantiate(projectileVisualData.ProjectilePrefab, spawner.VFXTransform);
+            projectile.transform.position = spawner.ProjectileSpawnPointTransform.position;
+            ProjectileVisual projectileVisual = projectile.GetComponent<ProjectileVisual>();
+            if (projectileVisual == null) throw new Exception("CombatPuppet.SpawnProjectile: ProjectileVisual script not found!");
+            projectileVisual.Setup(spawner, projectileVisualData, hit);
+        }
+        
+        public void SpawnImpactVFX(GameObject VFXPrefab, Transform vfxTransform, Vector3 position, bool hit, bool melee = false) {
+            if (!melee) OnAttackImpact();
+            if (!hit && melee) return;
+            GameObject impactVFX = Instantiate(VFXPrefab, vfxTransform);
+            impactVFX.transform.position = position;
+            // Auto Cleanup is handled in an AutoCleanup script attached to the vfx
+        }
+        
+        
         private void SetDepthOfFieldAperture(float newVal) {
             if (_depthOfField == null) return;
             _depthOfField.aperture.value = newVal;
         }
-        
-        
+
+        private void SetContrast(float newVal) {
+            if (_colorAdjustments == null) return;
+            _colorAdjustments.contrast.value = newVal;
+        }
+
+        private void SetChromaticAberration(float newVal) {
+            if (_chromaticAberration == null) return;
+            _chromaticAberration.intensity.value = newVal;
+        }
+
+        private ProjectileVisualData GetProjectileVisualDataFromID(int projectileID) {
+            ProjectileVisualData queryResult = projectileVisualsDatabase.ProjectileVisuals.FirstOrDefault(x => x.ProjectileID == projectileID);
+            return queryResult == null ? throw new Exception($"CombatDirector.GetProjectileVisualDataFromID: Could not find projectile of id {projectileID}!") : queryResult;
+        }
+
+        private IEnumerator SlowMotionCoroutine(float duration = 2f) {
+            StartSlowMo();
+            DOTween.To(() => _colorAdjustments.contrast.value, SetContrast, 69f, duration / 4f);
+            DOTween.To(() => _chromaticAberration.intensity.value, SetChromaticAberration, 1f, duration / 4f);
+            yield return new WaitForSeconds(duration/2f);
+            DOTween.To(() => _colorAdjustments.contrast.value, SetContrast, 21.7f, duration / 4f);
+            DOTween.To(() => _chromaticAberration.intensity.value, SetChromaticAberration, 0f, duration / 4f);
+            yield return new WaitForSeconds(duration/2f);
+            EndSlowMo();
+        }
  
 
 

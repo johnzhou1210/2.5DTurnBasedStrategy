@@ -1,3 +1,6 @@
+using System;
+using DG.Tweening;
+using StrategyGame.Core.Delegates;
 using StrategyGame.Grid;
 using StrategyGame.UI.World;
 using UnityEngine;
@@ -16,8 +19,16 @@ namespace StrategyGame.Combat.Cinematics {
         [SerializeField] private GameObject damageIndicatorPrefab;
         [SerializeField] private Transform damageIndicatorSpawnPoint;
         [SerializeField] private Transform billboardCanvasTransform;
+        [SerializeField] private Transform projectileSpawnPointTransform;
+        [SerializeField] private Transform vfxTransform;
+
+        public Transform ProjectileSpawnPointTransform { get => projectileSpawnPointTransform; }
+        public Transform VFXTransform { get => vfxTransform; }
         
-        public void Setup(GridEntity entity) {
+        public CombatDirector CombatDirector { get; private set; }
+
+        public void Setup(CombatDirector combatDirector, GridEntity entity) {
+            CombatDirector = combatDirector;
             // Set animator controller
             Animator.runtimeAnimatorController = entity.AnimatorController;
             Animator.Play("Idle");
@@ -30,6 +41,9 @@ namespace StrategyGame.Combat.Cinematics {
             damageIndicatorComponent.Setup(damage, isCrit);
         }
         
+        public void SpawnImpactVFX(GameObject VFXPrefab, Vector3 position, bool hit) {
+            CombatDirector.SpawnImpactVFX(VFXPrefab, vfxTransform, position, hit);
+        }
 
       
         
