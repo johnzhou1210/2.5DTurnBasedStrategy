@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace StrategyGame.Utils {
+namespace StrategyGame.Utils.Effects {
     public class AutoCleanup : MonoBehaviour {
         [SerializeField] private float cleanupTime = 2f;
 

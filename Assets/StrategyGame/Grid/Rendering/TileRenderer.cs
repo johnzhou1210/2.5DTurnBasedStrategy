@@ -49,7 +49,6 @@ namespace StrategyGame.Grid.Rendering {
         // ==============================
         // FIELDS & PROPERTIES
         // ==============================
-        [SerializeField] private GameObject selectionVisual;
         [SerializeField] private GameObject routeTipVisual;
         [SerializeField] private GameObject routeStraightVisual;
         [SerializeField] private GameObject routeTurnVisual;
@@ -60,7 +59,6 @@ namespace StrategyGame.Grid.Rendering {
         [SerializeField] private Renderer highlightRenderer;
 
         [SerializeField] private new Renderer renderer;
-        [SerializeField] private Animator selectionAnimator;
 
         private readonly Dictionary<(TileHighlightType, Faction), Color> _highlightColors = new Dictionary<(TileHighlightType, Faction), Color> {
             { (TileHighlightType.Move, Faction.Player), new Color(0, 0, 1, .2f) },
@@ -110,14 +108,6 @@ namespace StrategyGame.Grid.Rendering {
         // ==============================
         // CORE METHODS
         // ==============================
-        public void SetSelectionVisualVisibility(bool val) {
-            if (!val) SetSelectionVisualIsAnimated(false);
-            selectionVisual.SetActive(val);
-        }
-
-        public void SetSelectionVisualIsAnimated(bool val) {
-            selectionAnimator.Play(val ? "Select" : "Unselected");
-        }
 
         public void ShowRouteSegment(bool val, RouteSegmentData routeSegmentData) {
             HideAllRouteVisuals();

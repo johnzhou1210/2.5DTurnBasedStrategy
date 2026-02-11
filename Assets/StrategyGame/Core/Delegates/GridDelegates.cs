@@ -57,6 +57,7 @@ namespace StrategyGame.Core.Delegates {
             OnManualMarkTilesWithAttackableEntities?.Invoke();
         }
         
+        
 
         // ==============================
         // EVENTS

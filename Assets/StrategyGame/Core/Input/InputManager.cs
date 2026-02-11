@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using DG.Tweening;
 using StrategyGame.Combat;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
@@ -23,6 +24,7 @@ namespace StrategyGame.Core.Input {
         [SerializeField] private MouseInputRaycaster gridMouseInputRaycaster;
         [SerializeField] private CameraRigController cameraRigController;
         [SerializeField] private PlayerInput playerInput;
+        [SerializeField] private GridCursorRenderer gridCursorRenderer;
         [Header("Path Selection Settings")] [SerializeField]
         private float pathSelectionMoveActionCooldown = 0.33f;
         [SerializeField] private float pathSelectionMoveActionCooldownAccelerationThreshold = 1f;
@@ -75,6 +77,7 @@ namespace StrategyGame.Core.Input {
             InitializeActions();
             InputDelegates.OnSetMouseRaycastEnabled += SetMouseRaycastEnabled;
             InputDelegates.OnReinstateGridCursorPosition += ReinstateGridCursorPosition;
+            
             InputDelegates.GetUIManager = () => this;
             InputDelegates.GetGridCursorPosition = () => _gridCursorPosition;
             InputDelegates.GetDangerZoneVisible = () => _isDangerZoneVisible;
@@ -84,9 +87,11 @@ namespace StrategyGame.Core.Input {
             playerInput.onControlsChanged -= OnControlsChanged;
             InputDelegates.OnSetMouseRaycastEnabled -= SetMouseRaycastEnabled;
             InputDelegates.OnReinstateGridCursorPosition -= ReinstateGridCursorPosition;
+            
             InputDelegates.GetUIManager = null;
             InputDelegates.GetGridCursorPosition = null;
             InputDelegates.GetDangerZoneVisible = null;
+            
         }
         private void Start() {
             GameStateEnums.UnitMoveSelectionMode currentUnitMoveSelectionMode = GameStateDelegates.GetCurrentGameState().Combat.UnitMoveSelectionMode;
@@ -234,6 +239,8 @@ namespace StrategyGame.Core.Input {
             if (!success) {
                 Debug.LogWarning("InputManager.OnGridCursorMove: Success is false!");
                 _gridCursorPosition = originalPosition;
+            } else {
+                gridCursorRenderer.MoveTo(_gridCursorPosition);
             }
         }
 
@@ -472,5 +479,7 @@ namespace StrategyGame.Core.Input {
         private void ManualSetGridCursorPosition(Vector2Int coordinate) {
             _gridCursorPosition = coordinate;
         }
+
+        
     }
 }

@@ -50,7 +50,6 @@ namespace StrategyGame.Grid.Rendering {
             GridDelegates.OnManualPathPreview += PreviewManualPath;
             EntityDelegates.OnEntityMoveAlongPath += RenderEntityMovementAlongPath;
             GridDelegates.OnInspectedTileChanged += UpdateInspectedTileVisuals;
-            GridDelegates.OnSetTileVisualSelectionAnim += UpdateTileVisualSelection;
             GridDelegates.OnClearPath += ClearAllPathTileVisuals;
             GridDelegates.OnGridRedraw += OnGridRedraw;
             GridDelegates.OnSetDangerZoneVisibility += SetDangerZoneVisibility;
@@ -76,10 +75,6 @@ namespace StrategyGame.Grid.Rendering {
                 if (oldTileVisual == null) {
                     throw new Exception("GridRenderer.UpdateInspectedTileVisuals: Old tile visual not found!");
                 }
-                if (oldTileVisual.TryGetComponent(out TileRenderer oldRenderer)) {
-                    oldRenderer.SetSelectionVisualIsAnimated(false);
-                    oldRenderer.SetSelectionVisualVisibility(false);
-                }
                 // ClearWalkableTiles();
             }
             if (newTile == null) {
@@ -93,8 +88,6 @@ namespace StrategyGame.Grid.Rendering {
                 throw new Exception("GridRenderer.UpdateInspectedTileVisuals: New tile visual not found!");
             }
             if (newTileVisual.TryGetComponent(out TileRenderer newRenderer)) {
-                newRenderer.SetSelectionVisualVisibility(true);
-
                 // If currently selecting an entity or hovering over an entity outside of path selection mode, show entity's walkable tiles
                 // Do not update walkable tiles if currently selecting a unit's movement path
                 GameStateData currentGameState = GameStateDelegates.GetCurrentGameState();
@@ -241,9 +234,6 @@ namespace StrategyGame.Grid.Rendering {
             GameObject tileToUpdate = _tileVisuals[newPosition.x, newPosition.y];
             if (!tileToUpdate.activeInHierarchy)
                 return;
-            if (tileToUpdate.TryGetComponent(out TileRenderer tileRenderer)) {
-                tileRenderer.SetSelectionVisualIsAnimated(animated);
-            }
         }
         private void RenderEntityMovementAlongPath(GridEntity entity, List<Tile> path) {
             StartCoroutine(EntityPathMovementCoroutine(entity, path));
