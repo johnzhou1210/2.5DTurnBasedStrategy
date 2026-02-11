@@ -297,12 +297,12 @@ namespace StrategyGame.Combat.Cinematics {
                 return;
             }
             targetAnimator.SetTrigger(Hurt);
-            if (crit) {
+            if (crit || victimHPAfterImpact <= 0) {
                 if (_slowMotionCoroutine != null) {
                     StopCoroutine(_slowMotionCoroutine);
                     _slowMotionCoroutine = null;
                 }
-                _slowMotionCoroutine = StartCoroutine(SlowMotionCoroutine());
+                _slowMotionCoroutine = StartCoroutine(SlowMotionCoroutine(crit));
             }
             targetPuppet.SpawnDamageNumber(impactDamage, crit);
             if (victimHPAfterImpact <= 0) {
@@ -357,13 +357,17 @@ namespace StrategyGame.Combat.Cinematics {
             return queryResult == null ? throw new Exception($"CombatDirector.GetProjectileVisualDataFromID: Could not find projectile of id {projectileID}!") : queryResult;
         }
 
-        private IEnumerator SlowMotionCoroutine(float duration = 2f) {
+        private IEnumerator SlowMotionCoroutine(bool isCrit = false, float duration = 1.75f) {
             StartSlowMo();
-            DOTween.To(() => _colorAdjustments.contrast.value, SetContrast, 69f, duration / 4f);
-            DOTween.To(() => _chromaticAberration.intensity.value, SetChromaticAberration, 1f, duration / 4f);
+            if (isCrit) {
+                DOTween.To(() => _colorAdjustments.contrast.value, SetContrast, 69f, duration / 4f);
+                DOTween.To(() => _chromaticAberration.intensity.value, SetChromaticAberration, 1f, duration / 4f);
+            }
             yield return new WaitForSeconds(duration/2f);
-            DOTween.To(() => _colorAdjustments.contrast.value, SetContrast, 21.7f, duration / 4f);
-            DOTween.To(() => _chromaticAberration.intensity.value, SetChromaticAberration, 0f, duration / 4f);
+            if (isCrit) {
+                DOTween.To(() => _colorAdjustments.contrast.value, SetContrast, 21.7f, duration / 4f);
+                DOTween.To(() => _chromaticAberration.intensity.value, SetChromaticAberration, 0f, duration / 4f);
+            }
             yield return new WaitForSeconds(duration/2f);
             EndSlowMo();
         }
