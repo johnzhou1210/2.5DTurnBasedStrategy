@@ -3897,7 +3897,7 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 210556179}
   m_Enabled: 1
-  m_Alpha: 0
+  m_Alpha: 1
   m_Interactable: 0
   m_BlocksRaycasts: 0
   m_IgnoreParentGroups: 0
@@ -3920,6 +3920,8 @@ MonoBehaviour:
   defenderLossSlider: {fileID: 1792452213}
   attackerLossFill: {fileID: 1417059819}
   defenderLossFill: {fileID: 981772384}
+  attackerHPFrontFill: {fileID: 1076240905}
+  defenderHPFrontFill: {fileID: 705582600}
   healthTransitionDuration: 1.5
   attackerHPText: {fileID: 923474354}
   defenderHPText: {fileID: 33195286}
@@ -14205,6 +14207,8 @@ MonoBehaviour:
   attackerDarkGlassColored: {fileID: 123425037}
   attackerAdvantage: {fileID: 1031279092}
   attackerDisadvantage: {fileID: 1525503993}
+  attackerHPBarFrontFill: {fileID: 729771759}
+  attackerHPBarLossFill: {fileID: 665646927}
   blowExchangeContainer: {fileID: 758945201}
   blowExchangeArrowPrefab: {fileID: 7392110722269368851, guid: 34fd61b25a02462ed86edfce99b4d854, type: 3}
   defenderName: {fileID: 1215608665}
@@ -14222,6 +14226,8 @@ MonoBehaviour:
   defenderDarkGlassColored: {fileID: 1931817250}
   defenderAdvantage: {fileID: 1794434661}
   defenderDisadvantage: {fileID: 1371520674}
+  defenderHPBarFrontFill: {fileID: 646528715}
+  defenderHPBarLossFill: {fileID: 823119798}
 --- !u!95 &789753988
 Animator:
   serializedVersion: 7
@@ -20565,6 +20571,7 @@ MonoBehaviour:
       UnitMoveSelectionMode: 2
       InspectedTilePosition: {x: 0, y: 0}
       NextActorReady: 1
+      PlayerDirectAttackAvailable: 0
       inspectedEntityID: -1
       SelectedEntityID: -1
       previousSelectedEntityID: -1

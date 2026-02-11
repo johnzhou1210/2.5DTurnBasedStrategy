@@ -341,18 +341,17 @@ namespace StrategyGame.Core.Input {
                     manualPathSet.IntersectWith(walkableTiles);
                     manualPathSet.Add(GridDelegates.GetTileFromPosition(currentSelectedEntity.GridPosition));
                     Debug.Log($"InputManager.HandleSelectionInput: Walkable tiles: {string.Join(", ", walkableTiles)}");
-                    Debug.Log(
-                        $"InputManager.HandleSelectionInput: Manual path tiles: {string.Join(", ", manualPathList)} | Selected entity movement range: {currentSelectedEntity.MovementRange} | Manual path set: {string.Join(", ", manualPathSet)}");
-                    bool isDestinationValid = manualPathList.Count - 1 <= currentSelectedEntity.MovementRange;
+                    Debug.Log($"InputManager.HandleSelectionInput: Manual path tiles: {string.Join(", ", manualPathList)} | Selected entity movement range: {currentSelectedEntity.MovementRange} | Manual path set: {string.Join(", ", manualPathSet)}");
+                    Tile destinationTile = manualPathList[^1];
+                    HashSet<GridEntity> attackerTrueAttackRange = currentSelectedEntity.GetEntitiesWithinAttackRange();
+                    bool conditionsNeededToDirectlyAttackTarget = destinationTile.Occupant is { Faction: Faction.Enemy } && attackerTrueAttackRange.Any(e => e.ID == destinationTile.Occupant.ID);
+                    bool isDestinationValid = manualPathList.Count - 1 <= currentSelectedEntity.MovementRange || conditionsNeededToDirectlyAttackTarget;
                     // Debug.Log($"Condition1: {manualPathList.Count - 1 <= currentSelectedEntity.MovementRange}");
                     Debug.Log($"InputManager.HandleSelectionInput: IsDestinationValid: {isDestinationValid}");
                     if (isDestinationValid) {
                         // Check if the tile at the destination has an occupant.
                         // If enemy occupant, directly go to choose target phase state, else, go to moving to destination state.
-                        Tile destinationTile = manualPathList[^1];
                         bool conditionsNeededToMoveToDestination = manualPathList.ToHashSet().IsSubsetOf(manualPathSet) && (destinationTile.Occupant == null || destinationTile.Occupant == currentSelectedEntity);
-                        HashSet<GridEntity> attackerTrueAttackRange = currentSelectedEntity.GetEntitiesWithinAttackRange();
-                        bool conditionsNeededToDirectlyAttackTarget = destinationTile.Occupant is { Faction: Faction.Enemy } && attackerTrueAttackRange.Any(e => e.ID == destinationTile.Occupant.ID);
                         if (conditionsNeededToDirectlyAttackTarget) { // Assumes enemy
                             // Give player ability to directly attack the target
                             // Change state to moving to destination

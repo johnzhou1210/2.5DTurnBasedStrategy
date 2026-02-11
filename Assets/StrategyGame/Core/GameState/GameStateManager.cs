@@ -455,10 +455,19 @@ namespace StrategyGame.Core.GameState {
                 // Allow melee units that can reach the target to immediately attack
 
                 int movementCostUsed = GetManualPathUsedMovementCost();
+
+                if (selectedEntity.MovementRange - movementCostUsed == 0) {
+                    if (tileAtCoordinate.Occupant == null || tileAtCoordinate.Occupant.Faction == selectedEntity.Faction) {
+                        return false;
+                    }
+                }
+                
                 if (selectedEntity.MovementRange - movementCostUsed - tileAtCoordinate.MovementCost < 0) {
-                    Debug.LogWarning(
-                        $"GameStateManager.AddCoordinateToManualPath: Not enough movement cost (need {tileAtCoordinate.MovementCost} but have {selectedEntity.MovementRange - movementCostUsed} left: used {movementCostUsed}). Not adding coordinate {coordinate} to manual path. {string.Join(",", ManualPath.Tiles)}");
-                    return false;
+                    if (tileAtCoordinate.Occupant == null || tileAtCoordinate.Occupant.Faction == selectedEntity.Faction) {
+                        Debug.LogWarning($"GameStateManager.AddCoordinateToManualPath: Not enough movement cost (need {tileAtCoordinate.MovementCost} but have {selectedEntity.MovementRange - movementCostUsed} left: used {movementCostUsed}). Not adding coordinate {coordinate} to manual path. {string.Join(",", ManualPath.Tiles)}");
+                        return false;
+                    }
+                    Debug.Log($"GameStateManager.AddCoordinateToManualPath: Special case, enabling quick attack selection.");
                 }
             }
             

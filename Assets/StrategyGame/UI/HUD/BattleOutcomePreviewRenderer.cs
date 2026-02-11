@@ -27,6 +27,8 @@ namespace StrategyGame.UI.HUD {
         [SerializeField] private Image attackerDarkGlassColored;
         [SerializeField] private GameObject attackerAdvantage;
         [SerializeField] private GameObject attackerDisadvantage;
+        [SerializeField] private Image attackerHPBarFrontFill;
+        [SerializeField] private Image attackerHPBarLossFill;
 
         [SerializeField] private GameObject blowExchangeContainer;
         [SerializeField] private GameObject blowExchangeArrowPrefab;
@@ -46,6 +48,8 @@ namespace StrategyGame.UI.HUD {
         [SerializeField] private Image defenderDarkGlassColored;
         [SerializeField] private GameObject defenderAdvantage;
         [SerializeField] private GameObject defenderDisadvantage;
+        [SerializeField] private Image defenderHPBarFrontFill;
+        [SerializeField] private Image defenderHPBarLossFill;
 
         private void OnEnable() {
             UIDelegates.OnBattleOutcomePreviewUpdate += UpdateBattleOutcomePreview;
@@ -112,6 +116,10 @@ namespace StrategyGame.UI.HUD {
             attackerNonBlurColored.color = attackerEntity.Faction == Faction.Player ? new Color(0, 0, 1, 240 / 255f) : new Color(1, 0, 0, 240 / 255f);
             attackerGlassColored.color = attackerEntity.Faction == Faction.Player ? new Color(0, 0, 1, 240 / 255f) : new Color(1, 0, 0, 240 / 255f);
             attackerDarkGlassColored.color = attackerEntity.Faction == Faction.Player ? new Color(0, 0, .5f, 240 / 255f) : new Color(.5f, 0, 0, 240 / 255f);
+
+            attackerHPBarFrontFill.color = attackerEntity.Faction == Faction.Player ? new Color(32 / 255f, 32 / 255f, 159 / 255f, 1f) :  new Color(159 / 255f, 32 / 255f, 32 / 255f, 1);
+            attackerHPBarLossFill.color = attackerEntity.Faction == Faction.Player ? new Color(80 / 255f, 44 / 255f, 44 / 255f, 1f) : new Color(70 / 255f, 30 / 255f, 30 / 255f, 1);
+            
             attackerAdvantage.SetActive(false); attackerDisadvantage.SetActive(false);
             switch (attackerWeaponMatchupStatus) {
                 case WeaponMatchupResult.Advantage:
@@ -174,6 +182,10 @@ namespace StrategyGame.UI.HUD {
             defenderNonBlurColored.color = defenderEntity.Faction == Faction.Player ? new Color(0, 0, 1, 240 / 255f) : new Color(1, 0, 0, 240 / 255f);
             defenderGlassColored.color = defenderEntity.Faction == Faction.Player ? new Color(0, 0, 1, 240 / 255f) : new Color(1, 0, 0, 240 / 255f);
             defenderDarkGlassColored.color = defenderEntity.Faction == Faction.Player ? new Color(0, 0, .5f, 240 / 255f) : new Color(.5f, 0, 0, 240 / 255f);
+            
+            defenderHPBarFrontFill.color = defenderEntity.Faction == Faction.Player ? new Color(32 / 255f, 32 / 255f, 159 / 255f, 1f) :  new Color(159 / 255f, 32 / 255f, 32 / 255f, 1);
+            defenderHPBarLossFill.color = defenderEntity.Faction == Faction.Player ? new Color(80 / 255f, 44 / 255f, 44 / 255f, 1f) : new Color(70 / 255f, 30 / 255f, 30 / 255f, 1);
+            
             defenderAdvantage.SetActive(false); defenderDisadvantage.SetActive(false);
             switch (defenderWeaponMatchupStatus) {
                 case WeaponMatchupResult.Advantage:
