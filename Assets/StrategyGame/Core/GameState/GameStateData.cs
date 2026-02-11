@@ -41,7 +41,6 @@ namespace StrategyGame.Core.GameState {
                     HandleCombatOutcomeInspectionUI();
                     return;
                 }
-                InputDelegates.InvokeOnSetGridCursorInnerPointerVisibility(inspectedEntityID);
                 UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.BattleOutcomePreview);
                 HandleEntityInspectionUI();
             }

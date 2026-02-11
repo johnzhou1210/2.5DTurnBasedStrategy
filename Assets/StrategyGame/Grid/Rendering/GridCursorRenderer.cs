@@ -1,6 +1,7 @@
 using System;
 using DG.Tweening;
 using StrategyGame.Core.Delegates;
+using StrategyGame.Core.GameState;
 using StrategyGame.Factions;
 using StrategyGame.Grid;
 using UnityEngine;
@@ -12,13 +13,7 @@ public class GridCursorRenderer : MonoBehaviour
     [SerializeField] private Renderer downwardArrowRenderer;
     [SerializeField] private float moveTweenDuration = .25f;
 
-    private void OnEnable() {
-        InputDelegates.OnSetGridCursorInnerPointerVisibility += SetGridCursorInnerPointerVisibility;
-    }
-
-    private void OnDisable() {
-        InputDelegates.OnSetGridCursorInnerPointerVisibility -= SetGridCursorInnerPointerVisibility;
-    }
+  
     
     private void Start() {
         downwardArrowRenderer.material.EnableKeyword("_EMISSION");
@@ -31,15 +26,17 @@ public class GridCursorRenderer : MonoBehaviour
 
     public void MoveTo(Vector2Int gridCursorPosition) {
         transform.DOMove(new Vector3(gridCursorPosition.x, .05f, gridCursorPosition.y), moveTweenDuration);
+        SetGridCursorInnerPointerVisibility(gridCursorPosition);
     }
     
-    private void SetGridCursorInnerPointerVisibility(int entityID) {
-        gridCursorInnerPointers.SetActive(entityID != -1);
-        GridEntity inspectedEntity = EntityDelegates.GetGridEntityByID(entityID);
-        if (inspectedEntity == null) {
+    private void SetGridCursorInnerPointerVisibility(Vector2Int gridCursorPosition) {
+        GameStateData currState = GameStateDelegates.GetCurrentGameState();
+        Tile targetTile = GridDelegates.GetTileFromPosition(gridCursorPosition);
+        gridCursorInnerPointers.SetActive(targetTile.Occupant != null);
+        if (targetTile.Occupant == null) {
             SetDownwardArrowColor(Color.white);
             return;
         }
-        SetDownwardArrowColor(inspectedEntity.Faction == Faction.Player ? Color.blue : inspectedEntity.Faction == Faction.Enemy ? Color.red : Color.yellow);
+        SetDownwardArrowColor(targetTile.Occupant.Faction == Faction.Player ? Color.blue : targetTile.Occupant.Faction == Faction.Enemy ? Color.red : Color.yellow);
     }
 }

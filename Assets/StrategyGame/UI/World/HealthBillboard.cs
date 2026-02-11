@@ -3,6 +3,7 @@ using System.Collections;
 using System.ComponentModel;
 using DG.Tweening;
 using StrategyGame.Core.Delegates;
+using StrategyGame.Factions;
 using StrategyGame.Grid;
 using StrategyGame.Grid.GridData;
 using StrategyGame.Grid.Rendering;
@@ -15,6 +16,8 @@ namespace StrategyGame.UI.World {
         [SerializeField] private Slider slider;
         [SerializeField] private Image weaponTypeImage, weaponTypeFrame;
         [SerializeField] private float healthTransitionDuration = 1f;
+        [SerializeField] private Image solidBarImage;
+        [SerializeField] private Image blurBarImage;
 
         private Coroutine _deathCoroutine;
         private Coroutine _fadeCoroutine;
@@ -46,6 +49,8 @@ namespace StrategyGame.UI.World {
                 Transform targetTransform = EntityVisualDelegates.GetEntityVisualTransformByID(entity.ID);
                 billboardFollow.SetTarget(targetTransform);
             }
+            solidBarImage.color = entity.Faction == Faction.Player ? new Color(.4f,.4f,1) : entity.Faction == Faction.Enemy ? new Color(1,0,0) : new Color(1,1,0);
+            blurBarImage.color = entity.Faction == Faction.Player ? new Color(.4f,.4f,1,200/255f) : entity.Faction == Faction.Enemy ? new Color(1,0,0,200/255f) : new Color(1,1,0,200/255f);
             UpdateHealth(entity.ID, entity.Health, entity.MaxHealth);
         }
 

@@ -47,6 +47,13 @@ namespace StrategyGame.Core.Input {
         private bool _isDiagonalMoveEnabled = true;
         private bool _isDangerZoneVisible = false;
         private Vector2Int _gridCursorPosition;
+        public Vector2Int GridCursorPosition {
+            get => _gridCursorPosition;
+            set {
+                _gridCursorPosition = value;
+                gridCursorRenderer.MoveTo(_gridCursorPosition);
+            }
+        }
         private string _cachedScheme;
 
         // ==============================
@@ -79,7 +86,7 @@ namespace StrategyGame.Core.Input {
             InputDelegates.OnReinstateGridCursorPosition += ReinstateGridCursorPosition;
             
             InputDelegates.GetUIManager = () => this;
-            InputDelegates.GetGridCursorPosition = () => _gridCursorPosition;
+            InputDelegates.GetGridCursorPosition = () => GridCursorPosition;
             InputDelegates.GetDangerZoneVisible = () => _isDangerZoneVisible;
         }
         private void OnDisable() {
@@ -196,8 +203,8 @@ namespace StrategyGame.Core.Input {
             Vector2Int newPosition = originalPosition + moveVector;
             Vector2Int? bestTilePosition = null;
             if (moveVector == Vector2Int.zero) {
-                _gridCursorPosition = originalPosition;
-                GridDelegates.SetInspectedTile(_gridCursorPosition);
+                GridCursorPosition = originalPosition;
+                GridDelegates.SetInspectedTile(GridCursorPosition);
                 return;
             }
             if (currentGameState.Combat.PlayerPhase == GameStateEnums.PlayerPhaseState.UnitSelectTarget) {
@@ -231,16 +238,14 @@ namespace StrategyGame.Core.Input {
                     }
                 }
                 if (bestTilePosition.HasValue)
-                    _gridCursorPosition = bestTilePosition.Value;
+                    GridCursorPosition = bestTilePosition.Value;
             } else {
-                _gridCursorPosition = new Vector2Int(Math.Clamp(newPosition.x, 0, gridDimensions.x - 1), Math.Clamp(newPosition.y, 0, gridDimensions.y - 1));
+                GridCursorPosition = new Vector2Int(Math.Clamp(newPosition.x, 0, gridDimensions.x - 1), Math.Clamp(newPosition.y, 0, gridDimensions.y - 1));
             }
-            bool success = GridDelegates.SetInspectedTile(_gridCursorPosition);
+            bool success = GridDelegates.SetInspectedTile(GridCursorPosition);
             if (!success) {
                 Debug.LogWarning("InputManager.OnGridCursorMove: Success is false!");
-                _gridCursorPosition = originalPosition;
-            } else {
-                gridCursorRenderer.MoveTo(_gridCursorPosition);
+                GridCursorPosition = originalPosition;
             }
         }
 
@@ -268,7 +273,7 @@ namespace StrategyGame.Core.Input {
                 if (!_isDiagonalMoveEnabled && moveVector.x != 0 && moveVector.y != 0) {
                     moveVector.y = 0;
                 }
-                OnGridCursorMove(_gridCursorPosition, moveVector);
+                OnGridCursorMove(GridCursorPosition, moveVector);
             } else {
                 _pathSelectionMoveActionHeldDuration = 0f;
                 _currentPathSelectionMoveActionCooldown = Mathf.Lerp(_currentPathSelectionMoveActionCooldown, pathSelectionMoveActionCooldown, Time.deltaTime * 5f);
@@ -405,7 +410,7 @@ namespace StrategyGame.Core.Input {
             InputDelegates.InvokeOnConfirmPressed();
         }
         private void ReinstateGridCursorPosition(Vector2Int? position) {
-            OnGridCursorMove(position ?? _gridCursorPosition, Vector2Int.zero);
+            OnGridCursorMove(position ?? GridCursorPosition, Vector2Int.zero);
         }
         private void HandleCombatControls() {
             GameStateData currentState = GameStateDelegates.GetCurrentGameState();
@@ -430,8 +435,8 @@ namespace StrategyGame.Core.Input {
                         playerUnitsDeque.AddLast(first); // [B C D A]
                         int newID = playerUnitsDeque.First(); // B
                         currentState.Combat.InspectedEntityID = newID;
-                        _gridCursorPosition = EntityDelegates.GetGridEntityByID(newID).GridPosition;
-                        GridDelegates.SetInspectedTile(_gridCursorPosition);
+                        GridCursorPosition = EntityDelegates.GetGridEntityByID(newID).GridPosition;
+                        GridDelegates.SetInspectedTile(GridCursorPosition);
                     } else if (_cycleLeftAction.WasPerformedThisFrame()) {
                         Debug.Log("InputManager.HandleCycleInput: Cycling left");
                         int last = playerUnitsDeque.Last(); // D
@@ -439,8 +444,8 @@ namespace StrategyGame.Core.Input {
                         playerUnitsDeque.AddFirst(last); // [D A B C]
                         int newID = playerUnitsDeque.First(); // D
                         currentState.Combat.InspectedEntityID = newID;
-                        _gridCursorPosition = EntityDelegates.GetGridEntityByID(newID).GridPosition;
-                        GridDelegates.SetInspectedTile(_gridCursorPosition);
+                        GridCursorPosition = EntityDelegates.GetGridEntityByID(newID).GridPosition;
+                        GridDelegates.SetInspectedTile(GridCursorPosition);
                     }
                     break;
                 case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
@@ -454,8 +459,8 @@ namespace StrategyGame.Core.Input {
                         enemyTargetsDeque.AddLast(first); // [B C D A]
                         int newID = enemyTargetsDeque.First(); // B
                         currentState.Combat.InspectedEntityID = newID;
-                        _gridCursorPosition = EntityDelegates.GetGridEntityByID(newID).GridPosition;
-                        GridDelegates.SetInspectedTile(_gridCursorPosition);
+                        GridCursorPosition = EntityDelegates.GetGridEntityByID(newID).GridPosition;
+                        GridDelegates.SetInspectedTile(GridCursorPosition);
                     } else if (_cycleLeftAction.WasPerformedThisFrame()) {
                         Debug.Log("InputManager.HandleCycleInput: Cycling left");
                         int last = enemyTargetsDeque.Last(); // D
@@ -463,8 +468,8 @@ namespace StrategyGame.Core.Input {
                         enemyTargetsDeque.AddFirst(last); // [D A B C]
                         int newID = enemyTargetsDeque.First(); // D
                         currentState.Combat.InspectedEntityID = newID;
-                        _gridCursorPosition = EntityDelegates.GetGridEntityByID(newID).GridPosition;
-                        GridDelegates.SetInspectedTile(_gridCursorPosition);
+                        GridCursorPosition = EntityDelegates.GetGridEntityByID(newID).GridPosition;
+                        GridDelegates.SetInspectedTile(GridCursorPosition);
                     }
                     GridDelegates.InvokeOnSetTileVisualSelectionAnim(currentState.Combat.InspectedTilePosition, true);
                     break;
@@ -477,7 +482,7 @@ namespace StrategyGame.Core.Input {
             GridDelegates.InvokeOnSetDangerZoneVisibility(_isDangerZoneVisible);
         }
         private void ManualSetGridCursorPosition(Vector2Int coordinate) {
-            _gridCursorPosition = coordinate;
+            GridCursorPosition = coordinate;
         }
 
         
