@@ -207,6 +207,7 @@ namespace StrategyGame.Core.GameState {
             // Depending on turn phase, fill ActorsRemaining with the entities from the current phase.
             switch (CurrentState.Combat.TurnPhase) {
                 case GameStateEnums.TurnPhase.Player:
+                    InputDelegates.InvokeOnSetGridCursorVisibility(true);
                     // Clear danger zone highlights
                     if (InputDelegates.GetDangerZoneVisible()) GridDelegates.InvokeOnSetDangerZoneVisibility(true); // doesn't change input state
                     CurrentState.Combat.ActorIDsRemaining = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Player, false);
@@ -215,9 +216,12 @@ namespace StrategyGame.Core.GameState {
                     InputDelegates.InvokeOnReinstateGridCursorPosition(null);
                     break;
                 case GameStateEnums.TurnPhase.Enemy:
+                    InputDelegates.InvokeOnSetGridCursorVisibility(false);
                     // Clear danger zone highlights
                     GridDelegates.InvokeOnSetDangerZoneVisibility(false); // doesn't change input state
                     CurrentState.Combat.ActorIDsRemaining = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Enemy, false);
+                    // Sort by decreasing agility
+                    CurrentState.Combat.ActorIDsRemaining = CurrentState.Combat.ActorIDsRemaining.OrderByDescending(id => EntityDelegates.GetGridEntityByID(id).Agility).ToList();
                     // Automate enemy actions
                     _enemyPhaseCoroutine = StartCoroutine(RunEnemyPhaseCoroutine());
                     break;
@@ -589,11 +593,23 @@ namespace StrategyGame.Core.GameState {
                 // Choose tile to move to
                 CurrentState.Combat.EnemyPhase = GameStateEnums.EnemyPhaseState.SelectUnitMoveDestination;
                 HashSet<Tile> walkableTiles = currentEntity.GetWalkableTiles(true);
+                HashSet<Tile> tilesWhereAttackingIsPossible = currentEntity.GetTilesWhereAttackingIsPossible();
+
+                HashSet<Tile> hashSetToPickFrom = tilesWhereAttackingIsPossible.Count > 0 ? tilesWhereAttackingIsPossible : walkableTiles;
+
+                if (tilesWhereAttackingIsPossible.Count > 0) {
+                    Debug.Log($"GameStateManager.RunEnemyPhaseCoroutine: {currentEntity.DisplayName} has {tilesWhereAttackingIsPossible.Count} tiles to choose from to attack.");
+                } else {
+                    Debug.Log($"GameStateManager.RunEnemyPhaseCoroutine: {currentEntity.DisplayName} has no tiles to choose from to attack.");
+                }
                 
                 // Remove allies to get all truly walkable tiles
-                walkableTiles = walkableTiles.Where(tile => !tile.IsOccupied).ToHashSet();
-                if (walkableTiles.Count > 0) {
-                    Tile chosenRandomTile = walkableTiles.ElementAt(Random.Range(0, walkableTiles.Count));
+                hashSetToPickFrom = hashSetToPickFrom.Where(tile => !tile.IsOccupied).ToHashSet();
+                
+                Debug.Log($"GameStateManager.RunEnemyPhaseCoroutine: hashSetToPickFrom's size after filter: {hashSetToPickFrom.Count}");
+                
+                if (hashSetToPickFrom.Count > 0) {
+                    Tile chosenRandomTile = hashSetToPickFrom.ElementAt(Random.Range(0, hashSetToPickFrom.Count));
                     (bool reachable, List<Tile> path) =
                         AStar.CalculateBestPath(currentEntity.GridPosition, chosenRandomTile.Position);
                     if (!reachable) {

@@ -169,14 +169,15 @@ namespace StrategyGame.Grid {
         }
 
 
-        public virtual HashSet<Tile> GetAttackableTilesAtPosition(Vector2Int position) {
-            HashSet<Tile> tilesWithinRange = GridDelegates.GetTilesInRadius(position, 1, VisionRange).ToHashSet();
+        public virtual HashSet<Tile> GetAttackableTilesAtPosition(Vector2Int position, bool includeSelf = true) {
+            Debug.Log($"GridEntity.GetAttackableTilesAtPosition: Calling base");
+            HashSet<Tile> tilesWithinRange = GridDelegates.GetTilesInRadius(position, Weapon.MinAttackRange, Weapon.MaxAttackRange).ToHashSet();
+            if (includeSelf) tilesWithinRange.Add(GridDelegates.GetTileFromPosition(GridPosition));
             return tilesWithinRange;
         }
 
         // Assumes the player has not moved yet.
         public HashSet<Tile> GetTilesWithinAttackRange() {
-            // Debug.Log("GridEntity.GetTilesWithinAttackRange: Calling base version");
             HashSet<Tile> reachableTiles = GetWalkableTiles(true);
             HashSet<Tile> dangerTiles = new HashSet<Tile>();
             foreach (Tile tile in reachableTiles) {
@@ -205,6 +206,18 @@ namespace StrategyGame.Grid {
                 }
             }
             return attackableEntities;
+        }
+
+        public HashSet<Tile> GetTilesWhereAttackingIsPossible() {
+            HashSet<Tile> tilesWhereAttackingIsPossible = new HashSet<Tile>();
+            HashSet<Tile> reachableTiles = GetWalkableTiles(true);
+            foreach (Tile tile in reachableTiles) {
+                HashSet<Tile> attackableTilesAtCurrPosition = GetAttackableTilesAtPosition(tile.Position, false);
+                if (attackableTilesAtCurrPosition.Count > 0) {
+                    tilesWhereAttackingIsPossible.Add(tile);
+                }
+            }
+            return tilesWhereAttackingIsPossible;
         }
         
         

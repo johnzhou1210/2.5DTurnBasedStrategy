@@ -346,6 +346,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GridCursorRenderer
   gridCursorInnerPointers: {fileID: 8547789184929317958}
   downwardArrowRenderer: {fileID: 4958259572657300086}
+  mainCursorRenderer: {fileID: 3940189512861343884}
   moveTweenDuration: 0.25
   attackIcon: {fileID: 478090076926454929}
 --- !u!1 &3876604358438856692

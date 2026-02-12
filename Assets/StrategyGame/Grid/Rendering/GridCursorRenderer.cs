@@ -12,6 +12,7 @@ public class GridCursorRenderer : MonoBehaviour
     private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
     [SerializeField] private GameObject gridCursorInnerPointers;
     [SerializeField] private Renderer downwardArrowRenderer;
+    [SerializeField] private Renderer mainCursorRenderer;
     [SerializeField] private float moveTweenDuration = .25f;
     [SerializeField] private GameObject attackIcon;
 
@@ -22,13 +23,28 @@ public class GridCursorRenderer : MonoBehaviour
         downwardArrowRenderer.material.EnableKeyword("_EMISSION");
     }
 
+    public void SetVisibility(bool val) {
+        downwardArrowRenderer.enabled = val;
+        gridCursorInnerPointers.SetActive(val);
+        attackIcon.SetActive(val);
+        mainCursorRenderer.enabled = val;
+    }
+
+    private void OnEnable() {
+        InputDelegates.OnSetGridCursorVisibility += SetVisibility;
+    }
+
+    private void OnDisable() {
+        InputDelegates.OnSetGridCursorVisibility -= SetVisibility;
+    }
+
     public void SetDownwardArrowColor(Color c) {
         downwardArrowRenderer.material.color = c;
         downwardArrowRenderer.material.SetColor(EmissionColor, c * 5f);
     }
 
     public void MoveTo(Vector2Int gridCursorPosition) {
-        transform.DOMove(new Vector3(gridCursorPosition.x, .05f, gridCursorPosition.y), moveTweenDuration);
+        transform.DOMove(new Vector3(gridCursorPosition.x, .1f, gridCursorPosition.y), moveTweenDuration);
         SetGridCursorInnerPointerVisibility(gridCursorPosition);
         SetMiscIcon();
     }
