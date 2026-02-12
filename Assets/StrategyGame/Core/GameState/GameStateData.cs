@@ -29,6 +29,7 @@ namespace StrategyGame.Core.GameState {
         public Vector2Int InspectedTilePosition;
         public bool NextActorReady = true;
         public bool PlayerDirectAttackAvailable = false;
+        public int HighestPriorityTargetEntityID = -1;
         public CombatPreview CombatPreview;
 
         [SerializeField] private int inspectedEntityID = -1;

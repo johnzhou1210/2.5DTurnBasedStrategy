@@ -1,6 +1,7 @@
 using System;
 using DG.Tweening;
 using StrategyGame.Core.Delegates;
+using StrategyGame.Core.Enums;
 using StrategyGame.Core.GameState;
 using StrategyGame.Factions;
 using StrategyGame.Grid;
@@ -12,9 +13,11 @@ public class GridCursorRenderer : MonoBehaviour
     [SerializeField] private GameObject gridCursorInnerPointers;
     [SerializeField] private Renderer downwardArrowRenderer;
     [SerializeField] private float moveTweenDuration = .25f;
+    [SerializeField] private GameObject attackIcon;
 
-  
-    
+    private Vector2Int _targetPosition;
+   
+
     private void Start() {
         downwardArrowRenderer.material.EnableKeyword("_EMISSION");
     }
@@ -27,10 +30,11 @@ public class GridCursorRenderer : MonoBehaviour
     public void MoveTo(Vector2Int gridCursorPosition) {
         transform.DOMove(new Vector3(gridCursorPosition.x, .05f, gridCursorPosition.y), moveTweenDuration);
         SetGridCursorInnerPointerVisibility(gridCursorPosition);
+        SetMiscIcon();
     }
     
     private void SetGridCursorInnerPointerVisibility(Vector2Int gridCursorPosition) {
-        GameStateData currState = GameStateDelegates.GetCurrentGameState();
+        _targetPosition = gridCursorPosition;
         Tile targetTile = GridDelegates.GetTileFromPosition(gridCursorPosition);
         gridCursorInnerPointers.SetActive(targetTile.Occupant != null);
         if (targetTile.Occupant == null) {
@@ -38,5 +42,19 @@ public class GridCursorRenderer : MonoBehaviour
             return;
         }
         SetDownwardArrowColor(targetTile.Occupant.Faction == Faction.Player ? Color.blue : targetTile.Occupant.Faction == Faction.Enemy ? Color.red : Color.yellow);
+    }
+
+    private void SetMiscIcon() {
+        GameStateData currState = GameStateDelegates.GetCurrentGameState();
+        switch (currState.Combat.PlayerPhase) {
+            case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
+                GridEntity occupant = GridDelegates.GetTileFromPosition(_targetPosition).Occupant;
+                GridEntity attacker = EntityDelegates.GetGridEntityByID(currState.Combat.SelectedEntityID);
+                attackIcon.SetActive(occupant != null && !attacker.IsFriendlyWith(occupant));
+                break;
+            default:
+                attackIcon.SetActive(false);
+                break;
+        }
     }
 }

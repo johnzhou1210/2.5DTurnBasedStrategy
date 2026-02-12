@@ -11,6 +11,7 @@ using StrategyGame.Factions;
 using StrategyGame.Grid;
 using StrategyGame.Grid.GridData;
 using StrategyGame.UI;
+using StrategyGame.Utils;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -150,7 +151,7 @@ namespace StrategyGame.Core.GameState {
             });
             units.Add(new UnitSpawnQuery {
                 UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Orc"),
-                SpawnPosition = new Vector2Int(1, 1)
+                SpawnPosition = new Vector2Int(1, 0)
             });
             units.Add(new UnitSpawnQuery {
                 UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Archer"),
@@ -362,6 +363,7 @@ namespace StrategyGame.Core.GameState {
             switch (CurrentState.Combat.PlayerPhase) {
                 case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
                     ManualPath.Clear();
+                    CurrentState.Combat.HighestPriorityTargetEntityID = -1;
                     CurrentState.Combat.SelectedEntityID = -1;
                     GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, false);
                     Tile currInspectedTile = GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition);
@@ -396,6 +398,13 @@ namespace StrategyGame.Core.GameState {
                     HashSet<GridEntity> attackableEntities = attackingEntity.GetAttackableEntitiesAtPosition(attackingEntity.GridPosition);
                     // Sort attackableEntities by increasing distance from player
                     List<GridEntity> sortedAttackableEntities = attackableEntities.OrderBy(e => Manhattan.Distance(e.GridPosition, attackingEntity.GridPosition)).ToList();
+                    // If there is one enemy with increased priority, cycle to that one first
+                    if (CurrentState.Combat.HighestPriorityTargetEntityID != -1) {
+                        // swap elements at index 0 and index of the highest priority target
+                        int indexOfHighestPriorityTarget = sortedAttackableEntities.FindIndex(e => e.ID == CurrentState.Combat.HighestPriorityTargetEntityID);
+                        if (indexOfHighestPriorityTarget == -1) throw new Exception("GameStateManager.SetCurrentPlayerPhaseState: Index of highest priority target not found!");
+                        ListUtils.Swap(sortedAttackableEntities, 0, indexOfHighestPriorityTarget);
+                    }
                     CurrentState.Combat.EnemiesCycleDeque = new LinkedList<int>(sortedAttackableEntities.Select(e => e.ID));
                     Vector2Int firstTargetPosition = EntityDelegates.GetGridEntityByID(CurrentState.Combat.EnemiesCycleDeque.First.Value).GridPosition;
                     InputDelegates.InvokeOnReinstateGridCursorPosition(firstTargetPosition);

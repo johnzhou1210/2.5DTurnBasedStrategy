@@ -240,6 +240,7 @@ namespace StrategyGame.Grid {
         public void Die() {
             // Free up tile since they died
             GridDelegates.GetTileFromPosition(GridPosition).RemoveOccupant();
+            InputDelegates.InvokeOnReinstateGridCursorPosition(InputDelegates.GetGridCursorPosition());
             GameStateData currentState = GameStateDelegates.GetCurrentGameState();
             currentState.Combat.DeadEntityIDs.Add(ID);
             if (currentState.Combat.ActorIDsRemaining.Contains(ID)) {

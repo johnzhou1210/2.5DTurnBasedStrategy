@@ -230,11 +230,6 @@ namespace StrategyGame.Grid.Rendering {
             }
             _pathTiles.Clear();
         }
-        private void UpdateTileVisualSelection(Vector2Int newPosition, bool animated) {
-            GameObject tileToUpdate = _tileVisuals[newPosition.x, newPosition.y];
-            if (!tileToUpdate.activeInHierarchy)
-                return;
-        }
         private void RenderEntityMovementAlongPath(GridEntity entity, List<Tile> path) {
             StartCoroutine(EntityPathMovementCoroutine(entity, path));
         }
@@ -378,7 +373,10 @@ namespace StrategyGame.Grid.Rendering {
                 case GameStateEnums.TurnPhase.Player:
                     // Notify game state to change immediately to unit action menu
                     // Check game state to see if quick attack is available
+                    GridEntity inspectedEntity = EntityDelegates.GetGridEntityByID(currentState.Combat.InspectedEntityID);
                     GameStateDelegates.InvokeOnPlayerPhaseStateChanged(currentState.Combat.PlayerDirectAttackAvailable ? GameStateEnums.PlayerPhaseState.UnitSelectTarget : GameStateEnums.PlayerPhaseState.UnitActionMenu);
+                    GridEntity selectedEntity = EntityDelegates.GetGridEntityByID(currentState.Combat.SelectedEntityID);
+                    MarkTilesWithinAttackRange(Faction.Player, selectedEntity.GetAttackableTilesAtPosition(selectedEntity.GridPosition));
                     currentState.Combat.PlayerDirectAttackAvailable = false;
                     break;
                 case GameStateEnums.TurnPhase.Enemy:

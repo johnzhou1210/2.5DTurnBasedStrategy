@@ -371,6 +371,7 @@ namespace StrategyGame.Core.Input {
                             GameStateDelegates.GetCurrentGameState().Combat.PlayerDirectAttackAvailable = true;
                             manualPathList.RemoveAt(manualPathList.Count - 1);
                             currentSelectedEntity.MoveAlongPath(manualPathList);
+                            GameStateDelegates.GetCurrentGameState().Combat.HighestPriorityTargetEntityID = destinationTile.Occupant.ID;
                             GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitMovingToDestination);
                         } else if (conditionsNeededToMoveToDestination) {
                             // Move unit to destination
