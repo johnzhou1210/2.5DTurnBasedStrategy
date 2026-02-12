@@ -38,6 +38,10 @@ namespace StrategyGame.Grid.Rendering {
             _fadeCoroutine = StartCoroutine(FadeCoroutine());
         }
 
+        public void SetSpriteFlipX(bool flipX) {
+            _spriteRenderer.flipX = flipX;
+        }
+
         public void SetEntitySprite(SpriteRenderer spriteRenderer) {
             _spriteRenderer = spriteRenderer;
         }

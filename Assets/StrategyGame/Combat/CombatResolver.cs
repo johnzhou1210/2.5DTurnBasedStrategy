@@ -133,7 +133,7 @@ namespace StrategyGame.Combat {
         private static DeterministicRNG _rng = new DeterministicRNG(0);
         public static CombatOutcome ResolveCombatFromPreview(CombatPreview preview) {
             CombatOutcome outcome = new CombatOutcome();
-            outcome.OrderOfEvents = new  List<CombatDirector.CombatTimeline>();
+            outcome.OrderOfEvents = new List<CombatDirector.CombatTimeline>();
             outcome.AttackerID = preview.AttackerID;
             outcome.DefenderID = preview.DefenderID;
             int defenderHP = preview.DefenderCurrentHP;

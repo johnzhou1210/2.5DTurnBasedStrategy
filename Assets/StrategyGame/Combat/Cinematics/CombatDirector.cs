@@ -150,6 +150,8 @@ namespace StrategyGame.Combat.Cinematics {
 
             bool defenderActed = false;
             
+            Debug.Log($"CombatDirector.PlayCombat: currEventIndex: {currEventIndex}, OrderOfEvents count: {_combatOutcome.OrderOfEvents.Count}");
+            
             while (currEventIndex < _combatOutcome.OrderOfEvents.Count) {
                 _currCombatEvent = _combatOutcome.OrderOfEvents[currEventIndex];
                 if (_currCombatEvent is CombatTimeline.AttackerDies or CombatTimeline.DefenderDies) break;
@@ -210,7 +212,6 @@ namespace StrategyGame.Combat.Cinematics {
         
 
         private void EnterCinematicMode() {
-            GameStateData currState = GameStateDelegates.GetCurrentGameState();
             UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.BattleOutcomePreview);
             // Lock user grid input
             // Override camera
@@ -230,15 +231,28 @@ namespace StrategyGame.Combat.Cinematics {
             UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.BattleOutcomePreview);
             GridDelegates.InvokeOnInspectedTileChanged(GridDelegates.GetTileFromPosition(currState.Combat.InspectedTilePosition), GridDelegates.GetTileFromPosition(_attackerEntity.GridPosition));
             currState.Combat.InspectedTilePosition = _attackerEntity.GridPosition;
-            InputDelegates.InvokeOnReinstateGridCursorPosition(_attackerEntity.GridPosition);
             GameStateDelegates.InvokeOnApplyAttackOutcome(_combatOutcome);
             Invoke(nameof(FinalizeAction), 1f);
-            // Unlock user grid input
-            // Undo camera override
+            if (currState.Combat.TurnPhase == GameStateEnums.TurnPhase.Player) {
+                InputDelegates.InvokeOnReinstateGridCursorPosition(_attackerEntity.GridPosition);
+            } else if (currState.Combat.TurnPhase == GameStateEnums.TurnPhase.Enemy) {
+            }
         }
 
         private void FinalizeAction() {
-            GameStateDelegates.InvokeOnFinalizePlayerAction();
+            GameStateData currState = GameStateDelegates.GetCurrentGameState();
+            switch (currState.Combat.TurnPhase) {
+                case GameStateEnums.TurnPhase.Player:
+                    GameStateDelegates.InvokeOnFinalizePlayerAction();
+                    break;
+                case GameStateEnums.TurnPhase.Enemy:
+                    // Send signal for game state manager to continue enemy coroutine
+                    currState.Combat.EnemyActorFinishedCombatCinematic = true;
+                    break;
+                default:
+                    break;
+            }
+            
         }
 
         /* Methods called via Signals */

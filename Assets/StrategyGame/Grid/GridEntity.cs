@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using StrategyGame.Combat;
 using StrategyGame.Combat.Weapons;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.GameState;
@@ -213,7 +214,9 @@ namespace StrategyGame.Grid {
             HashSet<Tile> reachableTiles = GetWalkableTiles(true);
             foreach (Tile tile in reachableTiles) {
                 HashSet<Tile> attackableTilesAtCurrPosition = GetAttackableTilesAtPosition(tile.Position, false);
-                if (attackableTilesAtCurrPosition.Count > 0) {
+                Debug.Log(string.Join(", ", attackableTilesAtCurrPosition));
+                Tile tileWithEnemyOccupantFound = attackableTilesAtCurrPosition.FirstOrDefault(t => t.Occupant != null && !IsFriendlyWith(t.Occupant));
+                if (tileWithEnemyOccupantFound != null) {
                     tilesWhereAttackingIsPossible.Add(tile);
                 }
             }
@@ -260,6 +263,25 @@ namespace StrategyGame.Grid {
                 currentState.Combat.ActorIDsRemaining.Remove(ID);
             }
             FireDeathEvents();
+        }
+
+        public CombatStats GetCombatStats() { // later adapt for terrain modifiers
+            return new CombatStats {
+                HP = Health,
+                MaxHP = MaxHealth,
+                Attack = Attack,
+                Defense = Defense,
+                Agility = Agility,
+                Accuracy = Accuracy,
+                Resistance = Resistance,
+                Evasion = Evasion,
+                Weapon = Weapon,
+                EntityID = ID
+            };
+        }
+
+        public void VisualFace(GridEntity other) {
+            EntityVisualDelegates.InvokeOnVisualFace(this, other);
         }
 
 

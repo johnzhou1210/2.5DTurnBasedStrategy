@@ -27,11 +27,15 @@ namespace StrategyGame.Grid.Rendering {
 
         private void OnEnable() {
             GridDelegates.OnEntitySpawned += OnEntitySpawned;
+            EntityVisualDelegates.OnVisualFace += FaceEntity;
             EntityVisualDelegates.GetEntityVisualTransformByID = GetEntityVisualTransformByID;
+           
         }
         
         private void OnDisable() {
             GridDelegates.OnEntitySpawned -= OnEntitySpawned;
+            EntityVisualDelegates.OnVisualFace -= FaceEntity;
+            EntityVisualDelegates.GetEntityVisualTransformByID = null;
         }
 
         
@@ -91,6 +95,19 @@ namespace StrategyGame.Grid.Rendering {
             if (weaponTypeBillboard.TryGetComponent(out WeaponTypeBillboard billboardComponent)) {
                 billboardComponent.Initialize(unit);
             }
+        }
+
+        private void FaceEntity(GridEntity thisEntity, GridEntity otherEntity) {
+            if (!_entityVisuals.ContainsKey(thisEntity.ID) || !_entityVisuals.ContainsKey(otherEntity.ID)) {
+                throw new Exception("GridEntitySpawner.FaceEntity: One or both of the entities could not be retrieved from _entityVisuals dictionary!");
+            }
+            EntityVisual entityVisual = _entityVisuals[thisEntity.ID].GetComponent<EntityVisual>();
+            EntityVisual otherEntityVisual = _entityVisuals[otherEntity.ID].GetComponent<EntityVisual>();
+            if (entityVisual == null || otherEntityVisual == null) {
+                throw new Exception("GridEntitySpawner.FaceEntity: One or both of the entity visuals could not be retrieved!");
+            }
+            if (thisEntity.GridPosition.x == otherEntity.GridPosition.x) return;
+            entityVisual.SetSpriteFlipX(thisEntity.GridPosition.x > otherEntity.GridPosition.x);
         }
     }
 }
