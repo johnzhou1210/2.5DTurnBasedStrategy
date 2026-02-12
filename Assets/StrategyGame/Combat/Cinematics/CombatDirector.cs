@@ -59,6 +59,7 @@ namespace StrategyGame.Combat.Cinematics {
         private DepthOfField _depthOfField;
         private ColorAdjustments _colorAdjustments;
         private ChromaticAberration _chromaticAberration;
+        private Bloom _bloom;
         
         private GridEntity _attackerEntity;
         private GridEntity _defenderEntity;
@@ -93,6 +94,7 @@ namespace StrategyGame.Combat.Cinematics {
             globalVolume.profile.TryGet(out _depthOfField);
             globalVolume.profile.TryGet(out _colorAdjustments);
             globalVolume.profile.TryGet(out _chromaticAberration);
+            globalVolume.profile.TryGet(out _bloom);
         }
 
         private void OnEnable() {
@@ -267,7 +269,7 @@ namespace StrategyGame.Combat.Cinematics {
 
         }
         public void StartSlowMo() {
-            Time.timeScale = .5f;
+            Time.timeScale = .45f;
         }
         public void EndSlowMo() {
             Time.timeScale = 1f;
@@ -366,21 +368,36 @@ namespace StrategyGame.Combat.Cinematics {
             _chromaticAberration.intensity.value = newVal;
         }
 
+        private void SetPostExposure(float newVal) {
+            if (_colorAdjustments == null) return;
+            _colorAdjustments.postExposure.value = newVal;
+        }
+
+        private void SetBloomIntensity(float newVal) {
+            if (_bloom == null) return;
+            _bloom.intensity.value = newVal;
+        }
+
         private ProjectileVisualData GetProjectileVisualDataFromID(int projectileID) {
             ProjectileVisualData queryResult = projectileVisualsDatabase.ProjectileVisuals.FirstOrDefault(x => x.ProjectileID == projectileID);
             return queryResult == null ? throw new Exception($"CombatDirector.GetProjectileVisualDataFromID: Could not find projectile of id {projectileID}!") : queryResult;
         }
 
-        private IEnumerator SlowMotionCoroutine(bool isCrit = false, float duration = 1.75f) {
+        private IEnumerator SlowMotionCoroutine(bool isCrit = false, float duration = 1f) {
             StartSlowMo();
             if (isCrit) {
-                DOTween.To(() => _colorAdjustments.contrast.value, SetContrast, 69f, duration / 4f);
-                DOTween.To(() => _chromaticAberration.intensity.value, SetChromaticAberration, 1f, duration / 4f);
+                duration = 2f;
+                DOTween.To(() => _colorAdjustments.contrast.value, SetContrast, 69f, duration / 8f);
+                DOTween.To(() => _chromaticAberration.intensity.value, SetChromaticAberration, 1f, duration / 8f);
+                DOTween.To(() => _colorAdjustments.postExposure.value, SetPostExposure, -1f, duration / 8f);
+                DOTween.To(() => _bloom.intensity.value, SetBloomIntensity, 3f, duration / 8f);
             }
             yield return new WaitForSeconds(duration/2f);
             if (isCrit) {
-                DOTween.To(() => _colorAdjustments.contrast.value, SetContrast, 21.7f, duration / 4f);
-                DOTween.To(() => _chromaticAberration.intensity.value, SetChromaticAberration, 0f, duration / 4f);
+                DOTween.To(() => _colorAdjustments.contrast.value, SetContrast, 21.7f, duration / 8f);
+                DOTween.To(() => _chromaticAberration.intensity.value, SetChromaticAberration, 0f, duration / 8f);
+                DOTween.To(() => _colorAdjustments.postExposure.value, SetPostExposure, 0f, duration / 8f);
+                DOTween.To(() => _bloom.intensity.value, SetBloomIntensity, 1f, duration / 8f);
             }
             yield return new WaitForSeconds(duration/2f);
             EndSlowMo();

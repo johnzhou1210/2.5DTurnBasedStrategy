@@ -24,9 +24,12 @@ public class GridCursorRenderer : MonoBehaviour
     }
 
     public void SetVisibility(bool val) {
+        if (!val) {
+            attackIcon.SetActive(false);
+        }
+        
         downwardArrowRenderer.enabled = val;
         gridCursorInnerPointers.SetActive(val);
-        attackIcon.SetActive(val);
         mainCursorRenderer.enabled = val;
     }
 

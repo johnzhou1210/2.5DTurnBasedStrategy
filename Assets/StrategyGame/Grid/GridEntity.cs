@@ -249,10 +249,6 @@ namespace StrategyGame.Grid {
             UIDelegates.InvokeOnEntityHUDUpdate(this);
         }
 
-        private void FireDeathEvents() {
-            
-        }
-
         public void Die() {
             // Free up tile since they died
             GridDelegates.GetTileFromPosition(GridPosition).RemoveOccupant();
@@ -262,7 +258,8 @@ namespace StrategyGame.Grid {
             if (currentState.Combat.ActorIDsRemaining.Contains(ID)) {
                 currentState.Combat.ActorIDsRemaining.Remove(ID);
             }
-            FireDeathEvents();
+            
+            GridDelegates.InvokeOnRefreshDangerZoneVisibility();
         }
 
         public CombatStats GetCombatStats() { // later adapt for terrain modifiers
@@ -283,7 +280,6 @@ namespace StrategyGame.Grid {
         public void VisualFace(GridEntity other) {
             EntityVisualDelegates.InvokeOnVisualFace(this, other);
         }
-
 
     }
 }

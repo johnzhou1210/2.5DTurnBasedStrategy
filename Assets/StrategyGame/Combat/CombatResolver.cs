@@ -7,6 +7,7 @@ using StrategyGame.Core.Delegates;
 using StrategyGame.Grid.GridData;
 using StrategyGame.Utils;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace StrategyGame.Combat {
     public struct CombatPreview {
@@ -130,7 +131,7 @@ namespace StrategyGame.Combat {
     public static class CombatResolver {
         private static float _baseHitChance = .85f;
         private static float _baseCritChance = .05f;
-        private static DeterministicRNG _rng = new DeterministicRNG(0);
+        private static DeterministicRNG _rng = new DeterministicRNG(Random.Range(0, 2048));
         public static CombatOutcome ResolveCombatFromPreview(CombatPreview preview) {
             CombatOutcome outcome = new CombatOutcome();
             outcome.OrderOfEvents = new List<CombatDirector.CombatTimeline>();

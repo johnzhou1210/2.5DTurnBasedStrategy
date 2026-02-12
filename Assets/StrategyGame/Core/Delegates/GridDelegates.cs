@@ -20,6 +20,7 @@ namespace StrategyGame.Core.Delegates {
         public static event Action OnClearPath;
         public static event Action OnGridRedraw;
         public static event Action<bool> OnSetDangerZoneVisibility;
+        public static event Action OnRefreshDangerZoneVisibility;
         public static event Action OnManualMarkTilesWithAttackableEntities;
         
 
@@ -52,6 +53,9 @@ namespace StrategyGame.Core.Delegates {
         }
         public static void InvokeOnSetDangerZoneVisibility(bool val) {
             OnSetDangerZoneVisibility?.Invoke(val);
+        }
+        public static void InvokeOnRefreshDangerZoneVisibility() {
+            OnRefreshDangerZoneVisibility?.Invoke();
         }
         public static void InvokeOnManualMarkTilesWithAttackableEntities() {
             OnManualMarkTilesWithAttackableEntities?.Invoke();

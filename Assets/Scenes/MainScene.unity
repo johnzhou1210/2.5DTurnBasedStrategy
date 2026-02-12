@@ -20678,6 +20678,7 @@ MonoBehaviour:
       UnitMoveSelectionMode: 2
       InspectedTilePosition: {x: 0, y: 0}
       NextActorReady: 1
+      EnemyActorFinishedCombatCinematic: 1
       PlayerDirectAttackAvailable: 0
       HighestPriorityTargetEntityID: -1
       inspectedEntityID: -1

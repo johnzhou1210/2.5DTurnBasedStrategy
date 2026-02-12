@@ -164,9 +164,10 @@ namespace StrategyGame.Core.GameState {
             switch (CurrentState.Combat.TurnPhase) {
                 case GameStateEnums.TurnPhase.Player:
                     InputDelegates.InvokeOnSetGridCursorVisibility(true);
+                    CurrentState.Combat.HighestPriorityTargetEntityID = -1;
                     // Clear danger zone highlights
                     if (InputDelegates.GetDangerZoneVisible())
-                        GridDelegates.InvokeOnSetDangerZoneVisibility(true); // doesn't change input state
+                        GridDelegates.InvokeOnRefreshDangerZoneVisibility();
                     CurrentState.Combat.ActorIDsRemaining = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Player, false);
                     CurrentState.Combat.PlayersCycleDeque = new LinkedList<int>(CurrentState.Combat.ActorIDsRemaining);
                     CurrentState.Combat.PlayerPhase = GameStateEnums.PlayerPhaseState.SelectUnitToControl;
@@ -310,6 +311,7 @@ namespace StrategyGame.Core.GameState {
                 case GameStateEnums.PlayerPhaseState.UnitMovingToDestination: GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, false); break;
                 case GameStateEnums.PlayerPhaseState.UnitActionMenu:
                     ManualPath.Clear();
+                    InputDelegates.InvokeOnSetGridCursorVisibility(true);
                     UIDelegates.InvokeOnSetCombatActionMenuVisibility(true);
                     Debug.Log($"GameStateManager.SetCurrentPlayerPhaseState: SelectedEntityID is {CurrentState.Combat.SelectedEntityID}");
                     SetInspectedTile(CurrentState.Combat.InspectedTilePosition); // Force update to show walkable tiles
@@ -485,15 +487,27 @@ namespace StrategyGame.Core.GameState {
                 HashSet<Tile> hashSetToPickFrom = tilesWhereAttackingIsPossible.Count > 0 ? tilesWhereAttackingIsPossible : walkableTiles;
                 if (tilesWhereAttackingIsPossible.Count > 0) {
                     Debug.Log($"GameStateManager.RunEnemyPhaseCoroutine: {currentEntity.DisplayName} has {tilesWhereAttackingIsPossible.Count} tiles to choose from to attack.");
+                    if (tilesWhereAttackingIsPossible.Count == 1) {
+                        Debug.Log($"GameStateManager.RunEnemyPhaseCoroutine: That one tile's position is {tilesWhereAttackingIsPossible.First()}.");
+                    }
                 } else {
-                    Debug.Log($"GameStateManager.RunEnemyPhaseCoroutine: {currentEntity.DisplayName} has no tiles to choose from to attack.");
+                    Debug.Log($"GameStateManager.RunEnemyPhaseCoroutine: {currentEntity.DisplayName} has no tiles to choose from to attack. Walkable tiles count is {hashSetToPickFrom.Count}");
+                    // Narrow down to the one tile closest to any player
+                    List<int> playerActorIDs = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Player, false);
+                    if (playerActorIDs.Count > 0) {
+                        // Get closest player entity
+                        GridEntity closestPlayer = EntityDelegates.GetGridEntityByID(playerActorIDs.OrderBy(id => (EntityDelegates.GetGridEntityByID(id).GridPosition - currentEntity.GridPosition).magnitude ).First());
+                        Debug.Log($"GameStateManager.RunEnemyPhaseCoroutine: Closest player is {closestPlayer.DisplayName}");
+                        hashSetToPickFrom = new HashSet<Tile>{hashSetToPickFrom.OrderBy(t => (t.Position - closestPlayer.GridPosition).magnitude).First()};
+                        Debug.Log($"GameStateManager.RunEnemyPhaseCoroutine: {currentEntity.DisplayName}@{currentEntity.GridPosition}'s only position can be {hashSetToPickFrom.First()}");
+                    }
                 }
 
                 // Remove allies to get all truly walkable tiles
                 hashSetToPickFrom = hashSetToPickFrom.Where(tile => !tile.IsOccupied).ToHashSet();
                 Debug.Log($"GameStateManager.RunEnemyPhaseCoroutine: hashSetToPickFrom's size after filter: {hashSetToPickFrom.Count}");
                 if (hashSetToPickFrom.Count > 0) {
-                    Tile chosenRandomTile = hashSetToPickFrom.ElementAt(Random.Range(0, hashSetToPickFrom.Count)); // May want to prioritize the weakest player entity
+                    Tile chosenRandomTile = hashSetToPickFrom.ElementAt(Random.Range(0, hashSetToPickFrom.Count));
                     (bool reachable, List<Tile> path) = AStar.CalculateBestPath(currentEntity.GridPosition, chosenRandomTile.Position);
                     if (!reachable) {
                         throw new Exception($"GameStateManager.RunEnemyPhaseCoroutine: AStar could not find a path for the chosen random tile at position {chosenRandomTile.Position}!");

@@ -53,6 +53,7 @@ namespace StrategyGame.Grid.Rendering {
             GridDelegates.OnClearPath += ClearAllPathTileVisuals;
             GridDelegates.OnGridRedraw += OnGridRedraw;
             GridDelegates.OnSetDangerZoneVisibility += SetDangerZoneVisibility;
+            GridDelegates.OnRefreshDangerZoneVisibility += RefreshDangerZoneVisibility;
             GridDelegates.OnManualMarkTilesWithAttackableEntities += HandleManualMarkTilesWithAttackableEntities;
         }
         private void OnDisable() {
@@ -62,6 +63,7 @@ namespace StrategyGame.Grid.Rendering {
             GridDelegates.OnClearPath -= ClearAllPathTileVisuals;
             GridDelegates.OnGridRedraw -= OnGridRedraw;
             GridDelegates.OnSetDangerZoneVisibility -= SetDangerZoneVisibility;
+            GridDelegates.OnRefreshDangerZoneVisibility -= RefreshDangerZoneVisibility;
             GridDelegates.OnManualMarkTilesWithAttackableEntities -= HandleManualMarkTilesWithAttackableEntities;
         }
 
@@ -234,6 +236,10 @@ namespace StrategyGame.Grid.Rendering {
             StartCoroutine(EntityPathMovementCoroutine(entity, path));
         }
         public void OnGridRedraw() {
+            // Clear existing grid
+            foreach (Transform child in transform) {
+                Destroy(child.gameObject);
+            }
             Vector2Int dimensions = grid.GetSize();
             for (int y = 0; y < dimensions.y; y++) {
                 for (int x = 0; x < dimensions.x; x++) {
@@ -378,6 +384,7 @@ namespace StrategyGame.Grid.Rendering {
                     GridEntity selectedEntity = EntityDelegates.GetGridEntityByID(currentState.Combat.SelectedEntityID);
                     MarkTilesWithinAttackRange(Faction.Player, selectedEntity.GetAttackableTilesAtPosition(selectedEntity.GridPosition));
                     currentState.Combat.PlayerDirectAttackAvailable = false;
+                    GridDelegates.InvokeOnRefreshDangerZoneVisibility();
                     break;
                 case GameStateEnums.TurnPhase.Enemy:
                     // Notify game state to continue to next enemy actor.
@@ -389,29 +396,18 @@ namespace StrategyGame.Grid.Rendering {
         }
         private void SetDangerZoneVisibility(bool val) {
             if (val) {
-                // add tiles to danger zone
-                List<int> allEnemyIDs = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Enemy, false);
-                foreach (int enemyID in allEnemyIDs) {
-                    GridEntity currentEnemy = EntityDelegates.GetGridEntityByID(enemyID);
-                    HashSet<Tile> dangerTiles = currentEnemy.GetTilesWithinAttackRange();
-                    foreach (Tile tile in dangerTiles) {
-                        _tilesWithinDangerZone.Add(_tileVisuals[tile.Position.x, tile.Position.y]);
-                    }
-                }
-                foreach (GameObject tile in _tilesWithinDangerZone) {
-                    if (tile.TryGetComponent(out TileRenderer tileRenderer)) {
-                        tileRenderer.SetHighlight(TileHighlightType.Danger, Faction.Enemy, true);
-                        // tileRenderer.SetOppositeReactionHighlightVisualVisibility(true);
-                    }
-                }
+               AddTilesToDangerZone();
             } else {
-                // clear tiles from danger zone
-                ClearTilesWithinDangerZone();
-                GameStateData currState = GameStateDelegates.GetCurrentGameState();
-                Tile currInspectedTile = GridDelegates.GetTileFromPosition(currState.Combat.InspectedTilePosition);
-                if (currInspectedTile.IsOccupied && currInspectedTile.Occupant.Faction == Faction.Enemy) {
-                    MarkAttackRange(Faction.Enemy, currInspectedTile.Occupant);
-                }
+               ClearTilesFromDangerZone();
+            }
+        }
+        private void RefreshDangerZoneVisibility() {
+            GameStateData currentState = GameStateDelegates.GetCurrentGameState();
+            if (currentState.Combat.TurnPhase != GameStateEnums.TurnPhase.Player) return;
+            bool dangerZoneVisible = InputDelegates.GetDangerZoneVisible();
+            if (dangerZoneVisible) {
+                ClearTilesFromDangerZone();
+                AddTilesToDangerZone();
             }
         }
         private void MarkAttackRange(Faction faction, GridEntity entity) {
@@ -422,6 +418,31 @@ namespace StrategyGame.Grid.Rendering {
             GameStateData currentState = GameStateDelegates.GetCurrentGameState();
             GridEntity selectedEntity = EntityDelegates.GetGridEntityByID(currentState.Combat.SelectedEntityID);
             MarkTilesWithAttackableEntities(selectedEntity.GetAttackableEntitiesAtPosition(selectedEntity.GridPosition));
+        }
+        private void AddTilesToDangerZone() {
+            // add tiles to danger zone
+            List<int> allEnemyIDs = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Enemy, false);
+            foreach (int enemyID in allEnemyIDs) {
+                GridEntity currentEnemy = EntityDelegates.GetGridEntityByID(enemyID);
+                HashSet<Tile> dangerTiles = currentEnemy.GetTilesWithinAttackRange();
+                foreach (Tile tile in dangerTiles) {
+                    _tilesWithinDangerZone.Add(_tileVisuals[tile.Position.x, tile.Position.y]);
+                }
+            }
+            foreach (GameObject tile in _tilesWithinDangerZone) {
+                if (tile.TryGetComponent(out TileRenderer tileRenderer)) {
+                    tileRenderer.SetHighlight(TileHighlightType.Danger, Faction.Enemy, true);
+                }
+            }
+        }
+        private void ClearTilesFromDangerZone() {
+            // clear tiles from danger zone
+            ClearTilesWithinDangerZone();
+            GameStateData currState = GameStateDelegates.GetCurrentGameState();
+            Tile currInspectedTile = GridDelegates.GetTileFromPosition(currState.Combat.InspectedTilePosition);
+            if (currInspectedTile.IsOccupied && currInspectedTile.Occupant.Faction == Faction.Enemy) {
+                MarkAttackRange(Faction.Enemy, currInspectedTile.Occupant);
+            }
         }
     }
 }
