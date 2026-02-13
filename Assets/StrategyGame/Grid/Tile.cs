@@ -23,7 +23,7 @@ namespace StrategyGame.Grid {
         // Entity occupant data
         public GridEntity Occupant { get; private set; }
         public bool IsOccupied { get => Occupant != null; }
-        
+
         // Visibility data
         public bool IsVisible { get; private set; }
         public bool IsSelected { get; private set; }
@@ -55,12 +55,10 @@ namespace StrategyGame.Grid {
         
         // Removes occupant from tile, but does not update removed occupant's position.
         public GridEntity RemoveOccupant() {
-            if (IsOccupied) {
-                GridEntity removed = Occupant;
-                Occupant = null;
-                return Occupant;
-            }
-            return null;
+            if (Occupant == null) return null;
+            GridEntity removed = Occupant;
+            Occupant = null;
+            return removed;
         }
 
         public void SetNeighbors(Dictionary<Direction, Tile> dict) {

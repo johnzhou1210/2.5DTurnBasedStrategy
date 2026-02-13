@@ -34,15 +34,15 @@ namespace StrategyGame.Combat.Cinematics {
             Animator.Play("Idle");
         }
 
-        public void SpawnDamageNumber(int damage, bool isCrit) {
+        public void SpawnDamageNumber(int damage, bool isCrit, bool isBreak) {
             GameObject damageIndicator = Instantiate(damageIndicatorPrefab, billboardCanvasTransform);
             damageIndicator.transform.position = damageIndicatorSpawnPoint.position;
             DamageIndicatorBillboard damageIndicatorComponent = damageIndicator.GetComponent<DamageIndicatorBillboard>();
-            damageIndicatorComponent.Setup(damage, isCrit);
+            damageIndicatorComponent.Setup(damage, isCrit, isBreak);
         }
         
-        public void SpawnImpactVFX(GameObject VFXPrefab, Vector3 position, bool hit) {
-            CombatDirector.SpawnImpactVFX(VFXPrefab, vfxTransform, position, hit);
+        public void SpawnImpactVFX(GameObject VFXPrefab, Vector3 position, bool isBreak, bool hit) {
+            CombatDirector.SpawnImpactVFX(VFXPrefab, vfxTransform, position, hit, isBreak);
         }
 
       

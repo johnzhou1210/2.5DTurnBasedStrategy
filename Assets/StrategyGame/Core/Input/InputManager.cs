@@ -173,7 +173,10 @@ namespace StrategyGame.Core.Input {
                             _isDiagonalMoveEnabled = true;
                             break;
                         case GameStateEnums.PlayerPhaseState.UnitMovingToDestination: break;
-                        case GameStateEnums.PlayerPhaseState.UnitActionMenu: break;
+                        case GameStateEnums.PlayerPhaseState.UnitActionMenu: 
+                            // Allow undoing of movement and go back to select unit move destination
+                            GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination);
+                            break;
                         case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
                             currentGameState.Combat.InspectedEntityID = currentGameState.Combat.SelectedEntityID;
                             GridDelegates.SetInspectedTile(EntityDelegates.GetGridEntityByID(currentGameState.Combat.SelectedEntityID).GridPosition);
@@ -472,7 +475,6 @@ namespace StrategyGame.Core.Input {
                         GridCursorPosition = EntityDelegates.GetGridEntityByID(newID).GridPosition;
                         GridDelegates.SetInspectedTile(GridCursorPosition);
                     }
-                    GridDelegates.InvokeOnSetTileVisualSelectionAnim(currentState.Combat.InspectedTilePosition, true);
                     break;
             }
         }

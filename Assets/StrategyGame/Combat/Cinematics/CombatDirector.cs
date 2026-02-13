@@ -38,11 +38,16 @@ namespace StrategyGame.Combat.Cinematics {
         [SerializeField] private GameObject combatPuppetPrefab;
         [SerializeField] private PlayableDirector director;
         [SerializeField] private CinemachineCamera combatCam;
+        [SerializeField] private CinemachineImpulseSource cameraShakerSource;
+        [SerializeField] private CinemachineImpulseListener cameraShakerListener;
         [SerializeField] private PlayerInput playerInput;
         [SerializeField] private ProjectileVisualDatabase projectileVisualsDatabase;
         [SerializeField] private Transform attackerAnimatedRig;
         [SerializeField] private Transform defenderAnimatedRig;
         [SerializeField] private Transform defenderRigAdapter;
+
+        [SerializeField] private GameObject breakEffectPrefab;
+        [SerializeField] private Transform billboardCanvasTransform;
         
         [SerializeField] public CombatPuppet attackerPuppet;
         [SerializeField] public CombatPuppet defenderPuppet;
@@ -60,6 +65,7 @@ namespace StrategyGame.Combat.Cinematics {
         private ColorAdjustments _colorAdjustments;
         private ChromaticAberration _chromaticAberration;
         private Bloom _bloom;
+        private LensDistortion _lensDistortion;
         
         private GridEntity _attackerEntity;
         private GridEntity _defenderEntity;
@@ -95,6 +101,7 @@ namespace StrategyGame.Combat.Cinematics {
             globalVolume.profile.TryGet(out _colorAdjustments);
             globalVolume.profile.TryGet(out _chromaticAberration);
             globalVolume.profile.TryGet(out _bloom);
+            globalVolume.profile.TryGet(out _lensDistortion);
         }
 
         private void OnEnable() {
@@ -287,15 +294,17 @@ namespace StrategyGame.Combat.Cinematics {
             CombatPuppet targetPuppet = IsAttackerTurn ? defenderPuppet : attackerPuppet;
             bool[] hitsArr = IsAttackerTurn ? _combatOutcome.AttackHits : _combatOutcome.DefendCounterHits;
             bool[] critsArr = IsAttackerTurn ? _combatOutcome.AttackHitCrits :  _combatOutcome.DefendCounterCrits;
+            bool[] breaksArr = IsAttackerTurn ? _combatOutcome.AttackBreakHits : _combatOutcome.CounterBreakHits;
             int[] dmgInstancesArr = IsAttackerTurn ? _combatOutcome.AttackDamageInstances : _combatOutcome.CounterDamageInstances;
             int currIndex = IsAttackerTurn ? _currAttackIndex : _currCounterIndex;
             bool hit = hitsArr[currIndex];
             bool crit = critsArr[currIndex];
+            bool isBreak = breaksArr[currIndex];
             int impactDamage = dmgInstancesArr[currIndex];
             int victimHPBeforeImpact = IsAttackerTurn ? _currDefenderHP : _currAttackerHP;
             
             if (_currCombatEvent is CombatTimeline.AttackerMeleeNormal or CombatTimeline.AttackerMeleeCrit or CombatTimeline.DefenderMeleeNormal or CombatTimeline.DefenderMeleeCrit) {
-                SpawnImpactVFX(GetProjectileVisualDataFromID(0).ImpactVFXPrefab, initiatorPuppet.VFXTransform, targetPuppet.transform.position, hit, true); // temp
+                SpawnImpactVFX(GetProjectileVisualDataFromID(0).ImpactVFXPrefab, initiatorPuppet.VFXTransform, targetPuppet.transform.position, hit, isBreak, true); // temp
             }
             
             if (IsAttackerTurn) {
@@ -313,14 +322,17 @@ namespace StrategyGame.Combat.Cinematics {
                 return;
             }
             targetAnimator.SetTrigger(Hurt);
-            if (crit || victimHPAfterImpact <= 0) {
+            if (crit || isBreak || victimHPAfterImpact <= 0) {
                 if (_slowMotionCoroutine != null) {
                     StopCoroutine(_slowMotionCoroutine);
                     _slowMotionCoroutine = null;
                 }
                 _slowMotionCoroutine = StartCoroutine(SlowMotionCoroutine(crit));
             }
-            targetPuppet.SpawnDamageNumber(impactDamage, crit);
+            cameraShakerSource.ImpulseDefinition.AmplitudeGain = crit ? .67f : isBreak ? .33f : .1f;       
+            cameraShakerSource.ImpulseDefinition.ImpulseDuration = crit ? .67f : isBreak ? .33f : .1f;
+            cameraShakerSource.GenerateImpulse();
+            targetPuppet.SpawnDamageNumber(impactDamage, crit, isBreak);
             if (victimHPAfterImpact <= 0) {
                 targetAnimator.SetTrigger(Death);
             }
@@ -332,23 +344,31 @@ namespace StrategyGame.Combat.Cinematics {
         public void SpawnProjectile(CombatPuppet spawner, int projectileID) {
             bool[] hitsArr = IsAttackerTurn ? _combatOutcome.AttackHits : _combatOutcome.DefendCounterHits;
             bool[] critsArr = IsAttackerTurn ? _combatOutcome.AttackHitCrits :  _combatOutcome.DefendCounterCrits;
+            bool[] breaksArr = IsAttackerTurn ? _combatOutcome.AttackBreakHits : _combatOutcome.CounterBreakHits;
             int currIndex = IsAttackerTurn ? _currAttackIndex : _currCounterIndex;
             bool hit = hitsArr[currIndex];
             bool crit = critsArr[currIndex];
+            bool isBreak = breaksArr[currIndex];
             
             ProjectileVisualData projectileVisualData = CombatCinematicsDelegates.GetProjectileVisualData(projectileID);
             GameObject projectile = Instantiate(projectileVisualData.ProjectilePrefab, spawner.VFXTransform);
             projectile.transform.position = spawner.ProjectileSpawnPointTransform.position;
             ProjectileVisual projectileVisual = projectile.GetComponent<ProjectileVisual>();
             if (projectileVisual == null) throw new Exception("CombatPuppet.SpawnProjectile: ProjectileVisual script not found!");
-            projectileVisual.Setup(spawner, projectileVisualData, hit);
+            projectileVisual.Setup(spawner, projectileVisualData, hit, isBreak);
         }
         
-        public void SpawnImpactVFX(GameObject VFXPrefab, Transform vfxTransform, Vector3 position, bool hit, bool melee = false) {
+        public void SpawnImpactVFX(GameObject VFXPrefab, Transform vfxTransform, Vector3 position, bool hit, bool isBreak, bool melee = false) {
             if (!melee) OnAttackImpact();
             if (!hit && melee) return;
             GameObject impactVFX = Instantiate(VFXPrefab, vfxTransform);
             impactVFX.transform.position = position;
+            if (isBreak) {
+                // spawn glass particles
+                Debug.Log("BREAK!!!!!!!!!");
+                GameObject breakEffect = Instantiate(breakEffectPrefab, billboardCanvasTransform);
+                breakEffect.transform.position = position;
+            }
             // Auto Cleanup is handled in an AutoCleanup script attached to the vfx
         }
         
@@ -378,19 +398,27 @@ namespace StrategyGame.Combat.Cinematics {
             _bloom.intensity.value = newVal;
         }
 
+        private void SetLensDistortionIntensity(float newVal) {
+            if (_lensDistortion == null) return;
+            _lensDistortion.intensity.value = newVal;
+        }
+
         private ProjectileVisualData GetProjectileVisualDataFromID(int projectileID) {
             ProjectileVisualData queryResult = projectileVisualsDatabase.ProjectileVisuals.FirstOrDefault(x => x.ProjectileID == projectileID);
             return queryResult == null ? throw new Exception($"CombatDirector.GetProjectileVisualDataFromID: Could not find projectile of id {projectileID}!") : queryResult;
         }
 
-        private IEnumerator SlowMotionCoroutine(bool isCrit = false, float duration = 1f) {
+        private IEnumerator SlowMotionCoroutine(bool isCrit = false, bool isBreak = false, float duration = 1f) {
             StartSlowMo();
             if (isCrit) {
-                duration = 2f;
+                duration = 1.5f;
                 DOTween.To(() => _colorAdjustments.contrast.value, SetContrast, 69f, duration / 8f);
                 DOTween.To(() => _chromaticAberration.intensity.value, SetChromaticAberration, 1f, duration / 8f);
                 DOTween.To(() => _colorAdjustments.postExposure.value, SetPostExposure, -1f, duration / 8f);
                 DOTween.To(() => _bloom.intensity.value, SetBloomIntensity, 3f, duration / 8f);
+            }
+            if (isBreak) {
+                DOTween.To(() => _lensDistortion.intensity.value, SetLensDistortionIntensity, -1f, duration / 8f);
             }
             yield return new WaitForSeconds(duration/2f);
             if (isCrit) {
@@ -398,6 +426,9 @@ namespace StrategyGame.Combat.Cinematics {
                 DOTween.To(() => _chromaticAberration.intensity.value, SetChromaticAberration, 0f, duration / 8f);
                 DOTween.To(() => _colorAdjustments.postExposure.value, SetPostExposure, 0f, duration / 8f);
                 DOTween.To(() => _bloom.intensity.value, SetBloomIntensity, 1f, duration / 8f);
+            }
+            if (isBreak) {
+                DOTween.To(() => _lensDistortion.intensity.value, SetLensDistortionIntensity, 0f, duration / 8f);
             }
             yield return new WaitForSeconds(duration/2f);
             EndSlowMo();

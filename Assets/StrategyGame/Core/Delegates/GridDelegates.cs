@@ -16,12 +16,12 @@ namespace StrategyGame.Core.Delegates {
         public static event Action<Vector2Int, Vector2Int> OnAStarPathPreview;
         public static event Action<ManualPath> OnManualPathPreview;
         public static event Action<Tile, Tile> OnInspectedTileChanged;
-        public static event Action<Vector2Int, bool> OnSetTileVisualSelectionAnim;
         public static event Action OnClearPath;
         public static event Action OnGridRedraw;
         public static event Action<bool> OnSetDangerZoneVisibility;
         public static event Action OnRefreshDangerZoneVisibility;
         public static event Action OnManualMarkTilesWithAttackableEntities;
+        public static event Action OnClearAttackRangePreview;
         
 
         public static void InvokeOnEntitySpawned(GridEntity entity, Vector2Int position) {
@@ -40,9 +40,6 @@ namespace StrategyGame.Core.Delegates {
         public static void InvokeOnInspectedTileChanged(Tile oldTile, Tile newTile) {
             OnInspectedTileChanged?.Invoke(oldTile, newTile);
         }
-        public static void InvokeOnSetTileVisualSelectionAnim(Vector2Int coords, bool val) {
-            OnSetTileVisualSelectionAnim?.Invoke(coords, val);
-        }
 
         public static void InvokeOnClearPath() {
             OnClearPath?.Invoke();
@@ -59,6 +56,9 @@ namespace StrategyGame.Core.Delegates {
         }
         public static void InvokeOnManualMarkTilesWithAttackableEntities() {
             OnManualMarkTilesWithAttackableEntities?.Invoke();
+        }
+        public static void InvokeOnClearAttackRangePreview() {
+            OnClearAttackRangePreview?.Invoke();
         }
         
         

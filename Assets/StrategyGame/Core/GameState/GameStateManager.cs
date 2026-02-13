@@ -124,6 +124,17 @@ namespace StrategyGame.Core.GameState {
             GameStateEnums.TurnPhase nextPhaseState = (GameStateEnums.TurnPhase)(((int)CurrentState.Combat.TurnPhase + 1) % Enum.GetValues(typeof(GameStateEnums.TurnPhase)).Length);
             if (nextPhaseState == 0) {
                 CurrentState.Combat.TurnPhaseCycle += 1;
+                // Refresh broken flags on entities
+                List<int> enemyIDs = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Enemy, true);
+                foreach (int enemyID in enemyIDs) {
+                    GridEntity currEntity = EntityDelegates.GetGridEntityByID(enemyID);
+                    currEntity.IsBroken = false;
+                }
+                List<int> playerIDs = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Player, true);
+                foreach (int playerID in playerIDs) {
+                    GridEntity currEntity = EntityDelegates.GetGridEntityByID(playerID);
+                    currEntity.IsBroken = false;
+                }
             }
             SetTurnPhaseState(nextPhaseState);
             Debug.Log($"GameStateManager.AdvancePhase: Setting turn phase state to {CurrentState.Combat.TurnPhase}");
@@ -142,6 +153,8 @@ namespace StrategyGame.Core.GameState {
             units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Calvary"), SpawnPosition = new Vector2Int(5, 5) });
             units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Calvary"), SpawnPosition = new Vector2Int(8, 8) });
             units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Skeleton Archer"), SpawnPosition = new Vector2Int(8, 6) });
+            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Skeleton Archer"), SpawnPosition = new Vector2Int(6, 7) });
+            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Skeleton Archer"), SpawnPosition = new Vector2Int(4, 5) });
             EntityDelegates.SpawnUnits(units);
             GenerateRandomBiome(Resources.Load<TileData>("ScriptableObjects/Tiles/Mountains"));
             GenerateRandomBiome(Resources.Load<TileData>("ScriptableObjects/Tiles/Forest"));
@@ -217,7 +230,7 @@ namespace StrategyGame.Core.GameState {
         private void HandlePlayerPhaseState() {
             switch (CurrentState.Combat.PlayerPhase) {
                 case GameStateEnums.PlayerPhaseState.SelectUnitToControl: break;
-                case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination: GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, true); break;
+                case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination: break;
                 case GameStateEnums.PlayerPhaseState.UnitMovingToDestination:
                     if (CurrentState.Combat.SelectedEntityID == -1) {
                         Debug.LogWarning("GameStateManager.HandlePlayerPhaseState: CurrentSelectedEntity is null");
@@ -287,35 +300,57 @@ namespace StrategyGame.Core.GameState {
         private void SetCurrentPlayerPhaseState(GameStateEnums.PlayerPhaseState phase) {
             if (CurrentState.Combat.PlayerPhase == phase)
                 return;
+            GameStateEnums.PlayerPhaseState previousState = CurrentState.Combat.PlayerPhase;
             CurrentState.Combat.PlayerPhase = phase;
+            Tile currInspectedTile = GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition);
             switch (CurrentState.Combat.PlayerPhase) {
                 case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
                     ManualPath.Clear();
                     CurrentState.Combat.HighestPriorityTargetEntityID = -1;
                     CurrentState.Combat.SelectedEntityID = -1;
-                    GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, false);
-                    Tile currInspectedTile = GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition);
+                    
                     GridDelegates.InvokeOnInspectedTileChanged(currInspectedTile, currInspectedTile);
                     break;
                 case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
+                    
+                    if (previousState == GameStateEnums.PlayerPhaseState.UnitActionMenu) { // Handle going back from action menu
+                        // Clear attackable tiles
+                        GridDelegates.InvokeOnClearAttackRangePreview();
+                        // Teleport entity back to where they were before movement
+                        ManualPath.Clear();
+                        GridEntity currSelectedEntity = EntityDelegates.GetGridEntityByID(CurrentState.Combat.SelectedEntityID);
+                        (Vector2Int playerPosBeforeMovement, bool _) = CurrentState.Combat.PlayerPositionBeforeMovementAndFlipX;
+                        Tile previousTile = GridDelegates.GetTileFromPosition(playerPosBeforeMovement);
+                        List<Tile> pseudoPath = new List<Tile> { previousTile };
+                        currSelectedEntity.MoveAlongPath(pseudoPath, true);
+                        
+                        // Hide action menu
+                        UIDelegates.InvokeOnSetCombatActionMenuVisibility(false);
+                        // Reset cursor position back to where it was before
+                        InputDelegates.InvokeOnReinstateGridCursorPosition(playerPosBeforeMovement);
+                    } else if (previousState == GameStateEnums.PlayerPhaseState.SelectUnitToControl) {
+                        Transform entityTransform = EntityVisualDelegates.GetEntityVisualTransformByID(CurrentState.Combat.InspectedEntityID);
+                        SpriteRenderer spriteRenderer = entityTransform.GetComponentInChildren<SpriteRenderer>();
+                        CurrentState.Combat.PlayerPositionBeforeMovementAndFlipX = (CurrentState.Combat.InspectedTilePosition, spriteRenderer.flipX);
+                    }
                     // Selected current inspected entity
                     CurrentState.Combat.SelectedEntityID = CurrentState.Combat.InspectedEntityID;
                     bool stepSuccess = ManualPath.StepToTile(GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition));
                     if (!stepSuccess) {
-                        Debug.LogError($"GameStateManager.SetCurrentPlayerPhaseState: Failed to step to {CurrentState.Combat.InspectedTilePosition}");
+                        Debug.LogWarning($"GameStateManager.SetCurrentPlayerPhaseState: Failed to step to {CurrentState.Combat.InspectedTilePosition}. Ignore if player tried to undo move.");
                     }
                     Debug.Log($"GameStateManager.SetCurrentPlayerPhaseState: Manual path is now: {ManualPath}");
                     GridDelegates.InvokeOnManualPathPreview(ManualPath);
                     SetInspectedTile(CurrentState.Combat.InspectedTilePosition); // Force update to show walkable tiles
                     break;
-                case GameStateEnums.PlayerPhaseState.UnitMovingToDestination: GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, false); break;
+                case GameStateEnums.PlayerPhaseState.UnitMovingToDestination: break;
                 case GameStateEnums.PlayerPhaseState.UnitActionMenu:
                     ManualPath.Clear();
                     InputDelegates.InvokeOnSetGridCursorVisibility(true);
                     UIDelegates.InvokeOnSetCombatActionMenuVisibility(true);
                     Debug.Log($"GameStateManager.SetCurrentPlayerPhaseState: SelectedEntityID is {CurrentState.Combat.SelectedEntityID}");
                     SetInspectedTile(CurrentState.Combat.InspectedTilePosition); // Force update to show walkable tiles
-                    GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, true);
+                    InputDelegates.InvokeOnReinstateGridCursorPosition(EntityDelegates.GetGridEntityByID(CurrentState.Combat.SelectedEntityID).GridPosition);
                     break;
                 case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
                     ManualPath.Clear();
@@ -337,7 +372,6 @@ namespace StrategyGame.Core.GameState {
                     InputDelegates.InvokeOnReinstateGridCursorPosition(firstTargetPosition);
                     SetInspectedTile(firstTargetPosition);
                     GridDelegates.InvokeOnManualMarkTilesWithAttackableEntities();
-                    GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, true);
                     break;
                 case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: _combatCinematicsCoroutine = StartCoroutine(CombatCinematicsDelegates.GetDirector().PlayCombat()); break;
                 case GameStateEnums.PlayerPhaseState.None: break;
@@ -375,9 +409,17 @@ namespace StrategyGame.Core.GameState {
             GridEntity inspectedEntity = EntityDelegates.GetGridEntityByID(CurrentState.Combat.InspectedEntityID);
             GridEntity selectedEntity = EntityDelegates.GetGridEntityByID(CurrentState.Combat.SelectedEntityID);
             if (ManualPath.Tiles.FirstOrDefault(tile => tile.Position == coordinate) == null) {
-                if (CurrentState.Combat.InspectedEntityID != -1 && inspectedEntity.Faction != selectedEntity.Faction) {
-                    Debug.LogWarning("GameStateManager.AddCoordinateToManualPath: An entity of an opposing faction is blocking movement to this tile.");
-                    return false;
+
+                if (CurrentState.Combat.InspectedEntityID != -1) {
+                    if (inspectedEntity.Faction != selectedEntity.Faction) {
+                        Debug.LogWarning("GameStateManager.AddCoordinateToManualPath: An entity of an opposing faction is blocking movement to this tile.");
+                        return false;
+                    }
+                    // Still disallow if the coordinate to step to has an entity of an unfriendly faction
+                    if (CurrentState.Combat.InspectedEntityID != CurrentState.Combat.SelectedEntityID && tileAtCoordinate.Occupant != null && !selectedEntity.IsFriendlyWith(tileAtCoordinate.Occupant)) {
+                        Debug.LogWarning("GameStateManager.AddCoordinateToManualPath: Cannot immediately attack target because the attack spot is occupied by an ally.");
+                        return false;
+                    }
                 }
 
                 // Allow melee units that can reach the target to immediately attack
@@ -398,7 +440,7 @@ namespace StrategyGame.Core.GameState {
             }
 
             // Also prevent the feature of immediately attacking target if min and max range are not 1
-            if (tileAtCoordinate.IsOccupied && tileAtCoordinate.Occupant.Faction != selectedEntity.Faction && (selectedEntity.Weapon.MinAttackRange != 1 || selectedEntity.Weapon.MaxAttackRange != 1)) {
+            if (tileAtCoordinate.Occupant != null && tileAtCoordinate.Occupant.Faction != selectedEntity.Faction && (selectedEntity.Weapon.MinAttackRange != 1 || selectedEntity.Weapon.MaxAttackRange != 1)) {
                 Debug.LogWarning("GameStateManager.AddCoordinateToManualPath: Cannot add tile to manual path because immediate attacking is not supported for ranged units!");
                 return false;
             }
@@ -437,7 +479,7 @@ namespace StrategyGame.Core.GameState {
             }
             CurrentState.Combat.InspectedTilePosition = newTile?.Position ?? throw new ArgumentException("GameStateManager.SetInspectedTile: Tile does not exist at position {coordinates}!");
             GridDelegates.InvokeOnInspectedTileChanged(oldTile, newTile);
-            CurrentState.Combat.InspectedEntityID = newTile.IsOccupied ? newTile.Occupant.ID : -1;
+            CurrentState.Combat.InspectedEntityID = newTile.Occupant?.ID ?? -1;
             UIDelegates.InvokeOnTerrainUIUpdate(GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition));
             if (CurrentState.Combat.UnitMoveSelectionMode == GameStateEnums.UnitMoveSelectionMode.Manual || CurrentState.Combat.InspectedEntityID != -1) {
                 // Focus camera rig onto position
@@ -455,7 +497,7 @@ namespace StrategyGame.Core.GameState {
             while (replacedTiles < numTries) {
                 Vector2Int randomPosition = new Vector2Int(Random.Range(0, gridDimensions.x), Random.Range(0, gridDimensions.y));
                 Tile randomTile = GridDelegates.GetTileFromPosition(randomPosition);
-                while (randomTile.IsOccupied) {
+                while (randomTile.Occupant != null) {
                     randomPosition = new Vector2Int(Random.Range(0, gridDimensions.x), Random.Range(0, gridDimensions.y));
                     randomTile = GridDelegates.GetTileFromPosition(randomPosition);
                 }
@@ -498,13 +540,13 @@ namespace StrategyGame.Core.GameState {
                         // Get closest player entity
                         GridEntity closestPlayer = EntityDelegates.GetGridEntityByID(playerActorIDs.OrderBy(id => (EntityDelegates.GetGridEntityByID(id).GridPosition - currentEntity.GridPosition).magnitude ).First());
                         Debug.Log($"GameStateManager.RunEnemyPhaseCoroutine: Closest player is {closestPlayer.DisplayName}");
-                        hashSetToPickFrom = new HashSet<Tile>{hashSetToPickFrom.OrderBy(t => (t.Position - closestPlayer.GridPosition).magnitude).First()};
+                        hashSetToPickFrom = new HashSet<Tile>{hashSetToPickFrom.Where(t => t.Occupant == null).OrderBy(t => (t.Position - closestPlayer.GridPosition).magnitude).First()};
                         Debug.Log($"GameStateManager.RunEnemyPhaseCoroutine: {currentEntity.DisplayName}@{currentEntity.GridPosition}'s only position can be {hashSetToPickFrom.First()}");
                     }
                 }
 
                 // Remove allies to get all truly walkable tiles
-                hashSetToPickFrom = hashSetToPickFrom.Where(tile => !tile.IsOccupied).ToHashSet();
+                hashSetToPickFrom = hashSetToPickFrom.Where(t => t.Occupant == null).ToHashSet();
                 Debug.Log($"GameStateManager.RunEnemyPhaseCoroutine: hashSetToPickFrom's size after filter: {hashSetToPickFrom.Count}");
                 if (hashSetToPickFrom.Count > 0) {
                     Tile chosenRandomTile = hashSetToPickFrom.ElementAt(Random.Range(0, hashSetToPickFrom.Count));
@@ -567,6 +609,8 @@ namespace StrategyGame.Core.GameState {
             GridEntity defenderEntity = EntityDelegates.GetGridEntityByID(outcome.DefenderID);
             defenderEntity.TakeDamage(outcome.DamageDealt);
             attackerEntity.TakeDamage(outcome.CounterDamageDealt);
+            if (!attackerEntity.IsBroken) attackerEntity.IsBroken = outcome.AttackerBrokenThisSimulation;
+            if (!defenderEntity.IsBroken) defenderEntity.IsBroken = outcome.DefenderBrokenThisSimulation;
         }
         private void FinalizePlayerAction() {
             CurrentState.Combat.ActorIDsRemaining.Remove(CurrentState.Combat.SelectedEntityID);

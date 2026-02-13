@@ -17,11 +17,11 @@ MonoBehaviour:
   factionData: {fileID: 11400000, guid: a0b59abac260b427e80dffda475e6fd6, type: 2}
   movementRange: 4
   visionRange: 5
-  baseAttack: 6
-  baseAccuracy: 11
-  baseDefense: 4
+  baseAttack: 8
+  baseAccuracy: 12
+  baseDefense: 5
   baseResistance: 8
-  baseAgility: 6
-  baseEvasion: 6
+  baseAgility: 9
+  baseEvasion: 9
   weapon: {fileID: 11400000, guid: bed3ea0cc64043127bceb7714b2fd8a5, type: 2}
   animatorController: {fileID: 9100000, guid: 3637e26035ccc4b92b4bc6fed0b0763a, type: 2}

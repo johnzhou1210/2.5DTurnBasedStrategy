@@ -5,7 +5,7 @@ using UnityEngine;
 namespace StrategyGame.Combat.Cinematics {
     public class ProjectileVisual : MonoBehaviour {
         [SerializeField] private Transform impactPointTransform;
-        public void Setup(CombatPuppet puppetSource, ProjectileVisualData data, bool hit) {
+        public void Setup(CombatPuppet puppetSource, ProjectileVisualData data, bool hit, bool isBreak) {
             Vector3 startPos = transform.position;
             Vector3 targetPos = puppetSource.CombatDirector.IsAttackerTurn ? puppetSource.CombatDirector.defenderPuppet.transform.position : puppetSource.CombatDirector.attackerPuppet.transform.position;
             float travelTime = data.TravelTime;
@@ -43,7 +43,7 @@ namespace StrategyGame.Combat.Cinematics {
                 // 4. Trigger impact exactly when we cross the targetPos (value = 1)
                 if (!targetReacted && value is >= 1f and < 1.05f) { // Small threshold check
                     targetReacted = true;
-                    puppetSource.SpawnImpactVFX(hit ? data.ImpactVFXPrefab : data.MissVFXPrefab, impactPointTransform.position, hit);
+                    puppetSource.SpawnImpactVFX(hit ? data.ImpactVFXPrefab : data.MissVFXPrefab, impactPointTransform.position, isBreak, hit);
                 }
             }).SetEase(Ease.Linear).OnComplete(() => {
                 Destroy(gameObject);

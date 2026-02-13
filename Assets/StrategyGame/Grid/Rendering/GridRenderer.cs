@@ -55,6 +55,7 @@ namespace StrategyGame.Grid.Rendering {
             GridDelegates.OnSetDangerZoneVisibility += SetDangerZoneVisibility;
             GridDelegates.OnRefreshDangerZoneVisibility += RefreshDangerZoneVisibility;
             GridDelegates.OnManualMarkTilesWithAttackableEntities += HandleManualMarkTilesWithAttackableEntities;
+            GridDelegates.OnClearAttackRangePreview += ClearTilesWithinAttackRange;
         }
         private void OnDisable() {
             GridDelegates.OnAStarPathPreview -= PreviewPathAStar;
@@ -65,6 +66,7 @@ namespace StrategyGame.Grid.Rendering {
             GridDelegates.OnSetDangerZoneVisibility -= SetDangerZoneVisibility;
             GridDelegates.OnRefreshDangerZoneVisibility -= RefreshDangerZoneVisibility;
             GridDelegates.OnManualMarkTilesWithAttackableEntities -= HandleManualMarkTilesWithAttackableEntities;
+            GridDelegates.OnClearAttackRangePreview -=  ClearTilesWithinAttackRange;
         }
 
         // ==============================
@@ -232,8 +234,8 @@ namespace StrategyGame.Grid.Rendering {
             }
             _pathTiles.Clear();
         }
-        private void RenderEntityMovementAlongPath(GridEntity entity, List<Tile> path) {
-            StartCoroutine(EntityPathMovementCoroutine(entity, path));
+        private void RenderEntityMovementAlongPath(GridEntity entity, List<Tile> path, bool respectAnimations) {
+            StartCoroutine(EntityPathMovementCoroutine(entity, path, respectAnimations));
         }
         public void OnGridRedraw() {
             // Clear existing grid
@@ -359,7 +361,7 @@ namespace StrategyGame.Grid.Rendering {
             }
             _tilesWithinDangerZone.Clear();
         }
-        private IEnumerator EntityPathMovementCoroutine(GridEntity entity, List<Tile> path) {
+        private IEnumerator EntityPathMovementCoroutine(GridEntity entity, List<Tile> path, bool undoMovement) {
             // Get entity transform
             Transform entityTransform = EntityVisualDelegates.GetEntityVisualTransformByID(entity.ID);
             SpriteRenderer spriteRenderer = entityTransform.GetComponentInChildren<SpriteRenderer>();
@@ -367,6 +369,15 @@ namespace StrategyGame.Grid.Rendering {
                 throw new Exception("GridRenderer.EntityPathMovementCoroutine: No SpriteRenderer found!");
             List<Tile> pathCopy = new List<Tile>(path);
             Debug.Log(string.Join(", ", pathCopy));
+            GameStateData currentState = GameStateDelegates.GetCurrentGameState();
+            
+            if (undoMovement) {
+                (Vector2Int playerPosBeforeMovement, bool playerSpriteFlipXBeforeMovement) = currentState.Combat.PlayerPositionBeforeMovementAndFlipX;
+                spriteRenderer.flipX = playerSpriteFlipXBeforeMovement;
+                entityTransform.position = new Vector3(playerPosBeforeMovement.x, 0,  playerPosBeforeMovement.y);
+                yield break;
+            }
+            
             foreach (Tile tile in pathCopy) {
                 Tween tween = entityTransform.DOMove(new Vector3(tile.Position.x, 0f, tile.Position.y), 0.33f).SetEase(Ease.Linear);
                 Debug.Log($"Current x: {entityTransform.position.x}, Tile x: {tile.Position.x}");
@@ -374,7 +385,7 @@ namespace StrategyGame.Grid.Rendering {
                     spriteRenderer.flipX = entityTransform.transform.position.x > tile.Position.x;
                 yield return tween.WaitForCompletion();
             }
-            GameStateData currentState = GameStateDelegates.GetCurrentGameState();
+            
             switch (currentState.Combat.TurnPhase) {
                 case GameStateEnums.TurnPhase.Player:
                     // Notify game state to change immediately to unit action menu

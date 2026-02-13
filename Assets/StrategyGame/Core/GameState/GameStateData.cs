@@ -27,6 +27,7 @@ namespace StrategyGame.Core.GameState {
         public GameStateEnums.EnemyPhaseState EnemyPhase = GameStateEnums.EnemyPhaseState.None;
         public GameStateEnums.UnitMoveSelectionMode UnitMoveSelectionMode = GameStateEnums.UnitMoveSelectionMode.None;
         public Vector2Int InspectedTilePosition;
+        public (Vector2Int, bool) PlayerPositionBeforeMovementAndFlipX;
         public bool NextActorReady = true;
         public bool EnemyActorFinishedCombatCinematic = true;
         public bool PlayerDirectAttackAvailable = false;
@@ -88,29 +89,9 @@ namespace StrategyGame.Core.GameState {
             // Calculate combat outcome
             HashSet<GridEntity> entitiesWithinDefenderRange = inspectedEntity.GetAttackableEntitiesAtPosition(inspectedEntity.GridPosition);
             bool attackerInDefenderRange = entitiesWithinDefenderRange.Any(e => e.ID == selectedEntity.ID);
-            CombatPreview combatPreview = CombatResolver.SimulateAttackPreview(new CombatStats {
-                    HP = selectedEntity.Health,
-                    MaxHP = selectedEntity.MaxHealth,
-                    Attack = selectedEntity.Attack,
-                    Defense = selectedEntity.Defense,
-                    Agility = selectedEntity.Agility,
-                    Accuracy = selectedEntity.Accuracy,
-                    Resistance = selectedEntity.Resistance,
-                    Evasion = selectedEntity.Evasion,
-                    Weapon = selectedEntity.Weapon,
-                    EntityID = selectedEntity.ID
-                }, new CombatStats {
-                    HP = inspectedEntity.Health,
-                    MaxHP = inspectedEntity.MaxHealth,
-                    Attack = inspectedEntity.Attack,
-                    Defense = inspectedEntity.Defense,
-                    Agility = inspectedEntity.Agility,
-                    Accuracy = inspectedEntity.Accuracy,
-                    Resistance = inspectedEntity.Resistance,
-                    Evasion = inspectedEntity.Evasion,
-                    Weapon = inspectedEntity.Weapon,
-                    EntityID = inspectedEntity.ID
-                },
+            CombatPreview combatPreview = CombatResolver.SimulateAttackPreview(
+                selectedEntity.GetCombatStats(), 
+                inspectedEntity.GetCombatStats(), 
                 Resources.Load<AbilityData>("ScriptableObjects/Abilities/Attack"), attackerInDefenderRange);
             Debug.Log(combatPreview);
             UIDelegates.InvokeOnBattleOutcomePreviewUpdate(combatPreview);

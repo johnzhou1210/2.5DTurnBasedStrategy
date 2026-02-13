@@ -8,11 +8,15 @@ namespace StrategyGame.UI.World {
         [SerializeField] private GameObject critAttackNumber;
         [SerializeField] private TextMeshProUGUI normalAttackNumberText;
         [SerializeField] private TextMeshProUGUI critAttackNumberText;
+        [SerializeField] private TextMeshProUGUI normalAttackHeaderText;
+        [SerializeField] private TextMeshProUGUI critAttackHeaderText;
         [SerializeField] private CanvasGroup canvasGroup;
-        public void Setup(int damage, bool isCrit, bool isHeal = false) {
+        public void Setup(int damage, bool isCrit, bool isBreak, bool isHeal = false) {
             (isCrit ? critAttackNumber : normalAttackNumber).SetActive(true);
             TextMeshProUGUI targetText = (isCrit ? critAttackNumberText : normalAttackNumberText);
+            TextMeshProUGUI targetHeaderText = (isCrit ? critAttackHeaderText : normalAttackHeaderText);
             targetText.SetText(damage.ToString());
+            targetHeaderText.SetText(isCrit && isBreak ? "CRIT BREAK!" : isCrit ? "CRIT!" : isBreak ? "BREAK!" : string.Empty);
             transform.localScale = Vector3.zero;
             
             Vector3 directionToCamera = (Camera.main.transform.position - transform.position).normalized;

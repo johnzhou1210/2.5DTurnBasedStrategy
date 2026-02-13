@@ -9,10 +9,10 @@ namespace StrategyGame.Core.Delegates {
         // ==============================
         // EVENTS
         // ==============================
-        public static event Action<GridEntity, List<Tile>> OnEntityMoveAlongPath;
+        public static event Action<GridEntity, List<Tile>, bool> OnEntityMoveAlongPath;
         
-        public static void InvokeOnEntityMoveAlongPath(GridEntity entity, List<Tile> path) {
-            OnEntityMoveAlongPath?.Invoke(entity, path);
+        public static void InvokeOnEntityMoveAlongPath(GridEntity entity, List<Tile> path, bool undoMovement) {
+            OnEntityMoveAlongPath?.Invoke(entity, path, undoMovement);
         }
         
        
