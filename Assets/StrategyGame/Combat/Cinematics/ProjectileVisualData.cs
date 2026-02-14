@@ -12,6 +12,7 @@ namespace StrategyGame.Combat.Cinematics {
         [SerializeField] private GameObject projectilePrefab;
         [SerializeField] private GameObject impactVFXPrefab;
         [SerializeField] private GameObject missVFXPrefab;
+        [SerializeField] private GameObject impactBillboardVFXPrefab;
         [SerializeField] private AnimationCurve heightCurve;
         [SerializeField] private float maxArchHeight;
         [SerializeField] private float cleanupTimeout;
@@ -22,6 +23,7 @@ namespace StrategyGame.Combat.Cinematics {
         
         public GameObject ProjectilePrefab { get => projectilePrefab; }
         public GameObject ImpactVFXPrefab { get => impactVFXPrefab; }
+        public GameObject ImpactBillboardVFXPrefab { get =>  impactBillboardVFXPrefab; }
         public GameObject MissVFXPrefab { get => missVFXPrefab; }
 
         public AnimationCurve HeightCurve { get => heightCurve; }

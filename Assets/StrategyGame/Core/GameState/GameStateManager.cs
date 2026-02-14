@@ -143,18 +143,20 @@ namespace StrategyGame.Core.GameState {
         private void StartGame() {
             Debug.Log("Starting Game");
             List<UnitSpawnQuery> units = new List<UnitSpawnQuery>();
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Soldier"), SpawnPosition = new Vector2Int(0, 0) });
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Orc"), SpawnPosition = new Vector2Int(0, 2) });
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Archer"), SpawnPosition = new Vector2Int(2, 2) });
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Soldier"), SpawnPosition = new Vector2Int(5, 1) });
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Orc"), SpawnPosition = new Vector2Int(3, 6) });
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Elite Orc"), SpawnPosition = new Vector2Int(4, 2) });
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Elite Orc"), SpawnPosition = new Vector2Int(0, 1) });
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Calvary"), SpawnPosition = new Vector2Int(5, 5) });
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Calvary"), SpawnPosition = new Vector2Int(8, 8) });
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Skeleton Archer"), SpawnPosition = new Vector2Int(8, 6) });
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Skeleton Archer"), SpawnPosition = new Vector2Int(6, 7) });
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Skeleton Archer"), SpawnPosition = new Vector2Int(4, 5) });
+            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Player/Soldier"), SpawnPosition = new Vector2Int(0, 0) });
+            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Player/Archer"), SpawnPosition = new Vector2Int(2, 2) });
+            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Player/Soldier"), SpawnPosition = new Vector2Int(5, 1) });
+            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Player/Calvary"), SpawnPosition = new Vector2Int(5, 5) });
+            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Player/Calvary"), SpawnPosition = new Vector2Int(8, 8) });
+            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Player/Priest"), SpawnPosition = new Vector2Int(6, 6) });
+            
+            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Enemy/Orc"), SpawnPosition = new Vector2Int(0, 2) });
+            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Enemy/Orc"), SpawnPosition = new Vector2Int(3, 6) });
+            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Enemy/Elite Orc"), SpawnPosition = new Vector2Int(4, 2) });
+            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Enemy/Elite Orc"), SpawnPosition = new Vector2Int(0, 1) });
+            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Enemy/Skeleton Archer"), SpawnPosition = new Vector2Int(8, 6) });
+            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Enemy/Skeleton Archer"), SpawnPosition = new Vector2Int(6, 7) });
+            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Enemy/Skeleton Archer"), SpawnPosition = new Vector2Int(4, 5) });
             EntityDelegates.SpawnUnits(units);
             GenerateRandomBiome(Resources.Load<TileData>("ScriptableObjects/Tiles/Mountains"));
             GenerateRandomBiome(Resources.Load<TileData>("ScriptableObjects/Tiles/Forest"));

@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67ab6cd66cba54237bee793e506259b8, type: 3}
+  m_Name: LightBall
+  m_EditorClassIdentifier: Assembly-CSharp::StrategyGame.Combat.Cinematics.ProjectileVisualData
+  projectilePrefab: {fileID: 6952981280292823449, guid: 8a7e1cab441a441ed9bd137e2ef31869, type: 3}
+  impactVFXPrefab: {fileID: 2944396702758532163, guid: 900183ab37e4743a68620d5f54316626, type: 3}
+  missVFXPrefab: {fileID: 1758473627833946668, guid: 6b445567db8394e258780d89ba0846cf, type: 3}
+  impactBillboardVFXPrefab: {fileID: 1758473627833946668, guid: 6b445567db8394e258780d89ba0846cf, type: 3}
+  heightCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0.9999974
+      outSlope: 0.9999974
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.5
+      value: 0.4999987
+      inSlope: 0.000009447336
+      outSlope: 0.000009447336
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0.000009438023
+      inSlope: -1.121289
+      outSlope: -1.121289
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 3.8911448
+      value: -3.5925257
+      inSlope: -1.2425996
+      outSlope: -1.2425996
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  maxArchHeight: 0
+  cleanupTimeout: 5
+  travelTime: 0.75
+  disintegrateOnMiss: 0
+  <ProjectileID>k__BackingField: 1

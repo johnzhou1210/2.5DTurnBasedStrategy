@@ -153,7 +153,10 @@ namespace StrategyGame.Combat.Cinematics {
             UIDelegates.InvokeOnCombatCinematicHUDUpdate(false, _currDefenderHP, _defenderEntity.MaxHealth, _currDefenderHP, _defenderEntity.ID);
            
             DirectorLoadAndPlay(combatIntroPlayable);
-            yield return new WaitForSeconds(3f);
+            // DOTween.To(() => _depthOfField.focusDistance.value, SetDepthOfFieldFocusDistance, .1f, 2f);
+            yield return new WaitForSeconds(2f);
+            // DOTween.To(() => _depthOfField.focusDistance.value, SetDepthOfFieldFocusDistance, 2.5f, 1.5f);
+            yield return new WaitForSeconds(1f);
             UIAnimationDelegates.InvokeOnShowIfHidden(AnimatorCategory.BattleCinematicHUD);
             yield return new WaitUntil((() => director.state != PlayState.Playing));
 
@@ -269,7 +272,7 @@ namespace StrategyGame.Combat.Cinematics {
             // Decide which projectile to spawn based on context
             // Decide which puppet to call the spawn on
             CombatPuppet targetPuppet = IsAttackerTurn ? attackerPuppet : defenderPuppet;
-            SpawnProjectile(targetPuppet, 0);
+            SpawnProjectile(targetPuppet, 0); // change this
 
            
 
@@ -299,12 +302,14 @@ namespace StrategyGame.Combat.Cinematics {
             int currIndex = IsAttackerTurn ? _currAttackIndex : _currCounterIndex;
             bool hit = hitsArr[currIndex];
             bool crit = critsArr[currIndex];
-            bool isBreak = breaksArr[currIndex];
+            bool targetBrokenThisSimulation = IsAttackerTurn ? _combatOutcome.DefenderBrokenThisSimulation : _combatOutcome.AttackerBrokenThisSimulation;
+            bool isBreak = breaksArr[currIndex] && targetBrokenThisSimulation;
             int impactDamage = dmgInstancesArr[currIndex];
             int victimHPBeforeImpact = IsAttackerTurn ? _currDefenderHP : _currAttackerHP;
             
             if (_currCombatEvent is CombatTimeline.AttackerMeleeNormal or CombatTimeline.AttackerMeleeCrit or CombatTimeline.DefenderMeleeNormal or CombatTimeline.DefenderMeleeCrit) {
-                SpawnImpactVFX(GetProjectileVisualDataFromID(0).ImpactVFXPrefab, initiatorPuppet.VFXTransform, targetPuppet.transform.position, hit, isBreak, true); // temp
+                SpawnImpactVFX(GetProjectileVisualDataFromID(0), initiatorPuppet.VFXTransform, hit, targetPuppet.transform.position, isBreak, true); // temp
+                
             }
             
             if (IsAttackerTurn) {
@@ -327,7 +332,7 @@ namespace StrategyGame.Combat.Cinematics {
                     StopCoroutine(_slowMotionCoroutine);
                     _slowMotionCoroutine = null;
                 }
-                _slowMotionCoroutine = StartCoroutine(SlowMotionCoroutine(crit));
+                _slowMotionCoroutine = StartCoroutine(SlowMotionCoroutine(crit, isBreak));
             }
             cameraShakerSource.ImpulseDefinition.AmplitudeGain = crit ? .67f : isBreak ? .33f : .1f;       
             cameraShakerSource.ImpulseDefinition.ImpulseDuration = crit ? .67f : isBreak ? .33f : .1f;
@@ -348,7 +353,8 @@ namespace StrategyGame.Combat.Cinematics {
             int currIndex = IsAttackerTurn ? _currAttackIndex : _currCounterIndex;
             bool hit = hitsArr[currIndex];
             bool crit = critsArr[currIndex];
-            bool isBreak = breaksArr[currIndex];
+            bool targetBrokenThisSimulation = IsAttackerTurn ? _combatOutcome.DefenderBrokenThisSimulation : _combatOutcome.AttackerBrokenThisSimulation;
+            bool isBreak = breaksArr[currIndex] && targetBrokenThisSimulation;
             
             ProjectileVisualData projectileVisualData = CombatCinematicsDelegates.GetProjectileVisualData(projectileID);
             GameObject projectile = Instantiate(projectileVisualData.ProjectilePrefab, spawner.VFXTransform);
@@ -358,11 +364,20 @@ namespace StrategyGame.Combat.Cinematics {
             projectileVisual.Setup(spawner, projectileVisualData, hit, isBreak);
         }
         
-        public void SpawnImpactVFX(GameObject VFXPrefab, Transform vfxTransform, Vector3 position, bool hit, bool isBreak, bool melee = false) {
+        public void SpawnImpactVFX(ProjectileVisualData projectileVisualData, Transform vfxTransform, bool hit, Vector3 position, bool isBreak, bool melee = false) {
             if (!melee) OnAttackImpact();
             if (!hit && melee) return;
-            GameObject impactVFX = Instantiate(VFXPrefab, vfxTransform);
+            if (!hit) {
+                GameObject missVFX = Instantiate(projectileVisualData.MissVFXPrefab, vfxTransform);
+                missVFX.transform.position = position;
+                return;
+            }
+            GameObject impactVFX = Instantiate(projectileVisualData.ImpactVFXPrefab, vfxTransform);
             impactVFX.transform.position = position;
+            if (projectileVisualData.ImpactBillboardVFXPrefab != null) {
+                GameObject billboardImpactVFX = Instantiate(projectileVisualData.ImpactBillboardVFXPrefab, billboardCanvasTransform);
+                billboardImpactVFX.transform.position = position;
+            }
             if (isBreak) {
                 // spawn glass particles
                 Debug.Log("BREAK!!!!!!!!!");
@@ -402,32 +417,36 @@ namespace StrategyGame.Combat.Cinematics {
             if (_lensDistortion == null) return;
             _lensDistortion.intensity.value = newVal;
         }
+        private void SetDepthOfFieldFocusDistance(float newVal) {
+            if (_depthOfField == null) return;
+            _depthOfField.focusDistance.value = newVal;
+        }
 
         private ProjectileVisualData GetProjectileVisualDataFromID(int projectileID) {
             ProjectileVisualData queryResult = projectileVisualsDatabase.ProjectileVisuals.FirstOrDefault(x => x.ProjectileID == projectileID);
             return queryResult == null ? throw new Exception($"CombatDirector.GetProjectileVisualDataFromID: Could not find projectile of id {projectileID}!") : queryResult;
         }
 
-        private IEnumerator SlowMotionCoroutine(bool isCrit = false, bool isBreak = false, float duration = 1f) {
+        private IEnumerator SlowMotionCoroutine(bool isCrit, bool isBreak, float duration = 1f) {
             StartSlowMo();
             if (isCrit) {
                 duration = 1.5f;
                 DOTween.To(() => _colorAdjustments.contrast.value, SetContrast, 69f, duration / 8f);
-                DOTween.To(() => _chromaticAberration.intensity.value, SetChromaticAberration, 1f, duration / 8f);
-                DOTween.To(() => _colorAdjustments.postExposure.value, SetPostExposure, -1f, duration / 8f);
+                DOTween.To(() => _colorAdjustments.postExposure.value, SetPostExposure, -1.5f, duration / 8f);
                 DOTween.To(() => _bloom.intensity.value, SetBloomIntensity, 3f, duration / 8f);
             }
             if (isBreak) {
-                DOTween.To(() => _lensDistortion.intensity.value, SetLensDistortionIntensity, -1f, duration / 8f);
+                DOTween.To(() => _chromaticAberration.intensity.value, SetChromaticAberration, 1f, duration / 8f);
+                DOTween.To(() => _lensDistortion.intensity.value, SetLensDistortionIntensity, -.25f, duration / 8f);
             }
             yield return new WaitForSeconds(duration/2f);
             if (isCrit) {
                 DOTween.To(() => _colorAdjustments.contrast.value, SetContrast, 21.7f, duration / 8f);
-                DOTween.To(() => _chromaticAberration.intensity.value, SetChromaticAberration, 0f, duration / 8f);
                 DOTween.To(() => _colorAdjustments.postExposure.value, SetPostExposure, 0f, duration / 8f);
                 DOTween.To(() => _bloom.intensity.value, SetBloomIntensity, 1f, duration / 8f);
             }
             if (isBreak) {
+                DOTween.To(() => _chromaticAberration.intensity.value, SetChromaticAberration, 0f, duration / 8f);
                 DOTween.To(() => _lensDistortion.intensity.value, SetLensDistortionIntensity, 0f, duration / 8f);
             }
             yield return new WaitForSeconds(duration/2f);

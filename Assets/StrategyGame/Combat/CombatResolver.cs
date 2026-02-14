@@ -25,6 +25,7 @@ namespace StrategyGame.Combat {
         public int AttackerNonCritDamagePerHit;
         public int AttackerCritDamagePerHit;
         public float AttackerChanceToKillDefender;
+        public bool AttackerBrokenToBeginWith;
 
         public int DefenderID;
         public int DefenderCurrentHP;
@@ -40,6 +41,7 @@ namespace StrategyGame.Combat {
         public int DefenderNonCritDamagePerHit;
         public int DefenderCritDamagePerHit;
         public float DefenderChanceToKillAttacker;
+        public bool DefenderBrokenToBeginWith;
 
         public override string ToString() {
             return
@@ -148,8 +150,8 @@ namespace StrategyGame.Combat {
             };
 
         
-        private static float _baseHitChance = .85f;
-        private static float _baseCritChance = .05f;
+        private static float _baseHitChance = .6f;
+        private static float _baseCritChance = .33f;
         private static DeterministicRNG _rng = new DeterministicRNG(Random.Range(0, 2048));
         
         public static bool HasWeaponAdvantage(WeaponType attacker, WeaponType defender) {
@@ -179,8 +181,8 @@ namespace StrategyGame.Combat {
                     bool crit = _rng.Chance(preview.AttackerCritChance);
                     bool hit = _rng.Chance(preview.AttackerHitChance);
                     outcome.OrderOfEvents.Add(
-                            crit ? (preview.AttackerWeapon.MinAttackRange > 1 ? CombatDirector.CombatTimeline.AttackerRangedCrit : CombatDirector.CombatTimeline.AttackerMeleeCrit)
-                                : (preview.AttackerWeapon.MinAttackRange > 1 ? CombatDirector.CombatTimeline.AttackerRangedNormal : CombatDirector.CombatTimeline.AttackerMeleeNormal)
+                            crit ? (preview.AttackerWeapon.MaxAttackRange > 1 ? CombatDirector.CombatTimeline.AttackerRangedCrit : CombatDirector.CombatTimeline.AttackerMeleeCrit)
+                                : (preview.AttackerWeapon.MaxAttackRange > 1 ? CombatDirector.CombatTimeline.AttackerRangedNormal : CombatDirector.CombatTimeline.AttackerMeleeNormal)
                         );
                     if (hit) {
                         int damage = crit ? preview.AttackerCritDamagePerHit : preview.AttackerNonCritDamagePerHit;
@@ -193,7 +195,7 @@ namespace StrategyGame.Combat {
                         // Set countersLeft to 0 if attacker weapon is strong against defender weapon
                         if (HasWeaponAdvantage(preview.AttackerWeapon.WeaponType, preview.DefenderWeapon.WeaponType)) {
                             outcome.AttackBreakHits[currAttackIndex] = true;
-                            outcome.DefenderBrokenThisSimulation = true;
+                            if (!preview.DefenderBrokenToBeginWith) outcome.DefenderBrokenThisSimulation = true;
                             countersLeft = 0;
                         }
                         
@@ -214,8 +216,8 @@ namespace StrategyGame.Combat {
                     bool crit = _rng.Chance(preview.DefenderCritChance);
                     bool hit = _rng.Chance(preview.DefenderHitChance);
                     outcome.OrderOfEvents.Add(
-                        crit ? (preview.DefenderWeapon.MinAttackRange > 1 ? CombatDirector.CombatTimeline.DefenderRangedCrit : CombatDirector.CombatTimeline.DefenderMeleeCrit)
-                            : (preview.DefenderWeapon.MinAttackRange > 1 ? CombatDirector.CombatTimeline.DefenderRangedNormal : CombatDirector.CombatTimeline.DefenderMeleeNormal)
+                        crit ? (preview.DefenderWeapon.MaxAttackRange > 1 ? CombatDirector.CombatTimeline.DefenderRangedCrit : CombatDirector.CombatTimeline.DefenderMeleeCrit)
+                            : (preview.DefenderWeapon.MaxAttackRange > 1 ? CombatDirector.CombatTimeline.DefenderRangedNormal : CombatDirector.CombatTimeline.DefenderMeleeNormal)
                     );
                     if (hit) {
                         int damage = crit ? preview.DefenderCritDamagePerHit : preview.DefenderNonCritDamagePerHit;
@@ -228,7 +230,7 @@ namespace StrategyGame.Combat {
                         // Set attacksLeft to 0 if defender weapon is strong against attacker weapon
                         if (HasWeaponAdvantage(preview.DefenderWeapon.WeaponType, preview.AttackerWeapon.WeaponType)) {
                             outcome.CounterBreakHits[currCounterIndex] = true;
-                            outcome.AttackerBrokenThisSimulation = true;
+                            if (!preview.AttackerBrokenToBeginWith) outcome.AttackerBrokenThisSimulation = true;
                             attacksLeft = 0;
                         }
                         
@@ -312,10 +314,8 @@ namespace StrategyGame.Combat {
             if (HasWeaponAdvantage(attacker.Weapon.WeaponType, defender.Weapon.WeaponType)) {
                 defenderCounters = 0;
             }
-            if (defenderCounters > 0) {
-                if (HasWeaponAdvantage(defender.Weapon.WeaponType, attacker.Weapon.WeaponType)) {
-                    attackerHits = 1;
-                }
+            if (!defenderAlwaysDiesBeforeCounter && HasWeaponAdvantage(defender.Weapon.WeaponType, attacker.Weapon.WeaponType)) {
+                attackerHits = 1;
             }
             
             return new CombatPreview {
@@ -333,6 +333,7 @@ namespace StrategyGame.Combat {
                 AttackerNonCritDamagePerHit = attackerNonCritDamage,
                 AttackerCritDamagePerHit = attackerCritDamage,
                 AttackerChanceToKillDefender = chanceToKillDefender,
+                AttackerBrokenToBeginWith =  attackerBroken,
 
                 DefenderID = defender.EntityID,
                 DefenderCurrentHP = defender.HP,
@@ -347,7 +348,8 @@ namespace StrategyGame.Combat {
                 DefenderNumCounters = defenderCounters,
                 DefenderNonCritDamagePerHit = defenderNonCritDamage,
                 DefenderCritDamagePerHit = defenderCritDamage,
-                DefenderChanceToKillAttacker = chanceToKillAttacker
+                DefenderChanceToKillAttacker = chanceToKillAttacker,
+                DefenderBrokenToBeginWith = defenderBroken,
             };
         }
 

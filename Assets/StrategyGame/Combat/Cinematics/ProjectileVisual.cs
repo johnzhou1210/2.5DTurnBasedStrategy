@@ -43,7 +43,7 @@ namespace StrategyGame.Combat.Cinematics {
                 // 4. Trigger impact exactly when we cross the targetPos (value = 1)
                 if (!targetReacted && value is >= 1f and < 1.05f) { // Small threshold check
                     targetReacted = true;
-                    puppetSource.SpawnImpactVFX(hit ? data.ImpactVFXPrefab : data.MissVFXPrefab, impactPointTransform.position, isBreak, hit);
+                    puppetSource.SpawnImpactVFX(data, impactPointTransform.position, isBreak, hit);
                 }
             }).SetEase(Ease.Linear).OnComplete(() => {
                 Destroy(gameObject);

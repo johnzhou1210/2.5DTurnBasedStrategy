@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd5ff0ed0b7ed42c19af7c0619837e1b, type: 3}
+  m_Name: Skeleton Archer
+  m_EditorClassIdentifier: 
+  visualPrefab: {fileID: 374549065707966590, guid: a3f5574bb77b848e0aa4a8b246817755, type: 3}
+  baseHealth: 13
+  factionData: {fileID: 11400000, guid: a0b59abac260b427e80dffda475e6fd6, type: 2}
+  movementRange: 4
+  visionRange: 5
+  baseAttack: 8
+  baseAccuracy: 12
+  baseDefense: 6
+  baseResistance: 6
+  baseAgility: 9
+  baseEvasion: 9
+  weapon: {fileID: 11400000, guid: bed3ea0cc64043127bceb7714b2fd8a5, type: 2}
+  animatorController: {fileID: 9100000, guid: 3637e26035ccc4b92b4bc6fed0b0763a, type: 2}

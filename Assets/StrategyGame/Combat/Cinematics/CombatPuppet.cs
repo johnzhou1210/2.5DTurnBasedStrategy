@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using DG.Tweening;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Grid;
@@ -41,8 +42,8 @@ namespace StrategyGame.Combat.Cinematics {
             damageIndicatorComponent.Setup(damage, isCrit, isBreak);
         }
         
-        public void SpawnImpactVFX(GameObject VFXPrefab, Vector3 position, bool isBreak, bool hit) {
-            CombatDirector.SpawnImpactVFX(VFXPrefab, vfxTransform, position, hit, isBreak);
+        public void SpawnImpactVFX(ProjectileVisualData projectileVisualData, Vector3 position, bool isBreak, bool hit) {
+            CombatDirector.SpawnImpactVFX(projectileVisualData, vfxTransform, hit, position, isBreak);
         }
 
       
