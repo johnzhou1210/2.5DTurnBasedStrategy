@@ -51,6 +51,8 @@ namespace StrategyGame.Grid {
         public int Agility { get; private set; }
         public int Evasion { get; private set; }
         
+        public AbilityData BasicAttack { get; private set; }
+        
         /* TURN-TRANSIENT */
         public bool IsBroken;
         
@@ -88,6 +90,7 @@ namespace StrategyGame.Grid {
             Agility = GridEntityData.BaseAgility;
             Evasion = GridEntityData.BaseEvasion;
             AnimatorController = GridEntityData.AnimatorController;
+            BasicAttack = GridEntityData.BasicAttack;
         }
         
         
@@ -107,10 +110,10 @@ namespace StrategyGame.Grid {
             EntityDelegates.InvokeOnEntityMoveAlongPath(this, path, undoMovement);
         }
         
-        public virtual GameObject GetSpritePrefab() {
+        public GameObject GetSpritePrefab() {
             return GridEntityData.VisualPrefab;
         }
-        public virtual HashSet<Tile> GetWalkableTiles(bool includeAllies = false) {
+        public HashSet<Tile> GetWalkableTiles(bool includeAllies = false) {
             return GetWalkableTilesAtPosition(GridPosition, MovementRange, includeAllies);
         }
 

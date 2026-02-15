@@ -92,7 +92,7 @@ namespace StrategyGame.Core.GameState {
             CombatPreview combatPreview = CombatResolver.SimulateAttackPreview(
                 selectedEntity.GetCombatStats(), 
                 inspectedEntity.GetCombatStats(), 
-                Resources.Load<AbilityData>("ScriptableObjects/Abilities/Attack"), attackerInDefenderRange);
+                selectedEntity.BasicAttack, attackerInDefenderRange);
             Debug.Log(combatPreview);
             UIDelegates.InvokeOnBattleOutcomePreviewUpdate(combatPreview);
             CombatPreview = combatPreview;

@@ -111,6 +111,7 @@ namespace StrategyGame.Core.Input {
             HandleInteractionInput();
             HandleAxisInput();
             HandleCombatControls();
+            HandleFastForward();
         }
         private void OnDestroy() {
             gridMouseInputRaycaster.enabled = false;
@@ -146,16 +147,24 @@ namespace StrategyGame.Core.Input {
                     switch (currentGameState.Combat.PlayerPhase) {
                         case GameStateEnums.PlayerPhaseState.SelectUnitToControl: HandleEntityTileSelection(); break;
                         case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination: HandleEntityTileSelection(); break;
-                        case GameStateEnums.PlayerPhaseState.UnitMovingToDestination: break;
+                        case GameStateEnums.PlayerPhaseState.UnitMovingToDestination: 
+                            // HandleFastForward(); 
+                            break;
                         case GameStateEnums.PlayerPhaseState.UnitActionMenu: HandleUIConfirmation(); break;
                         case GameStateEnums.PlayerPhaseState.UnitSelectTarget: HandleEntityTileSelection(); break;
-                        case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: break;
+                        case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: 
+                            // HandleFastForward(); 
+                            break;
                         case GameStateEnums.PlayerPhaseState.None: break;
                         default: throw new Exception("InputManager.HandleInteractionInput: Invalid player phase state enum!");
                     }
                     break;
-                case GameStateEnums.TurnPhase.Enemy: break;
-                case GameStateEnums.TurnPhase.Event: break;
+                case GameStateEnums.TurnPhase.Enemy: 
+                    // HandleFastForward(); 
+                    break;
+                case GameStateEnums.TurnPhase.Event:
+                    // HandleFastForward();
+                    break;
                 case GameStateEnums.TurnPhase.None: break;
                 default: throw new Exception("InputManager.HandleInteractionInput: Invalid turn phase state enum!");
             }
@@ -484,6 +493,19 @@ namespace StrategyGame.Core.Input {
             _isDangerZoneVisible = !_isDangerZoneVisible;
             GridDelegates.InvokeOnSetDangerZoneVisibility(_isDangerZoneVisible);
         }
+
+        private void HandleFastForward() {
+            return;
+            GameStateData currentState = GameStateDelegates.GetCurrentGameState();
+            if (_selectAction.IsPressed()) {
+                Time.timeScale = 4f;
+            } 
+            if (_selectAction.WasReleasedThisFrame()) {
+                Time.timeScale = 1f;
+            }
+        }
+        
+        
         private void ManualSetGridCursorPosition(Vector2Int coordinate) {
             GridCursorPosition = coordinate;
         }

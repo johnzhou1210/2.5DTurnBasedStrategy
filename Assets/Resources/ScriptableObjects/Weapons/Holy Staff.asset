@@ -17,4 +17,7 @@ MonoBehaviour:
   maxAttackRange: 2
   minAttackRange: 1
   damageType: 1
-  statModifiers: []
+  statModifiers:
+  - ModifierStat: 5
+    Flat: 16
+    Percent: 0

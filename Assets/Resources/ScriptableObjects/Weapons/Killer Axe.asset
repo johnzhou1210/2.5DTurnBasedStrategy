@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Killer Axe
   m_EditorClassIdentifier: Assembly-CSharp::StrategyGame.Combat.Weapons.WeaponData
   weaponType: 2
-  baseAttack: 18
+  baseAttack: 13
   maxAttackRange: 1
   minAttackRange: 1
   damageType: 0
@@ -21,3 +21,6 @@ MonoBehaviour:
   - ModifierStat: 6
     Flat: 0.33
     Percent: 1
+  - ModifierStat: 3
+    Flat: 0
+    Percent: 0.67

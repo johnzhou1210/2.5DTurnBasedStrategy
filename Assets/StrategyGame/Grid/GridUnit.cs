@@ -22,7 +22,6 @@ namespace StrategyGame.Grid {
         }
        
         public override HashSet<Tile> GetAttackableTilesAtPosition(Vector2Int position, bool includeSelf = true) {
-            Debug.Log($"GridEntity.GetAttackableTilesAtPosition: Calling override");
             HashSet<Tile> tilesWithinRange = GridDelegates.GetTilesInRadius(position, GridUnitData.Weapon.MinAttackRange, GridUnitData.Weapon.MaxAttackRange).ToHashSet();
             // Also include their own tile
             if (includeSelf) tilesWithinRange.Add(GridDelegates.GetTileFromPosition(GridPosition));

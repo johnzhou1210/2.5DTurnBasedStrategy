@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67ab6cd66cba54237bee793e506259b8, type: 3}
   m_Name: LightBall
   m_EditorClassIdentifier: Assembly-CSharp::StrategyGame.Combat.Cinematics.ProjectileVisualData
-  projectilePrefab: {fileID: 6952981280292823449, guid: 8a7e1cab441a441ed9bd137e2ef31869, type: 3}
+  projectilePrefab: {fileID: 6952981280292823449, guid: 33711d3cde0b048df964ee8789d5bff1, type: 3}
   impactVFXPrefab: {fileID: 2944396702758532163, guid: 900183ab37e4743a68620d5f54316626, type: 3}
-  missVFXPrefab: {fileID: 1758473627833946668, guid: 6b445567db8394e258780d89ba0846cf, type: 3}
+  missVFXPrefab: {fileID: 0}
+  missBillboardVFXPrefab: {fileID: 0}
   impactBillboardVFXPrefab: {fileID: 1758473627833946668, guid: 6b445567db8394e258780d89ba0846cf, type: 3}
   heightCurve:
     serializedVersion: 2
@@ -60,6 +61,6 @@ MonoBehaviour:
     m_RotationOrder: 4
   maxArchHeight: 0
   cleanupTimeout: 5
-  travelTime: 0.75
+  travelTime: 0.5
   disintegrateOnMiss: 0
   <ProjectileID>k__BackingField: 1

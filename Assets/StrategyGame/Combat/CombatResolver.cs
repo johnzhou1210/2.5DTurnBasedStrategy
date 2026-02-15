@@ -133,13 +133,6 @@ namespace StrategyGame.Combat {
         public float Percent = 1; // Where 1 is 100%
     }
 
-    [CreateAssetMenu(menuName = "Strategy Game/Ability")]
-    public class AbilityData : ScriptableObject {
-        public List<StatModifier> StatModifiers;
-        public bool OverrideDamageType = false;
-        public DamageType DamageTypeOverride;
-    }
-
     public static class CombatResolver {
         private static readonly Dictionary<WeaponType, WeaponType> AdvantageTable =
             new Dictionary<WeaponType, WeaponType>
@@ -150,8 +143,8 @@ namespace StrategyGame.Combat {
             };
 
         
-        private static float _baseHitChance = .6f;
-        private static float _baseCritChance = .33f;
+        private static float _baseHitChance = .85f;
+        private static float _baseCritChance = .05f;
         private static DeterministicRNG _rng = new DeterministicRNG(Random.Range(0, 2048));
         
         public static bool HasWeaponAdvantage(WeaponType attacker, WeaponType defender) {

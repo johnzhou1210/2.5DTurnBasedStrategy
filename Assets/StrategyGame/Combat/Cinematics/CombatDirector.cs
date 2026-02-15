@@ -272,12 +272,23 @@ namespace StrategyGame.Combat.Cinematics {
             // Decide which projectile to spawn based on context
             // Decide which puppet to call the spawn on
             CombatPuppet targetPuppet = IsAttackerTurn ? attackerPuppet : defenderPuppet;
-            SpawnProjectile(targetPuppet, 0); // change this
-
-           
-
-
+            GridEntity targetEntity = IsAttackerTurn ? _attackerEntity : _defenderEntity;
+            SpawnProjectile(targetPuppet, targetEntity.BasicAttack.ProjectileVisualData.ProjectileID);
         }
+
+        private int GetProjectileIDFromEntity(AbilityData abilityData) {
+            switch (abilityData.name) {
+                case "Arrow Shot":
+                    return 0;
+                case "Holy Light":
+                    return 1;
+                case "Heal":
+                    return 0; // replace with heal id later
+                default:
+                    return 0;
+            }
+        }
+        
         public void StartSlowMo() {
             Time.timeScale = .45f;
         }
@@ -368,8 +379,14 @@ namespace StrategyGame.Combat.Cinematics {
             if (!melee) OnAttackImpact();
             if (!hit && melee) return;
             if (!hit) {
-                GameObject missVFX = Instantiate(projectileVisualData.MissVFXPrefab, vfxTransform);
-                missVFX.transform.position = position;
+                if (projectileVisualData.MissVFXPrefab != null) {
+                    GameObject missVFX = Instantiate(projectileVisualData.MissVFXPrefab, vfxTransform);
+                    missVFX.transform.position = position;
+                }
+                if (projectileVisualData.MissBillboardVFXPrefab != null) {
+                    GameObject missBillboardVFX = Instantiate(projectileVisualData.MissBillboardVFXPrefab, billboardCanvasTransform);
+                    missBillboardVFX.transform.position = position;
+                }
                 return;
             }
             GameObject impactVFX = Instantiate(projectileVisualData.ImpactVFXPrefab, vfxTransform);

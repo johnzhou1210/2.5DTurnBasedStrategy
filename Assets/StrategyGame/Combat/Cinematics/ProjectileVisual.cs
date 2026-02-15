@@ -41,7 +41,7 @@ namespace StrategyGame.Combat.Cinematics {
                 lastPosition = transform.position;
 
                 // 4. Trigger impact exactly when we cross the targetPos (value = 1)
-                if (!targetReacted && value is >= 1f and < 1.05f) { // Small threshold check
+                if (!targetReacted && value >= 1f) { // Small threshold check
                     targetReacted = true;
                     puppetSource.SpawnImpactVFX(data, impactPointTransform.position, isBreak, hit);
                 }
