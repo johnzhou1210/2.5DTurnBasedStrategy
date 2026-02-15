@@ -18,7 +18,7 @@ MonoBehaviour:
   movementRange: 4
   visionRange: 7
   baseAttack: 14
-  baseAccuracy: 7
+  baseAccuracy: 10
   baseDefense: 9
   baseResistance: 6
   baseAgility: 10
