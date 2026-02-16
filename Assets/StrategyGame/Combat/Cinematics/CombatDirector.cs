@@ -273,6 +273,7 @@ namespace StrategyGame.Combat.Cinematics {
             // Decide which puppet to call the spawn on
             CombatPuppet targetPuppet = IsAttackerTurn ? attackerPuppet : defenderPuppet;
             GridEntity targetEntity = IsAttackerTurn ? _attackerEntity : _defenderEntity;
+            Debug.Log($"CombatDirector.OnSpawnProjectile: {targetEntity}, {targetEntity?.BasicAttack}, {targetEntity?.BasicAttack?.ProjectileVisualData}, {targetEntity?.BasicAttack?.ProjectileVisualData?.ProjectileID}");
             SpawnProjectile(targetPuppet, targetEntity.BasicAttack.ProjectileVisualData.ProjectileID);
         }
 
