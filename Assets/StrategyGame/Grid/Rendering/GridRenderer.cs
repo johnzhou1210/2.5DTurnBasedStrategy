@@ -378,6 +378,11 @@ namespace StrategyGame.Grid.Rendering {
                 yield break;
             }
             
+            EntityVisual entityVisual = entityTransform.GetComponent<EntityVisual>();
+            if (entityVisual == null) throw new Exception("GridRenderer.EntityPathMovementCoroutine: No EntityVisual found!");
+            
+            if (pathCopy.Count > 1) entityVisual.Animator.Play("Move");
+            
             foreach (Tile tile in pathCopy) {
                 Tween tween = entityTransform.DOMove(new Vector3(tile.Position.x, 0f, tile.Position.y), 0.33f).SetEase(Ease.Linear);
                 Debug.Log($"Current x: {entityTransform.position.x}, Tile x: {tile.Position.x}");
@@ -385,6 +390,8 @@ namespace StrategyGame.Grid.Rendering {
                     spriteRenderer.flipX = entityTransform.transform.position.x > tile.Position.x;
                 yield return tween.WaitForCompletion();
             }
+            
+            if (pathCopy.Count > 1) entityVisual.Animator.Play("Idle");
             
             switch (currentState.Combat.TurnPhase) {
                 case GameStateEnums.TurnPhase.Player:

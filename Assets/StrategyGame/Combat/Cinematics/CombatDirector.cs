@@ -189,6 +189,8 @@ namespace StrategyGame.Combat.Cinematics {
             }
             
             UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.BattleCinematicHUD);
+            // Make defender grid visual face attacker grid visual
+            _defenderEntity.VisualFace(_attackerEntity);
 
             yield return new WaitForSeconds(1f);
             
@@ -225,8 +227,6 @@ namespace StrategyGame.Combat.Cinematics {
 
         private void EnterCinematicMode() {
             UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.BattleOutcomePreview);
-            // Lock user grid input
-            // Override camera
         }
 
         private void SpawnPuppets() {

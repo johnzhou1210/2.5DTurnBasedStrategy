@@ -51,17 +51,16 @@ namespace StrategyGame.Grid.Rendering {
             // Instantiate entity visual and attach billboards
             GameObject entityVisual = Instantiate(entityPrefab, transform);
             entityVisual.name =  $"{entity.ID} : {entity.GridEntityData.name}";
-            Debug.Log($"{entity.ID} : {entity.GetSpritePrefab()}");
-            GameObject entitySpriteGameObject = Instantiate(entity.GetSpritePrefab(), entityVisual.transform);
-            entitySpriteGameObject.transform.position += new Vector3(0, .2f, .1f);
+            Debug.Log($"{entity.ID} : {entity.DisplayName}");
+            
             _entityVisuals[entity.ID] = entityVisual;
             entityVisual.transform.position = VectorUtils.Vector2IntToVector3(newPosition);
             if (entityVisual.TryGetComponent(out EntityVisual entityVisualScript)) {
                 entityVisualScript.SetColor(entity.Faction == Faction.Player ? new Color(.05f,.05f,1,1) : new Color(1,.05f,.05f,1));
-                entityVisualScript.SetEntitySprite(entitySpriteGameObject.GetComponent<SpriteRenderer>());
             }
             AttachBillboards(entity);
             Debug.Log(DictionaryUtils.FormatDictionary(_entityVisuals));
+            entityVisualScript.Animator.runtimeAnimatorController = entity.AnimatorController;
         }
         
         

@@ -11,6 +11,7 @@ using StrategyGame.Core.Enums;
 using StrategyGame.Factions;
 using StrategyGame.Grid;
 using StrategyGame.Grid.GridData;
+using StrategyGame.Grid.Rendering;
 using StrategyGame.UI;
 using StrategyGame.Utils;
 using UnityEngine;
@@ -57,6 +58,8 @@ namespace StrategyGame.Core.GameState {
     }
 
     public class GameStateManager : MonoBehaviour {
+        private static readonly int Death = Animator.StringToHash("Death");
+        private static readonly int Hurt = Animator.StringToHash("Hurt");
         // ==============================
         // FIELDS & PROPERTIES
         // ==============================
@@ -613,6 +616,13 @@ namespace StrategyGame.Core.GameState {
             attackerEntity.TakeDamage(outcome.CounterDamageDealt);
             if (!attackerEntity.IsBroken) attackerEntity.IsBroken = outcome.AttackerBrokenThisSimulation;
             if (!defenderEntity.IsBroken) defenderEntity.IsBroken = outcome.DefenderBrokenThisSimulation;
+            // Animate entity visuals
+            EntityVisual attackerVisual = EntityVisualDelegates.GetEntityVisualTransformByID(attackerEntity.ID).GetComponent<EntityVisual>();
+            EntityVisual defenderVisual = EntityVisualDelegates.GetEntityVisualTransformByID(defenderEntity.ID).GetComponent<EntityVisual>();
+            if (outcome.CounterDamageDealt > 0) attackerVisual.Animator.SetTrigger(Hurt);
+            if (outcome.DamageDealt > 0) defenderVisual.Animator.SetTrigger(Hurt);
+            if (attackerEntity.Health == 0) attackerVisual.Animator.SetTrigger(Death);
+            if (defenderEntity.Health == 0) defenderVisual.Animator.SetTrigger(Death);
         }
         private void FinalizePlayerAction() {
             CurrentState.Combat.ActorIDsRemaining.Remove(CurrentState.Combat.SelectedEntityID);

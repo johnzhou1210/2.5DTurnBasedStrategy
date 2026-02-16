@@ -9,7 +9,8 @@ namespace StrategyGame.Grid.Rendering {
         [SerializeField] private Renderer ringRenderer;
         [SerializeField] private Material defaultSpriteMaterial;
 
-        private SpriteRenderer _spriteRenderer;
+        [SerializeField] private SpriteRenderer entitySpriteRenderer;
+        [field: SerializeField] public Animator Animator { get; private set; }
 
         private Coroutine _fadeCoroutine;
 
@@ -39,25 +40,21 @@ namespace StrategyGame.Grid.Rendering {
         }
 
         public void SetSpriteFlipX(bool flipX) {
-            _spriteRenderer.flipX = flipX;
-        }
-
-        public void SetEntitySprite(SpriteRenderer spriteRenderer) {
-            _spriteRenderer = spriteRenderer;
+            entitySpriteRenderer.flipX = flipX;
         }
 
         private IEnumerator FadeCoroutine() {
-            if (_spriteRenderer == null) {
-                Debug.LogWarning("EntityVisual.FadeCoroutine: _spriteRenderer is null. Maybe SetEntitySprite wasn't called on this script?");
+            if (entitySpriteRenderer == null) {
+                Debug.LogWarning("EntityVisual.FadeCoroutine: entitySpriteRenderer is null. Maybe SetEntitySprite wasn't called on this script?");
                 yield break;
             }
-            _spriteRenderer.material =  defaultSpriteMaterial;
-            float startAlpha = _spriteRenderer.color.a;
+            entitySpriteRenderer.material =  defaultSpriteMaterial;
+            float startAlpha = entitySpriteRenderer.color.a;
             int steps = 200;
 
             for (int i = 0; i < steps; i++) {
                 float alpha = Mathf.Lerp(startAlpha, 0f, (i + 1f) / steps);
-                _spriteRenderer.color = new Color(_spriteRenderer.color.r, _spriteRenderer.color.g, _spriteRenderer.color.b, alpha);
+                entitySpriteRenderer.color = new Color(entitySpriteRenderer.color.r, entitySpriteRenderer.color.g, entitySpriteRenderer.color.b, alpha);
                 yield return new WaitForEndOfFrame();
             }
             // gameObject.SetActive(false);
