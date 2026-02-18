@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using StrategyGame.Combat;
 using StrategyGame.Combat.Weapons;
 using StrategyGame.Factions;
@@ -19,6 +20,7 @@ namespace StrategyGame.Grid.GridData {
         [SerializeField] private WeaponData weapon;
         [SerializeField] private RuntimeAnimatorController animatorController;
         [SerializeField] private AbilityData basicAttack;
+        [SerializeField] private List<AbilityData> abilities;
         
 
         public GameObject VisualPrefab { get => visualPrefab; }
@@ -39,5 +41,6 @@ namespace StrategyGame.Grid.GridData {
         }
         public RuntimeAnimatorController AnimatorController { get => animatorController; }
         public AbilityData BasicAttack { get => basicAttack; }
+        public List<AbilityData> Abilities { get => abilities; }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using StrategyGame.Combat;
 using StrategyGame.Grid;
 using StrategyGame.UI;
+using StrategyGame.UI.Menus;
 
 namespace StrategyGame.Core.Delegates {
     public static class UIDelegates {
@@ -12,7 +13,7 @@ namespace StrategyGame.Core.Delegates {
         public static event Action<GridEntity> OnEntityHUDUpdate;
         public static event Action<CombatPreview> OnBattleOutcomePreviewUpdate;
         public static event Action<Tile> OnTerrainUIUpdate;
-        public static event Action<bool> OnSetCombatActionMenuVisibility;
+        public static event Action<bool, ActionMenuPage> OnSetCombatActionMenuVisibility;
         public static event Action OnUpdateTurnIndicatorRenderer;
         public static event Action OnPlayPhaseBannerAnimationSequence;
         public static event Action<bool, int, int, int, int> OnCombatCinematicHUDUpdate;
@@ -27,8 +28,8 @@ namespace StrategyGame.Core.Delegates {
             OnTerrainUIUpdate?.Invoke(tile);
         }
 
-        public static void InvokeOnSetCombatActionMenuVisibility(bool visible) {
-            OnSetCombatActionMenuVisibility?.Invoke(visible);
+        public static void InvokeOnSetCombatActionMenuVisibility(bool visible, ActionMenuPage page) {
+            OnSetCombatActionMenuVisibility?.Invoke(visible, page);
         }
 
         public static void InvokeOnUpdateTurnIndicatorRenderer() {

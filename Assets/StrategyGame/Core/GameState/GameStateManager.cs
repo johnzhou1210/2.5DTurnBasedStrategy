@@ -13,6 +13,7 @@ using StrategyGame.Grid;
 using StrategyGame.Grid.GridData;
 using StrategyGame.Grid.Rendering;
 using StrategyGame.UI;
+using StrategyGame.UI.Menus;
 using StrategyGame.Utils;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -330,7 +331,7 @@ namespace StrategyGame.Core.GameState {
                         currSelectedEntity.MoveAlongPath(pseudoPath, true);
                         
                         // Hide action menu
-                        UIDelegates.InvokeOnSetCombatActionMenuVisibility(false);
+                        UIDelegates.InvokeOnSetCombatActionMenuVisibility(false, ActionMenuPage.None);
                         // Reset cursor position back to where it was before
                         InputDelegates.InvokeOnReinstateGridCursorPosition(playerPosBeforeMovement);
                     } else if (previousState == GameStateEnums.PlayerPhaseState.SelectUnitToControl) {
@@ -352,7 +353,7 @@ namespace StrategyGame.Core.GameState {
                 case GameStateEnums.PlayerPhaseState.UnitActionMenu:
                     ManualPath.Clear();
                     InputDelegates.InvokeOnSetGridCursorVisibility(true);
-                    UIDelegates.InvokeOnSetCombatActionMenuVisibility(true);
+                    UIDelegates.InvokeOnSetCombatActionMenuVisibility(true, ActionMenuPage.Main);
                     Debug.Log($"GameStateManager.SetCurrentPlayerPhaseState: SelectedEntityID is {CurrentState.Combat.SelectedEntityID}");
                     SetInspectedTile(CurrentState.Combat.InspectedTilePosition); // Force update to show walkable tiles
                     InputDelegates.InvokeOnReinstateGridCursorPosition(EntityDelegates.GetGridEntityByID(CurrentState.Combat.SelectedEntityID).GridPosition);
