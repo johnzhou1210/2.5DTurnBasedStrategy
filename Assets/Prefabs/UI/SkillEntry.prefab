@@ -189,7 +189,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42230547f37bc4438bbf55e98bf12aae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SkillOrItemEntryRenderer
-  headerText: {fileID: 0}
+  headerText: {fileID: 4463662795830273829}
+  cooldownInfo: {fileID: 6684444506577083613}
+  cooldownSlider: {fileID: 2400796090234569431}
+  cooldownInfoCanvasGroup: {fileID: 3120361752057727863}
 --- !u!1 &614936700080207856
 GameObject:
   m_ObjectHideFlags: 0
@@ -1087,6 +1090,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1571349799633832690}
+  - component: {fileID: 3120361752057727863}
   m_Layer: 5
   m_Name: CooldownInfo
   m_TagString: Untagged
@@ -1116,6 +1120,18 @@ RectTransform:
   m_AnchoredPosition: {x: 148.79999, y: 0.8999996}
   m_SizeDelta: {x: 72.130005, y: 42.21}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!225 &3120361752057727863
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6684444506577083613}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!1 &7505473898018173526
 GameObject:
   m_ObjectHideFlags: 0

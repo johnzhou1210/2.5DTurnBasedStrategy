@@ -52,6 +52,8 @@ namespace StrategyGame.Grid {
         public int Evasion { get; private set; }
         
         public AbilityData BasicAttack { get; private set; }
+        public List<AbilityData> Abilities { get; private set; }
+        public Dictionary<int,int> AbilityMap { get; private set; }
         
         /* TURN-TRANSIENT */
         public bool IsBroken;
@@ -91,6 +93,11 @@ namespace StrategyGame.Grid {
             Evasion = GridEntityData.BaseEvasion;
             AnimatorController = GridEntityData.AnimatorController;
             BasicAttack = GridEntityData.BasicAttack;
+            Abilities = GridEntityData.Abilities;
+            AbilityMap = new Dictionary<int, int>();
+            foreach (AbilityData ability in GridEntityData.Abilities) {
+                AbilityMap[ability.SkillID] = ability.CooldownAtStart ? ability.MaxCooldown : 0;
+            }
         }
         
         

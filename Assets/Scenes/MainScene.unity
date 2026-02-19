@@ -8254,7 +8254,7 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 403020478}
   m_Enabled: 1
-  m_Alpha: 1
+  m_Alpha: 0
   m_Interactable: 0
   m_BlocksRaycasts: 0
   m_IgnoreParentGroups: 0
@@ -10208,6 +10208,7 @@ GameObject:
   m_Component:
   - component: {fileID: 536736588}
   - component: {fileID: 536736589}
+  - component: {fileID: 536736590}
   m_Layer: 5
   m_Name: ActionMenu
   m_TagString: Untagged
@@ -10252,10 +10253,23 @@ MonoBehaviour:
   actionMenuRoot: {fileID: 1078885335}
   skillOrItemMenuRoot: {fileID: 403020478}
   skillOrItemMenuItems: {fileID: 1891816259}
-  rootCanvasGroup: {fileID: 0}
-  actionMenuCanvasGroup: {fileID: 0}
-  skillOrItemMenuCanvasGroup: {fileID: 0}
-  longEntryPrefab: {fileID: 0}
+  rootCanvasGroup: {fileID: 536736590}
+  actionMenuCanvasGroup: {fileID: 1078885337}
+  skillOrItemMenuCanvasGroup: {fileID: 403020480}
+  longEntryPrefab: {fileID: 559995094055858838, guid: 245811b3e12cb4a05835b08be9dd87d7, type: 3}
+  skillOrItemToolTipRenderer: {fileID: 1758223683}
+--- !u!225 &536736590
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 536736587}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!1 &541394771
 GameObject:
   m_ObjectHideFlags: 0
@@ -20446,7 +20460,7 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1078885335}
   m_Enabled: 1
-  m_Alpha: 0.1
+  m_Alpha: 0
   m_Interactable: 0
   m_BlocksRaycasts: 0
   m_IgnoreParentGroups: 0
@@ -26803,6 +26817,52 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1480595783}
   m_CullTransparentMesh: 1
+--- !u!1 &1487446790
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1487446792}
+  - component: {fileID: 1487446791}
+  m_Layer: 0
+  m_Name: DataProvider
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1487446791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1487446790}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f89b8df486e14f47916614a3968a4a22, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StrategyGame.Core.Data.DataProvider
+  abilityDataDatabase: {fileID: 11400000, guid: 61b3204d19ef7451ab984eb75e4e7555, type: 2}
+  projectileVisualDatabase: {fileID: 11400000, guid: 2420a993256b744b6a0ab5fc46d64d5d, type: 2}
+--- !u!4 &1487446792
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1487446790}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1492441502
 GameObject:
   m_ObjectHideFlags: 0
@@ -29414,7 +29474,7 @@ MonoBehaviour:
   speed: 50
   delayBeforeScroll: 1
   maxChars: 42
-  descriptionText: {fileID: 0}
+  descriptionText: {fileID: 1624765926}
 --- !u!1 &1647850830
 GameObject:
   m_ObjectHideFlags: 0
@@ -30274,7 +30334,7 @@ GameObject:
   - component: {fileID: 1699255948}
   - component: {fileID: 1699255947}
   m_Layer: 5
-  m_Name: Cooldown
+  m_Name: SubDescription
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -32140,6 +32200,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1758223682}
+  - component: {fileID: 1758223683}
   m_Layer: 5
   m_Name: Tooltip
   m_TagString: Untagged
@@ -32167,6 +32228,21 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1758223683
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1758223681}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75f4dbf097aa46a08e5680501688c2f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StrategyGame.UI.Menus.SkillOrItemToolTipRenderer
+  description: {fileID: 1624765926}
+  subDescription: {fileID: 1699255947}
+  skillDescriptionTicker: {fileID: 1624765928}
 --- !u!1 &1762265849
 GameObject:
   m_ObjectHideFlags: 0
@@ -34402,7 +34478,7 @@ Transform:
   m_GameObject: {fileID: 1914278773}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 16.763187, y: -8.465126, z: 34.835262}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -36568,7 +36644,6 @@ MonoBehaviour:
   cameraShakerSource: {fileID: 1621476694}
   cameraShakerListener: {fileID: 1621476695}
   playerInput: {fileID: 663003847}
-  projectileVisualsDatabase: {fileID: 11400000, guid: 2420a993256b744b6a0ab5fc46d64d5d, type: 2}
   attackerAnimatedRig: {fileID: 321938188}
   defenderAnimatedRig: {fileID: 229262166}
   defenderRigAdapter: {fileID: 511860059}
@@ -38040,6 +38115,7 @@ SceneRoots:
   - {fileID: 1419584493}
   - {fileID: 2004326747}
   - {fileID: 663003849}
+  - {fileID: 1487446792}
   - {fileID: 1914278774}
   - {fileID: 1112514858}
   - {fileID: 1283046957}

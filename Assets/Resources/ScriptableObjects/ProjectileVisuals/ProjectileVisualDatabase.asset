@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
-  m_Name: Projectile Visual Database
+  m_Script: {fileID: 11500000, guid: d37ea677ff514ea29c91ef04157c8b37, type: 3}
+  m_Name: ProjectileVisualDatabase
   m_EditorClassIdentifier: Assembly-CSharp:StrategyGame.Combat.Cinematics:ProjectileVisualDatabase
   projectileVisuals:
   - {fileID: 11400000, guid: d72ef9f0354a044c2acbd7148113f90f, type: 2}

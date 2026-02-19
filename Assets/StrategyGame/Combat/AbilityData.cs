@@ -11,5 +11,8 @@ namespace StrategyGame.Combat {
         public DamageType DamageTypeOverride;
         public ProjectileVisualData ProjectileVisualData;
         public int SkillID = -1;
+        public string Description;
+        public bool CooldownAtStart = false;
+        public int MaxCooldown = 0;
     }
 }

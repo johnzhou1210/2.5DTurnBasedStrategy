@@ -8,6 +8,8 @@ namespace StrategyGame.UI.Menus {
         [SerializeField] private GameObject cooldownInfo;
         [SerializeField] private Slider cooldownSlider;
         [SerializeField] private CanvasGroup cooldownInfoCanvasGroup;
+
+        public int RelevantID = -1;
         
         public void SetHeaderText(string text) {
             headerText.SetText(text);

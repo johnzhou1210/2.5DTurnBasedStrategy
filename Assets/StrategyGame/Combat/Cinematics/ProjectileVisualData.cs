@@ -36,9 +36,4 @@ namespace StrategyGame.Combat.Cinematics {
         public bool DisintegrateOnMiss { get => disintegrateOnMiss; }
     }
 
-    [CreateAssetMenu(menuName = "Strategy Game/Projectile Visual Database")]
-    public class ProjectileVisualDatabase : ScriptableObject {
-        [SerializeField] private List<ProjectileVisualData> projectileVisuals;
-        public List<ProjectileVisualData> ProjectileVisuals { get => projectileVisuals; }
-    }
 }

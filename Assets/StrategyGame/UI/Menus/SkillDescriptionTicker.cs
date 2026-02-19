@@ -42,10 +42,6 @@ namespace StrategyGame.UI.Menus {
             }
         }
 
-        private void Start() {
-            Refresh();
-        }
-
 
     }
 }

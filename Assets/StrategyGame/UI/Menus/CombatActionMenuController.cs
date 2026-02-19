@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using StrategyGame.Combat;
+using StrategyGame.Core.Data;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
 using StrategyGame.Core.GameState;
@@ -31,6 +33,7 @@ public class CombatActionMenuController : MonoBehaviour {
     [SerializeField] private CanvasGroup skillOrItemMenuCanvasGroup;
 
     [SerializeField] private GameObject longEntryPrefab;
+    [SerializeField] private SkillOrItemToolTipRenderer skillOrItemToolTipRenderer;
 
     private int _actionMenuCurrentSelectedIndex = 0;
     private int _actionMenuPreviousSelectedIndex = 0;
@@ -70,17 +73,25 @@ public class CombatActionMenuController : MonoBehaviour {
         Transform targetContainer = GetCurrItemsContainerTransform();
 
         void ClearCurrContainerEntries() {
-            
             foreach (Transform child in targetContainer) {
-                Destroy(child.gameObject);
+                DestroyImmediate(child.gameObject);
             }
         }
-        void GenerateEntriesIntoCurrContainer(List<ScriptableObject> entries) {
-            foreach (ScriptableObject entry in entries) {
+        void GenerateSkills(Dictionary<int,int> abilityMap) {
+            foreach (KeyValuePair<int, int> kvp in abilityMap) {
+                int abilityID = kvp.Key;
+                int currCooldown = kvp.Value;
+                AbilityData currAbility = DataDelegates.GetAbilityDataByID(abilityID);
                 GameObject newEntry = Instantiate(longEntryPrefab, targetContainer);
-                
+                SkillOrItemEntryRenderer newEntryRenderer = newEntry.GetComponent<SkillOrItemEntryRenderer>();
+                if (newEntryRenderer == null) throw new Exception("CombatActionMenuController.SetVisible: SkillOrItemEntryRenderer is null!");
+                newEntryRenderer.SetHeaderText(currAbility.name);
+                newEntryRenderer.SetCooldownInfo(currCooldown, currAbility.MaxCooldown);
+                newEntryRenderer.RelevantID = abilityID;
             }
         }
+
+        GridEntity selectedEntity = EntityDelegates.GetGridEntityByID(GameStateDelegates.GetCurrentGameState().Combat.SelectedEntityID);
 
         switch (_currentMenuPage) {
             case ActionMenuPage.Main:
@@ -90,6 +101,7 @@ public class CombatActionMenuController : MonoBehaviour {
                 skillOrItemMenuCanvasGroup.alpha = 1f;
                 // Clear and regenerate skill entries
                 ClearCurrContainerEntries();
+                GenerateSkills(selectedEntity.AbilityMap);
                 break;
             case ActionMenuPage.Items:
                 skillOrItemMenuCanvasGroup.alpha = 1f;
@@ -114,11 +126,11 @@ public class CombatActionMenuController : MonoBehaviour {
                 if (_actionMenuPreviousSelectedIndex != _actionMenuCurrentSelectedIndex) {
                     GameObject previousSelectedActionItem = actionMenuItems.transform.GetChild(_actionMenuPreviousSelectedIndex).gameObject;
                     Animator previousActionItemAnimator = previousSelectedActionItem.GetComponent<Animator>();
-                    if (previousActionItemAnimator.enabled) previousActionItemAnimator.Play("ActionDeselect");
+                    previousActionItemAnimator.Play("ActionDeselect");
                 }
                 GameObject selectedActionItem = actionMenuItems.transform.GetChild(actionIndex).gameObject;
                 Animator actionItemAnimator = selectedActionItem.GetComponent<Animator>();
-                if (actionItemAnimator.enabled) actionItemAnimator.Play("ActionSelect");
+                actionItemAnimator.Play("ActionSelect");
                 break;
             case ActionMenuPage.Skills:
                 _skillMenuPreviousSelectedIndex = _skillMenuCurrentSelectedIndex;
@@ -126,11 +138,19 @@ public class CombatActionMenuController : MonoBehaviour {
                 if (_skillMenuPreviousSelectedIndex != _skillMenuCurrentSelectedIndex) {
                     GameObject previousSelectedSkillItem = skillOrItemMenuItems.transform.GetChild(_skillMenuPreviousSelectedIndex).gameObject;
                     Animator previousSkillItemAnimator = previousSelectedSkillItem.GetComponent<Animator>();
-                    if (previousSkillItemAnimator.enabled) previousSkillItemAnimator.Play("ActionDeselectLong");
+                    previousSkillItemAnimator.Play("ActionDeselect");
                 }
                 GameObject selectedSkillItem = skillOrItemMenuItems.transform.GetChild(actionIndex).gameObject;
                 Animator actionSkillAnimator = selectedSkillItem.GetComponent<Animator>();
-                if (actionSkillAnimator.enabled) actionSkillAnimator.Play("ActionSelectLong");
+                actionSkillAnimator.Play("ActionSelect");
+                
+                // Update tooltip
+                GridEntity selectedEntity = EntityDelegates.GetGridEntityByID(GameStateDelegates.GetCurrentGameState().Combat.SelectedEntityID);
+                int currAbilityID = selectedSkillItem.GetComponent<SkillOrItemEntryRenderer>().RelevantID;
+                AbilityData currAbility = DataDelegates.GetAbilityDataByID(currAbilityID);
+                skillOrItemToolTipRenderer.SetDescription(currAbility.Description);
+                skillOrItemToolTipRenderer.SetSubDescription((currAbility.CooldownAtStart ? "In cooldown before first use | " : "") + $"{currAbility.MaxCooldown}-turn cooldown");
+                
                 break;
             case ActionMenuPage.Items:
                 _itemMenuPreviousSelectedIndex = _itemMenuCurrentSelectedIndex;
@@ -138,11 +158,11 @@ public class CombatActionMenuController : MonoBehaviour {
                 if (_itemMenuPreviousSelectedIndex != _itemMenuCurrentSelectedIndex) {
                     GameObject previousSelectedItemItem = skillOrItemMenuItems.transform.GetChild(_itemMenuPreviousSelectedIndex).gameObject;
                     Animator previousItemItemAnimator = previousSelectedItemItem.GetComponent<Animator>();
-                    if (previousItemItemAnimator.enabled) previousItemItemAnimator.Play("ActionDeselectLong");
+                    previousItemItemAnimator.Play("ActionDeselect");
                 }
                 GameObject selectedItemItem = skillOrItemMenuItems.transform.GetChild(actionIndex).gameObject;
                 Animator itemItemAnimator = selectedItemItem.GetComponent<Animator>();
-                if (itemItemAnimator.enabled) itemItemAnimator.Play("ActionSelectLong");
+                itemItemAnimator.Play("ActionSelect");
                 break;
             default:
                 break;

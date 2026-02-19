@@ -41,7 +41,6 @@ namespace StrategyGame.Combat.Cinematics {
         [SerializeField] private CinemachineImpulseSource cameraShakerSource;
         [SerializeField] private CinemachineImpulseListener cameraShakerListener;
         [SerializeField] private PlayerInput playerInput;
-        [SerializeField] private ProjectileVisualDatabase projectileVisualsDatabase;
         [SerializeField] private Transform attackerAnimatedRig;
         [SerializeField] private Transform defenderAnimatedRig;
         [SerializeField] private Transform defenderRigAdapter;
@@ -441,7 +440,7 @@ namespace StrategyGame.Combat.Cinematics {
         }
 
         private ProjectileVisualData GetProjectileVisualDataFromID(int projectileID) {
-            ProjectileVisualData queryResult = projectileVisualsDatabase.ProjectileVisuals.FirstOrDefault(x => x.ProjectileID == projectileID);
+            ProjectileVisualData queryResult = DataDelegates.GetProjectileVisualDataByID(projectileID);
             return queryResult == null ? throw new Exception($"CombatDirector.GetProjectileVisualDataFromID: Could not find projectile of id {projectileID}!") : queryResult;
         }
 
