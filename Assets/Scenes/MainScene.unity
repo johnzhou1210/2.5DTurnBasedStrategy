@@ -8648,8 +8648,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -15.89, y: 0.000015258789}
-  m_SizeDelta: {x: 439.03, y: 0}
+  m_AnchoredPosition: {x: -27.020004, y: 0.000015258789}
+  m_SizeDelta: {x: 461.28, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &424860707
 MonoBehaviour:
@@ -29272,6 +29272,7 @@ GameObject:
   - component: {fileID: 1624765925}
   - component: {fileID: 1624765927}
   - component: {fileID: 1624765926}
+  - component: {fileID: 1624765928}
   m_Layer: 5
   m_Name: Description
   m_TagString: Untagged
@@ -29295,7 +29296,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 4.02, y: 10.600037}
+  m_AnchoredPosition: {x: 17.7, y: 10.600037}
   m_SizeDelta: {x: 384.32, y: 20.65}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1624765926
@@ -29318,7 +29319,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Casts holy magic to recover wounds.
+  m_text: Calls upon divine light to recover wounds.
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 40b672d28fc9d4323bfb837795c2d6cc, type: 2}
   m_sharedMaterial: {fileID: -5790186375009875782, guid: 40b672d28fc9d4323bfb837795c2d6cc, type: 2}
@@ -29362,7 +29363,7 @@ MonoBehaviour:
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_TextWrappingMode: 1
+  m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
@@ -29398,6 +29399,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1624765924}
   m_CullTransparentMesh: 1
+--- !u!114 &1624765928
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1624765924}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b97234e119c8d467a98f022eaa52bc58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillDescriptionTicker
+  speed: 50
+  delayBeforeScroll: 1
+  maxChars: 42
+  descriptionText: {fileID: 0}
 --- !u!1 &1647850830
 GameObject:
   m_ObjectHideFlags: 0
@@ -30279,7 +30296,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 4.02, y: -12}
+  m_AnchoredPosition: {x: 17.700014, y: -12}
   m_SizeDelta: {x: 384.32, y: 20.65}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1699255947
