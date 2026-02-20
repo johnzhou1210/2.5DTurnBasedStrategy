@@ -23,7 +23,7 @@ MonoBehaviour:
   DamageTypeOverride: 1
   ProjectileVisualData: {fileID: 0}
   SkillID: 1
-  Description: Sets the man and the steed ablaze, and then charges forth. Deals 300%
-    magic damage to the target.
+  Description: Sets the man himself and his steed ablaze while charging forth. Deals
+    300% magic damage to the target.
   CooldownAtStart: 1
   MaxCooldown: 6
