@@ -193,6 +193,7 @@ MonoBehaviour:
   cooldownInfo: {fileID: 6684444506577083613}
   cooldownSlider: {fileID: 2400796090234569431}
   cooldownInfoCanvasGroup: {fileID: 3120361752057727863}
+  RelevantID: -1
 --- !u!1 &614936700080207856
 GameObject:
   m_ObjectHideFlags: 0

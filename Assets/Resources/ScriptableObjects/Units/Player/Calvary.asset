@@ -28,3 +28,4 @@ MonoBehaviour:
   basicAttack: {fileID: 11400000, guid: b837f816b60a84c7fbb39ca05cd6251b, type: 2}
   abilities:
   - {fileID: 11400000, guid: 938eee7a37664492f8442aaa6664e95b, type: 2}
+  - {fileID: 11400000, guid: 88c1a4031a6a64a4c92d8ff745d96337, type: 2}

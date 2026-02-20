@@ -14,6 +14,7 @@ namespace StrategyGame.Core.Delegates {
         public static event Action OnLeftPressed;
         public static event Action OnRightPressed;
         public static event Action OnConfirmPressed;
+        public static event Action OnCancelPressed;
         public static event Action<Vector2Int?> OnReinstateGridCursorPosition;
         public static event Action<bool> OnSetGridCursorVisibility;
 
@@ -39,6 +40,9 @@ namespace StrategyGame.Core.Delegates {
 
         public static void InvokeOnConfirmPressed() {
             OnConfirmPressed?.Invoke();
+        }
+        public static void InvokeOnCancelPressed() {
+            OnCancelPressed?.Invoke();
         }
 
         public static void InvokeOnReinstateGridCursorPosition(Vector2Int? position) {

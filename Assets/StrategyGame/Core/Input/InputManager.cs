@@ -183,8 +183,8 @@ namespace StrategyGame.Core.Input {
                             break;
                         case GameStateEnums.PlayerPhaseState.UnitMovingToDestination: break;
                         case GameStateEnums.PlayerPhaseState.UnitActionMenu: 
-                            // Allow undoing of movement and go back to select unit move destination
-                            GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination);
+                            // Delegate task to CombatActionMenuController
+                            InputDelegates.InvokeOnCancelPressed();
                             break;
                         case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
                             currentGameState.Combat.InspectedEntityID = currentGameState.Combat.SelectedEntityID;

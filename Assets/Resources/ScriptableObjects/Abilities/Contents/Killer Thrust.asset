@@ -10,20 +10,23 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7f9de9567f20426a92a14c14ea5277a9, type: 3}
-  m_Name: Flame Charge
+  m_Name: Killer Thrust
   m_EditorClassIdentifier: Assembly-CSharp:StrategyGame.Combat:AbilityData
   StatModifiers:
   - ModifierStat: 3
     Flat: 0
-    Percent: 0.8
+    Percent: 0.33
   - ModifierStat: 0
     Flat: 0
-    Percent: 3
+    Percent: 2
+  - ModifierStat: 6
+    Flat: 1
+    Percent: 0
   OverrideDamageType: 1
-  DamageTypeOverride: 1
+  DamageTypeOverride: 0
   ProjectileVisualData: {fileID: 0}
-  SkillID: 1
-  Description: Sets the man and the steed ablaze, and then charges forth. Deals 300%
-    magic damage to the target.
-  CooldownAtStart: 1
-  MaxCooldown: 6
+  SkillID: 2
+  Description: Charges forth and lunges without mercy,  dealing 200% physical damage.
+    Devastating on contact but suffers from reduced accuracy.
+  CooldownAtStart: 0
+  MaxCooldown: 3
