@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: AbilityDatabase
   m_EditorClassIdentifier: Assembly-CSharp:StrategyGame.Combat:AbilityDataDatabase
   abilities:
-  - {fileID: 11400000, guid: 5eb604d6798e948d782ce8e10e43c259, type: 2}
+  - {fileID: 11400000, guid: 5124da409e48741428e02a2454aba2f3, type: 2}
   - {fileID: 11400000, guid: 938eee7a37664492f8442aaa6664e95b, type: 2}
   - {fileID: 11400000, guid: 88c1a4031a6a64a4c92d8ff745d96337, type: 2}

@@ -20,3 +20,7 @@ MonoBehaviour:
   DamageTypeOverride: 1
   ProjectileVisualData: {fileID: 11400000, guid: 796ee15abbf5e42ba80fe03e8dd3ed0e, type: 2}
   SkillID: 0
+  Description: Channels holy light to recover an ally's wounds.
+  CooldownAtStart: 0
+  MaxCooldown: 2
+  Heal: 1

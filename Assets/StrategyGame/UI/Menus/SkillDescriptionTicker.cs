@@ -24,7 +24,6 @@ namespace StrategyGame.UI.Menus {
         public void Refresh()
         {
             // 1. Force TMP to calculate the size of the text string without wrapping
-            // We pass float.PositiveInfinity to say "don't wrap, just tell me how long this is"
             Vector2 textSize = descriptionText.GetPreferredValues(descriptionText.text, float.PositiveInfinity, float.PositiveInfinity);
             float preferredWidth = textSize.x + 512f;
 

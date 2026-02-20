@@ -27,3 +27,4 @@ MonoBehaviour:
     300% magic damage to the target.
   CooldownAtStart: 1
   MaxCooldown: 6
+  Heal: 0

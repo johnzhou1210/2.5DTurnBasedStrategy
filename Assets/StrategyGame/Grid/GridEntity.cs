@@ -54,6 +54,7 @@ namespace StrategyGame.Grid {
         public AbilityData BasicAttack { get; private set; }
         public List<AbilityData> Abilities { get; private set; }
         public Dictionary<int,int> AbilityMap { get; private set; }
+        public Dictionary<int, int> Inventory { get; private set; }
         
         /* TURN-TRANSIENT */
         public bool IsBroken;
@@ -98,6 +99,7 @@ namespace StrategyGame.Grid {
             foreach (AbilityData ability in GridEntityData.Abilities) {
                 AbilityMap[ability.SkillID] = ability.CooldownAtStart ? ability.MaxCooldown : 0;
             }
+            Inventory = new Dictionary<int, int>();
         }
         
         

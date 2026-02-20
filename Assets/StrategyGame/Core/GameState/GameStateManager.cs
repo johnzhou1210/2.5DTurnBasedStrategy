@@ -126,19 +126,31 @@ namespace StrategyGame.Core.GameState {
         // ==============================
         private void AdvancePhase() {
             GameStateEnums.TurnPhase nextPhaseState = (GameStateEnums.TurnPhase)(((int)CurrentState.Combat.TurnPhase + 1) % Enum.GetValues(typeof(GameStateEnums.TurnPhase)).Length);
+            List<int> enemyIDs = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Enemy, true);
+            List<int> playerIDs = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Player, true);
             if (nextPhaseState == 0) {
                 CurrentState.Combat.TurnPhaseCycle += 1;
+                if (CurrentState.Combat.TurnPhaseCycle > 1) {
+                    // Reduce cooldowns
+                    foreach (int playerID in playerIDs) {
+                        GridEntity currEntity = EntityDelegates.GetGridEntityByID(playerID);
+                        foreach (KeyValuePair<int, int> kvp in currEntity.AbilityMap.ToList()) {
+                            currEntity.AbilityMap[kvp.Key] = Math.Max(0, kvp.Value - 1);
+                        }
+                    }
+                    // Also reduce for enemies
+                }
             }
             SetTurnPhaseState(nextPhaseState);
             Debug.Log($"GameStateManager.AdvancePhase: Setting turn phase state to {CurrentState.Combat.TurnPhase}");
             GameStateDelegates.InvokeOnTurnPhaseChanged(CurrentState.Combat.TurnPhase);
             // Refresh broken flags on entities
-            List<int> enemyIDs = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Enemy, true);
+            
             foreach (int enemyID in enemyIDs) {
                 GridEntity currEntity = EntityDelegates.GetGridEntityByID(enemyID);
                 currEntity.IsBroken = false;
             }
-            List<int> playerIDs = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Player, true);
+         
             foreach (int playerID in playerIDs) {
                 GridEntity currEntity = EntityDelegates.GetGridEntityByID(playerID);
                 currEntity.IsBroken = false;
@@ -379,7 +391,10 @@ namespace StrategyGame.Core.GameState {
                     SetInspectedTile(firstTargetPosition);
                     GridDelegates.InvokeOnManualMarkTilesWithAttackableEntities();
                     break;
-                case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: _combatCinematicsCoroutine = StartCoroutine(CombatCinematicsDelegates.GetDirector().PlayCombat()); break;
+                case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: 
+                    UIDelegates.InvokeOnResetCombatActionMenuIndices();
+                    _combatCinematicsCoroutine = StartCoroutine(CombatCinematicsDelegates.GetDirector().PlayCombat());
+                    break;
                 case GameStateEnums.PlayerPhaseState.None: break;
             }
         }

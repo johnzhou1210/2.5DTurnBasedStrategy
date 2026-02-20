@@ -9,9 +9,11 @@ namespace StrategyGame.UI.Menus {
         [SerializeField] private SkillDescriptionTicker skillDescriptionTicker;
 
         private RectTransform _rectTransform;
+        private CanvasGroup _canvasGroup;
 
         private void Awake() {
             _rectTransform = GetComponent<RectTransform>();
+            _canvasGroup = GetComponent<CanvasGroup>();
         }
 
         public void SetDescription(string text) {
@@ -24,6 +26,9 @@ namespace StrategyGame.UI.Menus {
 
         public void SetAnchoredPositionY(float newY) {
             _rectTransform.anchoredPosition = new Vector2(_rectTransform.anchoredPosition.x, newY);   
+        }
+        public void SetVisible(bool val) {
+            _canvasGroup.alpha = val ? 1f : 0f;
         }
     }
 }

@@ -14,5 +14,6 @@ namespace StrategyGame.Combat {
         public string Description;
         public bool CooldownAtStart = false;
         public int MaxCooldown = 0;
+        public bool Heal = false;
     }
 }

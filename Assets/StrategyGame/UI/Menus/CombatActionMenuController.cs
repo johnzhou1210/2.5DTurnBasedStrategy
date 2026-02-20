@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using StrategyGame.Combat;
-using StrategyGame.Core.Data;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
 using StrategyGame.Core.GameState;
 using StrategyGame.Grid;
 using TMPro;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace StrategyGame.UI.Menus {
     public enum ActionMenuPage {
@@ -47,6 +47,7 @@ namespace StrategyGame.UI.Menus {
             InputDelegates.OnUpPressed += SelectPreviousAction;
             InputDelegates.OnConfirmPressed += ConfirmAction;
             InputDelegates.OnCancelPressed += HandleCancellation;
+            UIDelegates.OnResetCombatActionMenuIndices += ResetIndices;
         }
         private void OnDisable() {
             UIDelegates.OnSetCombatActionMenuVisibility -= SetVisible;
@@ -54,24 +55,24 @@ namespace StrategyGame.UI.Menus {
             InputDelegates.OnUpPressed -= SelectPreviousAction;
             InputDelegates.OnConfirmPressed -= ConfirmAction;
             InputDelegates.OnCancelPressed -= HandleCancellation;
+            UIDelegates.OnResetCombatActionMenuIndices -= ResetIndices;
         }
         private void SetVisible(bool visible, ActionMenuPage page) {
             _currentMenuPage = page;
-            if (visible)
+            if (visible) {
                 UpdateAttackActionAllowed();
+                UpdateSkillsActionAllowed();
+                UpdateItemsActionAllowed();
+            }
             rootCanvasGroup.alpha = _currentMenuPage == ActionMenuPage.None ? 0 : 1f;
             rootCanvasGroup.interactable = visible;
             rootCanvasGroup.blocksRaycasts = visible;
 
             // Fade/hide all non-root canvas groups before deciding which one to show
-            actionMenuCanvasGroup.alpha = .1f;
+            actionMenuCanvasGroup.alpha = .25f;
             skillOrItemMenuCanvasGroup.alpha = 0f;
             Transform targetContainer = GetCurrItemsContainerTransform();
-            void ClearCurrContainerEntries() {
-                foreach (Transform child in targetContainer) {
-                    DestroyImmediate(child.gameObject);
-                }
-            }
+           
             void GenerateSkills(Dictionary<int, int> abilityMap) {
                 foreach (KeyValuePair<int, int> kvp in abilityMap) {
                     int abilityID = kvp.Key;
@@ -92,13 +93,13 @@ namespace StrategyGame.UI.Menus {
                 case ActionMenuPage.Skills:
                     skillOrItemMenuCanvasGroup.alpha = 1f;
                     // Clear and regenerate skill entries
-                    ClearCurrContainerEntries();
+                    ClearCurrContainerEntries(GetCurrItemsContainerTransform());
                     GenerateSkills(selectedEntity.AbilityMap);
                     break;
                 case ActionMenuPage.Items:
                     skillOrItemMenuCanvasGroup.alpha = 1f;
+                    ClearCurrContainerEntries(GetCurrItemsContainerTransform());
                     // Clear and regenerate item entries
-                    ClearCurrContainerEntries();
                     break;
                 default: break;
             }
@@ -134,7 +135,6 @@ namespace StrategyGame.UI.Menus {
                     actionSkillAnimator.Play("ActionSelect");
 
                     // Update tooltip
-                    GridEntity selectedEntity = EntityDelegates.GetGridEntityByID(GameStateDelegates.GetCurrentGameState().Combat.SelectedEntityID);
                     int currAbilityID = selectedSkillItem.GetComponent<SkillOrItemEntryRenderer>().RelevantID;
                     AbilityData currAbility = DataDelegates.GetAbilityDataByID(currAbilityID);
                     skillOrItemToolTipRenderer.SetDescription(currAbility.Description);
@@ -187,12 +187,19 @@ namespace StrategyGame.UI.Menus {
                             GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitSelectTarget);
                             SetVisible(false, ActionMenuPage.None);
                             break;
-                        case (int)ActionType.Skills: SetVisible(true, ActionMenuPage.Skills); break;
-                        case (int)ActionType.Item: SetVisible(true, ActionMenuPage.Items); break;
+                        case (int)ActionType.Skills: 
+                            if (currentSelectedEntity.Abilities.Count == 0) break;
+                            SetVisible(true, ActionMenuPage.Skills); 
+                            break;
+                        case (int)ActionType.Item:
+                            if (currentSelectedEntity.Inventory.Count == 0) break;
+                            SetVisible(true, ActionMenuPage.Items);
+                            break;
                         case (int)ActionType.Wait:
+                            SelectAction(0);
+                            ResetIndices();
                             SetVisible(false, ActionMenuPage.None);
                             GameStateDelegates.InvokeOnFinalizePlayerAction();
-                            SelectAction(0);
                             break;
                         default: throw new Exception("CombatActionMenuController.ConfirmAction: Invalid Action Type!");
                     }
@@ -213,6 +220,20 @@ namespace StrategyGame.UI.Menus {
             TextMeshProUGUI attackTextMesh = attackButtonTransform.GetComponentInChildren<TextMeshProUGUI>();
             attackTextMesh.color = currentSelectedEntity.GetAttackableEntitiesAtPosition(currentSelectedEntity.GridPosition).Count == 0 ? Color.gray4 : Color.white;
         }
+        private void UpdateSkillsActionAllowed() {
+            Transform skillsButtonTransform = actionMenuItems.transform.GetChild(1);
+            GameStateData currState = GameStateDelegates.GetCurrentGameState();
+            GridEntity currentSelectedEntity = EntityDelegates.GetGridEntityByID(currState.Combat.SelectedEntityID);
+            TextMeshProUGUI skillsTextMesh = skillsButtonTransform.GetComponentInChildren<TextMeshProUGUI>();
+            skillsTextMesh.color = currentSelectedEntity.Abilities.Count == 0 ? Color.gray4 : Color.white;
+        }
+        private void UpdateItemsActionAllowed() {
+            Transform itemsButtonTransform = actionMenuItems.transform.GetChild(2);
+            GameStateData currState = GameStateDelegates.GetCurrentGameState();
+            GridEntity currentSelectedEntity = EntityDelegates.GetGridEntityByID(currState.Combat.SelectedEntityID);
+            TextMeshProUGUI itemsTextMesh = itemsButtonTransform.GetComponentInChildren<TextMeshProUGUI>();
+            itemsTextMesh.color = currentSelectedEntity.Inventory.Count == 0 ? Color.gray4 : Color.white;
+        }
         private int GetCurrSelectedIndex() {
             int currSelectedIndex = _currentMenuPage switch {
                 ActionMenuPage.Main => _actionMenuCurrentSelectedIndex,
@@ -231,13 +252,32 @@ namespace StrategyGame.UI.Menus {
             };
             return currItemsContainerTransform;
         }
+        private void ClearCurrContainerEntries(Transform targetContainer) {
+            foreach (Transform child in targetContainer) {
+                DestroyImmediate(child.gameObject);
+            }
+        }
+        private void ResetIndices() {
+        _actionMenuCurrentSelectedIndex = 0;
+        _actionMenuPreviousSelectedIndex = 0;
+        _skillMenuCurrentSelectedIndex = 0;
+        _skillMenuPreviousSelectedIndex = 0;
+        _itemMenuCurrentSelectedIndex = 0;
+        _itemMenuPreviousSelectedIndex = 0;
+        }
         private void HandleCancellation() {
             switch (_currentMenuPage) {
                 case ActionMenuPage.Main:
                     // Allow undoing of movement and go back to select unit move destination
                     GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination); break;
-                case ActionMenuPage.Skills: SetVisible(true, ActionMenuPage.Main); break;
-                case ActionMenuPage.Items: SetVisible(true, ActionMenuPage.Main); break;
+                case ActionMenuPage.Skills: 
+                    ClearCurrContainerEntries(GetCurrItemsContainerTransform());
+                    SetVisible(true, ActionMenuPage.Main); 
+                    break;
+                case ActionMenuPage.Items: 
+                    ClearCurrContainerEntries(GetCurrItemsContainerTransform());
+                    SetVisible(true, ActionMenuPage.Main); 
+                    break;
                 case ActionMenuPage.None: break;
                 default: throw new Exception("CombatActionMenuController.HandleCancellation: Invalid ActionMenuPage!");
             }

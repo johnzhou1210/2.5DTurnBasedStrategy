@@ -26,5 +26,4 @@ MonoBehaviour:
   weapon: {fileID: 11400000, guid: 6dcfdc2eb4c34d73c8e4f2810fe3a988, type: 2}
   animatorController: {fileID: 9100000, guid: 1d80a2a36f81042b399e08769b736d5f, type: 2}
   basicAttack: {fileID: 11400000, guid: b837f816b60a84c7fbb39ca05cd6251b, type: 2}
-  abilities:
-  - {fileID: 11400000, guid: 5124da409e48741428e02a2454aba2f3, type: 2}
+  abilities: []

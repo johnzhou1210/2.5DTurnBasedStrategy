@@ -27,4 +27,4 @@ MonoBehaviour:
   animatorController: {fileID: 9100000, guid: 7d8add5a94b4649ecb22cd6e94a81265, type: 2}
   basicAttack: {fileID: 11400000, guid: d69c5273c311e4d57bba40b4b69e48d5, type: 2}
   abilities:
-  - {fileID: 11400000, guid: 5eb604d6798e948d782ce8e10e43c259, type: 2}
+  - {fileID: 11400000, guid: 5124da409e48741428e02a2454aba2f3, type: 2}

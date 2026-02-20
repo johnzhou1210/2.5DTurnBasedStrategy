@@ -8,6 +8,7 @@ namespace StrategyGame.UI.Menus {
         [SerializeField] private GameObject cooldownInfo;
         [SerializeField] private Slider cooldownSlider;
         [SerializeField] private CanvasGroup cooldownInfoCanvasGroup;
+        [SerializeField] private TextMeshProUGUI cooldownText;
 
         public int RelevantID = -1;
         
@@ -21,7 +22,7 @@ namespace StrategyGame.UI.Menus {
             }
             cooldownInfoCanvasGroup.alpha = turnsLeft > 0 ? 1f : 0f;
             cooldownSlider.value = (float)turnsLeft / maxTurns;
-            
+            cooldownText.SetText(turnsLeft.ToString());
         }
     }
 }
