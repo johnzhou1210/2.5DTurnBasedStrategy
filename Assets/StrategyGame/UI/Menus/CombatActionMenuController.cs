@@ -64,7 +64,7 @@ namespace StrategyGame.UI.Menus {
                 UpdateSkillsActionAllowed();
                 UpdateItemsActionAllowed();
             }
-            rootCanvasGroup.alpha = _currentMenuPage == ActionMenuPage.None ? 0 : 1f;
+            rootCanvasGroup.alpha = visible ? 1 : 0;
             rootCanvasGroup.interactable = visible;
             rootCanvasGroup.blocksRaycasts = visible;
 
@@ -72,21 +72,7 @@ namespace StrategyGame.UI.Menus {
             actionMenuCanvasGroup.alpha = .25f;
             skillOrItemMenuCanvasGroup.alpha = 0f;
             Transform targetContainer = GetCurrItemsContainerTransform();
-           
-            void GenerateSkills(Dictionary<int, int> abilityMap) {
-                foreach (KeyValuePair<int, int> kvp in abilityMap) {
-                    int abilityID = kvp.Key;
-                    int currCooldown = kvp.Value;
-                    AbilityData currAbility = DataDelegates.GetAbilityDataByID(abilityID);
-                    GameObject newEntry = Instantiate(longEntryPrefab, targetContainer);
-                    SkillOrItemEntryRenderer newEntryRenderer = newEntry.GetComponent<SkillOrItemEntryRenderer>();
-                    if (newEntryRenderer == null)
-                        throw new Exception("CombatActionMenuController.SetVisible: SkillOrItemEntryRenderer is null!");
-                    newEntryRenderer.SetHeaderText(currAbility.name);
-                    newEntryRenderer.SetCooldownInfo(currCooldown, currAbility.MaxCooldown);
-                    newEntryRenderer.RelevantID = abilityID;
-                }
-            }
+
             GridEntity selectedEntity = EntityDelegates.GetGridEntityByID(GameStateDelegates.GetCurrentGameState().Combat.SelectedEntityID);
             switch (_currentMenuPage) {
                 case ActionMenuPage.Main: actionMenuCanvasGroup.alpha = 1f; break;
@@ -107,6 +93,22 @@ namespace StrategyGame.UI.Menus {
             if (targetIndex == -1)
                 return;
             SelectAction(targetIndex);
+            return;
+
+            void GenerateSkills(Dictionary<int, int> abilityMap) {
+                foreach (KeyValuePair<int, int> kvp in abilityMap) {
+                    int abilityID = kvp.Key;
+                    int currCooldown = kvp.Value;
+                    AbilityData currAbility = DataDelegates.GetAbilityDataByID(abilityID);
+                    GameObject newEntry = Instantiate(longEntryPrefab, targetContainer);
+                    SkillOrItemEntryRenderer newEntryRenderer = newEntry.GetComponent<SkillOrItemEntryRenderer>();
+                    if (newEntryRenderer == null)
+                        throw new Exception("CombatActionMenuController.SetVisible: SkillOrItemEntryRenderer is null!");
+                    newEntryRenderer.SetHeaderText(currAbility.name);
+                    newEntryRenderer.SetCooldownInfo(currCooldown, currAbility.MaxCooldown);
+                    newEntryRenderer.RelevantID = abilityID;
+                }
+            }
         }
         private void SelectAction(int actionIndex) {
             switch (_currentMenuPage) {
@@ -206,6 +208,11 @@ namespace StrategyGame.UI.Menus {
                     break;
                 case ActionMenuPage.Skills:
                     // Go to target selection phase
+                    GameObject selectedSkillItem = skillOrItemMenuItems.transform.GetChild(_skillMenuCurrentSelectedIndex).gameObject;
+                    int currAbilityID = selectedSkillItem.GetComponent<SkillOrItemEntryRenderer>().RelevantID;
+                    ClearCurrContainerEntries(GetCurrItemsContainerTransform());
+                    SetVisible(false, ActionMenuPage.Skills);
+                    GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitSelectTarget);
                     break;
                 case ActionMenuPage.Items:
                     // Go to target selection phase
