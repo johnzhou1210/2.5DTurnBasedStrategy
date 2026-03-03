@@ -25,6 +25,6 @@ MonoBehaviour:
   baseEvasion: 8
   weapon: {fileID: 11400000, guid: bed3ea0cc64043127bceb7714b2fd8a5, type: 2}
   animatorController: {fileID: 9100000, guid: 5a917080b7d6043ebac887f88e5f74f8, type: 2}
-  basicAttack: {fileID: 11400000, guid: ba3da600ec1a742f0bc7a10b03326af4, type: 2}
+  basicAttack: {fileID: 11400000, guid: d5e5ab5ee906c41af88e5f802ba8b73e, type: 2}
   abilities:
   - {fileID: 11400000, guid: f8b8485d54c874c8db93b17e8900bd47, type: 2}
