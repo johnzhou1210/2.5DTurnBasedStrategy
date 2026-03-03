@@ -28,12 +28,15 @@ namespace StrategyGame.Core.GameState {
         public GameStateEnums.UnitMoveSelectionMode UnitMoveSelectionMode = GameStateEnums.UnitMoveSelectionMode.None;
         public Vector2Int InspectedTilePosition;
         public (Vector2Int, bool) PlayerPositionBeforeMovementAndFlipX;
+
+        // Transient state data (not meant to be saved)
         public bool NextActorReady = true;
         public bool EnemyActorFinishedCombatCinematic = true;
         public bool PlayerDirectAttackAvailable = false;
         public int HighestPriorityTargetEntityID = -1;
         public CombatPreview CombatPreview;
-
+        public int CurrentSelectedSkillID = -1;
+        public int CurrentSelectedItemID = -1;
         [SerializeField] private int inspectedEntityID = -1;
         public int InspectedEntityID {
             get => inspectedEntityID;
@@ -51,16 +54,11 @@ namespace StrategyGame.Core.GameState {
         public int SelectedEntityID = -1;
         [SerializeField] private int previousSelectedEntityID = -1;
 
-        public int PreviousSelectedEntityID {
-            get => previousSelectedEntityID;
-            set => previousSelectedEntityID = value;
-        }
+        public int PreviousSelectedEntityID { get => previousSelectedEntityID; set => previousSelectedEntityID = value; }
 
         public LinkedList<int> PlayersCycleDeque = new LinkedList<int>();
         public LinkedList<int> EnemiesCycleDeque = new LinkedList<int>();
-
         private void HandleEntityInspectionUI() {
-
             if (InspectedEntityID == -1) {
                 UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.EntityHUD);
                 UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.BattleOutcomePreview);
@@ -69,7 +67,6 @@ namespace StrategyGame.Core.GameState {
             UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.BattleOutcomePreview);
             UIAnimationDelegates.InvokeOnShowIfHidden(AnimatorCategory.EntityHUD);
         }
-
         private void HandleCombatOutcomeInspectionUI() {
             if (InspectedEntityID == -1) {
                 UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.EntityHUD);
@@ -89,10 +86,9 @@ namespace StrategyGame.Core.GameState {
             // Calculate combat outcome
             HashSet<GridEntity> entitiesWithinDefenderRange = inspectedEntity.GetAttackableEntitiesAtPosition(inspectedEntity.GridPosition);
             bool attackerInDefenderRange = entitiesWithinDefenderRange.Any(e => e.ID == selectedEntity.ID);
-            CombatPreview combatPreview = CombatResolver.SimulateAttackPreview(
-                selectedEntity.GetCombatStats(), 
-                inspectedEntity.GetCombatStats(), 
-                selectedEntity.BasicAttack, attackerInDefenderRange);
+            CombatPreview combatPreview = CombatResolver.SimulateAttackPreview(selectedEntity.GetCombatStats(), inspectedEntity.GetCombatStats(), CurrentSelectedSkillID == -1 && CurrentSelectedItemID == -1 ?
+                selectedEntity.BasicAttack :
+                CurrentSelectedSkillID != -1 ? DataDelegates.GetAbilityDataByID(CurrentSelectedSkillID) : selectedEntity.BasicAttack, attackerInDefenderRange);
             Debug.Log(combatPreview);
             UIDelegates.InvokeOnBattleOutcomePreviewUpdate(combatPreview);
             CombatPreview = combatPreview;

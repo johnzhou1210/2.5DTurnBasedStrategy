@@ -15,10 +15,7 @@ MonoBehaviour:
   StatModifiers:
   - ModifierStat: 3
     Flat: 0
-    Percent: 0.33
-  - ModifierStat: 0
-    Flat: 0
-    Percent: 2
+    Percent: 0.1
   - ModifierStat: 6
     Flat: 1
     Percent: 0
@@ -26,7 +23,8 @@ MonoBehaviour:
   DamageTypeOverride: 0
   ProjectileVisualData: {fileID: 0}
   SkillID: 2
-  Description: Charges forth and lunges without mercy,  dealing 200% physical damage.
+  Description: Charges forth and lunges without mercy,  dealing 100% physical damage.
     Devastating on contact but suffers from reduced accuracy.
   CooldownAtStart: 0
   MaxCooldown: 3
+  Heal: 0

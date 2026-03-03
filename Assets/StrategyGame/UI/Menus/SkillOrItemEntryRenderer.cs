@@ -9,7 +9,7 @@ namespace StrategyGame.UI.Menus {
         [SerializeField] private Slider cooldownSlider;
         [SerializeField] private CanvasGroup cooldownInfoCanvasGroup;
         [SerializeField] private TextMeshProUGUI cooldownText;
-
+        
         public int RelevantID = -1;
         
         public void SetHeaderText(string text) {

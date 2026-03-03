@@ -11,6 +11,7 @@ using Random = UnityEngine.Random;
 
 namespace StrategyGame.Combat {
     public struct CombatPreview {
+        public int AttackerSkillID;
         public int AttackerID;
         public int AttackerCurrentHP;
         public int AttackerMaxHP;
@@ -157,6 +158,7 @@ namespace StrategyGame.Combat {
             outcome.OrderOfEvents = new List<CombatDirector.CombatTimeline>();
             outcome.AttackerID = preview.AttackerID;
             outcome.DefenderID = preview.DefenderID;
+            outcome.AttackerSkillID = preview.AttackerSkillID;
             int defenderHP = preview.DefenderCurrentHP;
             int attackerHP = preview.AttackerCurrentHP;
             
@@ -312,6 +314,7 @@ namespace StrategyGame.Combat {
             }
             
             return new CombatPreview {
+                AttackerSkillID = ability.SkillID,
                 AttackerID = attacker.EntityID,
                 AttackerCurrentHP = attacker.HP,
                 AttackerMaxHP = attacker.MaxHP,

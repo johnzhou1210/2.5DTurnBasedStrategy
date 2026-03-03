@@ -158,21 +158,22 @@ namespace StrategyGame.Core.GameState {
         }
         private void StartGame() {
             Debug.Log("Starting Game");
-            List<UnitSpawnQuery> units = new List<UnitSpawnQuery>();
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Player/Soldier"), SpawnPosition = new Vector2Int(4, 4) });
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Player/Archer"), SpawnPosition = new Vector2Int(4, 5) });
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Player/Soldier"), SpawnPosition = new Vector2Int(4, 6) });
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Player/Calvary"), SpawnPosition = new Vector2Int(5, 4) });
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Player/Calvary"), SpawnPosition = new Vector2Int(5, 5) });
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Player/Priest"), SpawnPosition = new Vector2Int(5, 6) });
-            
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Enemy/Orc"), SpawnPosition = new Vector2Int(6, 7) });
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Enemy/Orc"), SpawnPosition = new Vector2Int(6, 8) });
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Enemy/Elite Orc"), SpawnPosition = new Vector2Int(6, 9) });
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Enemy/Elite Orc"), SpawnPosition = new Vector2Int(7, 7) });
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Enemy/Skeleton Archer"), SpawnPosition = new Vector2Int(7, 8) });
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Enemy/Skeleton Archer"), SpawnPosition = new Vector2Int(7, 9) });
-            units.Add(new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Enemy/Skeleton Archer"), SpawnPosition = new Vector2Int(8, 8) });
+            List<UnitSpawnQuery> units = new List<UnitSpawnQuery> {
+                new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Player/Soldier"), SpawnPosition = new Vector2Int(4, 4) },
+                new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Player/Archer"), SpawnPosition = new Vector2Int(4, 5) },
+                new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Player/Soldier"), SpawnPosition = new Vector2Int(4, 6) },
+                new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Player/Calvary"), SpawnPosition = new Vector2Int(5, 4) },
+                new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Player/Calvary"), SpawnPosition = new Vector2Int(5, 5) },
+                new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Player/Priest"), SpawnPosition = new Vector2Int(5, 6) },
+                new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Enemy/Orc"), SpawnPosition = new Vector2Int(6, 7) },
+                new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Enemy/Orc"), SpawnPosition = new Vector2Int(6, 8) },
+                new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Enemy/Elite Orc"), SpawnPosition = new Vector2Int(6, 9) },
+                new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Enemy/Elite Orc"), SpawnPosition = new Vector2Int(7, 7) },
+                new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Enemy/Skeleton Archer"), SpawnPosition = new Vector2Int(7, 8) },
+                new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Enemy/Skeleton Archer"), SpawnPosition = new Vector2Int(7, 9) },
+                new UnitSpawnQuery { UnitData = Resources.Load<GridUnitData>("ScriptableObjects/Units/Enemy/Skeleton Archer"), SpawnPosition = new Vector2Int(8, 8) }
+            };
+
             EntityDelegates.SpawnUnits(units);
             GenerateRandomBiome(Resources.Load<TileData>("ScriptableObjects/Tiles/Mountains"));
             GenerateRandomBiome(Resources.Load<TileData>("ScriptableObjects/Tiles/Forest"));
@@ -343,7 +344,7 @@ namespace StrategyGame.Core.GameState {
                         currSelectedEntity.MoveAlongPath(pseudoPath, true);
                         
                         // Hide action menu
-                        UIDelegates.InvokeOnSetCombatActionMenuVisibility(false, ActionMenuPage.None);
+                        UIDelegates.InvokeOnSetCombatActionMenuVisibility(false, ActionMenuPage.Main);
                         // Reset cursor position back to where it was before
                         InputDelegates.InvokeOnReinstateGridCursorPosition(playerPosBeforeMovement);
                     } else if (previousState == GameStateEnums.PlayerPhaseState.SelectUnitToControl) {
@@ -365,7 +366,7 @@ namespace StrategyGame.Core.GameState {
                 case GameStateEnums.PlayerPhaseState.UnitActionMenu:
                     ManualPath.Clear();
                     InputDelegates.InvokeOnSetGridCursorVisibility(true);
-                    UIDelegates.InvokeOnSetCombatActionMenuVisibility(true, ActionMenuPage.Main);
+                    UIDelegates.InvokeOnSetCombatActionMenuVisibility(true, CurrentState.Combat.CurrentSelectedSkillID != -1 || CurrentState.Combat.CurrentSelectedItemID != -1 ? ActionMenuPage.Current : ActionMenuPage.Main);
                     Debug.Log($"GameStateManager.SetCurrentPlayerPhaseState: SelectedEntityID is {CurrentState.Combat.SelectedEntityID}");
                     SetInspectedTile(CurrentState.Combat.InspectedTilePosition); // Force update to show walkable tiles
                     InputDelegates.InvokeOnReinstateGridCursorPosition(EntityDelegates.GetGridEntityByID(CurrentState.Combat.SelectedEntityID).GridPosition);
@@ -626,6 +627,10 @@ namespace StrategyGame.Core.GameState {
             AdvancePhase();
         }
         private void ApplyAttackOutcome(CombatOutcome outcome) {
+            // Reset selected item/ability states
+            CurrentState.Combat.CurrentSelectedSkillID = -1;
+            CurrentState.Combat.CurrentSelectedItemID = -1;
+            
             GridEntity attackerEntity = EntityDelegates.GetGridEntityByID(outcome.AttackerID);
             GridEntity defenderEntity = EntityDelegates.GetGridEntityByID(outcome.DefenderID);
             defenderEntity.TakeDamage(outcome.DamageDealt);

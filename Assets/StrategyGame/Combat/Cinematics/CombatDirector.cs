@@ -24,6 +24,7 @@ namespace StrategyGame.Combat.Cinematics {
         private static readonly int Dodge = Animator.StringToHash("Dodge");
         private static readonly int Hurt = Animator.StringToHash("Hurt");
         private static readonly int Death = Animator.StringToHash("Death");
+        private static readonly int SkillID = Animator.StringToHash("SkillID");
         /* Timelines needed:
          * CombatIntro: Sets the scene for combat and combatants are visible
          * CombatOutro
@@ -273,7 +274,7 @@ namespace StrategyGame.Combat.Cinematics {
             CombatPuppet targetPuppet = IsAttackerTurn ? attackerPuppet : defenderPuppet;
             GridEntity targetEntity = IsAttackerTurn ? _attackerEntity : _defenderEntity;
             Debug.Log($"CombatDirector.OnSpawnProjectile: {targetEntity}, {targetEntity?.BasicAttack}, {targetEntity?.BasicAttack?.ProjectileVisualData}, {targetEntity?.BasicAttack?.ProjectileVisualData?.ProjectileID}");
-            SpawnProjectile(targetPuppet, targetEntity.BasicAttack.ProjectileVisualData.ProjectileID);
+            SpawnProjectile(targetPuppet, DataDelegates.GetAbilityDataByID(_combatOutcome.AttackerSkillID).ProjectileVisualData.ProjectileID);
         }
 
         private int GetProjectileIDFromEntity(AbilityData abilityData) {
@@ -299,6 +300,7 @@ namespace StrategyGame.Combat.Cinematics {
             Animator targetAnimator = IsAttackerTurn ? attackerPuppet.GetComponent<Animator>() : defenderPuppet.GetComponent<Animator>();
             targetAnimator.SetTrigger(Attack);
             targetAnimator.SetInteger(AttackType, _currCombatEvent is CombatTimeline.AttackerMeleeNormal or CombatTimeline.AttackerMeleeCrit or CombatTimeline.DefenderMeleeNormal or CombatTimeline.DefenderMeleeCrit ? 0 : 1);
+            targetAnimator.SetInteger(SkillID, _combatOutcome.AttackerSkillID);
         }
         
         public void OnAttackImpact() {

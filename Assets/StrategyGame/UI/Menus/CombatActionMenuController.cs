@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using StrategyGame.Combat;
 using StrategyGame.Core.Delegates;
@@ -7,6 +8,7 @@ using StrategyGame.Core.GameState;
 using StrategyGame.Grid;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 namespace StrategyGame.UI.Menus {
@@ -14,7 +16,7 @@ namespace StrategyGame.UI.Menus {
         Main,
         Skills,
         Items,
-        None
+        Current
     }
 
     public class CombatActionMenuController : MonoBehaviour {
@@ -58,7 +60,12 @@ namespace StrategyGame.UI.Menus {
             UIDelegates.OnResetCombatActionMenuIndices -= ResetIndices;
         }
         private void SetVisible(bool visible, ActionMenuPage page) {
-            _currentMenuPage = page;
+            if (page == ActionMenuPage.Current) {
+                // Don't overwrite _currentMenuPage.
+            } else {
+                _currentMenuPage = page;
+            }
+            
             if (visible) {
                 UpdateAttackActionAllowed();
                 UpdateSkillsActionAllowed();
@@ -81,6 +88,7 @@ namespace StrategyGame.UI.Menus {
                     // Clear and regenerate skill entries
                     ClearCurrContainerEntries(GetCurrItemsContainerTransform());
                     GenerateSkills(selectedEntity.AbilityMap);
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(targetContainer.GetComponent<RectTransform>());
                     break;
                 case ActionMenuPage.Items:
                     skillOrItemMenuCanvasGroup.alpha = 1f;
@@ -90,9 +98,13 @@ namespace StrategyGame.UI.Menus {
                 default: break;
             }
             int targetIndex = GetCurrSelectedIndex();
-            if (targetIndex == -1)
-                return;
-            SelectAction(targetIndex);
+            if (targetIndex == -1) return;
+            
+            // Deselect everything first
+            foreach (Transform child in targetContainer) {
+                child.GetComponent<Animator>().Play("Deselected");
+            }
+            StartCoroutine(DelayedSelectAction(targetIndex));
             return;
 
             void GenerateSkills(Dictionary<int, int> abilityMap) {
@@ -110,6 +122,12 @@ namespace StrategyGame.UI.Menus {
                 }
             }
         }
+
+        private IEnumerator DelayedSelectAction(int actionIndex) {
+            yield return new WaitForEndOfFrame();
+            SelectAction(actionIndex);
+        }
+        
         private void SelectAction(int actionIndex) {
             switch (_currentMenuPage) {
                 case ActionMenuPage.Main:
@@ -187,7 +205,7 @@ namespace StrategyGame.UI.Menus {
                             if (currentSelectedEntity.GetAttackableEntitiesAtPosition(currentSelectedEntity.GridPosition).Count == 0)
                                 break;
                             GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitSelectTarget);
-                            SetVisible(false, ActionMenuPage.None);
+                            SetVisible(false, ActionMenuPage.Main);
                             break;
                         case (int)ActionType.Skills: 
                             if (currentSelectedEntity.Abilities.Count == 0) break;
@@ -200,7 +218,7 @@ namespace StrategyGame.UI.Menus {
                         case (int)ActionType.Wait:
                             SelectAction(0);
                             ResetIndices();
-                            SetVisible(false, ActionMenuPage.None);
+                            SetVisible(false, ActionMenuPage.Main);
                             GameStateDelegates.InvokeOnFinalizePlayerAction();
                             break;
                         default: throw new Exception("CombatActionMenuController.ConfirmAction: Invalid Action Type!");
@@ -210,6 +228,7 @@ namespace StrategyGame.UI.Menus {
                     // Go to target selection phase
                     GameObject selectedSkillItem = skillOrItemMenuItems.transform.GetChild(_skillMenuCurrentSelectedIndex).gameObject;
                     int currAbilityID = selectedSkillItem.GetComponent<SkillOrItemEntryRenderer>().RelevantID;
+                    currState.Combat.CurrentSelectedSkillID = currAbilityID;
                     ClearCurrContainerEntries(GetCurrItemsContainerTransform());
                     SetVisible(false, ActionMenuPage.Skills);
                     GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitSelectTarget);
@@ -217,7 +236,7 @@ namespace StrategyGame.UI.Menus {
                 case ActionMenuPage.Items:
                     // Go to target selection phase
                     break;
-                case ActionMenuPage.None: Debug.LogWarning("CombatActionMenuController.ConfirmAction: ActionMenuPage is None, doing nothing."); break;
+                case ActionMenuPage.Current: Debug.LogWarning("CombatActionMenuController.ConfirmAction: ActionMenuPage is Current, which means that the currentActionMenuPage hasn't been updated correctly."); break;
             }
         }
         private void UpdateAttackActionAllowed() {
@@ -260,8 +279,8 @@ namespace StrategyGame.UI.Menus {
             return currItemsContainerTransform;
         }
         private void ClearCurrContainerEntries(Transform targetContainer) {
-            foreach (Transform child in targetContainer) {
-                DestroyImmediate(child.gameObject);
+            for (int i = targetContainer.childCount - 1; i >= 0; i--) {
+                Destroy(targetContainer.GetChild(i).gameObject);
             }
         }
         private void ResetIndices() {
@@ -285,8 +304,8 @@ namespace StrategyGame.UI.Menus {
                     ClearCurrContainerEntries(GetCurrItemsContainerTransform());
                     SetVisible(true, ActionMenuPage.Main); 
                     break;
-                case ActionMenuPage.None: break;
-                default: throw new Exception("CombatActionMenuController.HandleCancellation: Invalid ActionMenuPage!");
+                case ActionMenuPage.Current: break;
+                default: throw new Exception("CombatActionMenuController.HandleCancellation: Invalid ActionMenuPage (current)!");
             }
         }
     }

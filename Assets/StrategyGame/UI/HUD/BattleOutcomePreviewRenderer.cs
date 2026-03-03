@@ -101,7 +101,7 @@ namespace StrategyGame.UI.HUD {
                     break;
                 case < .9995f:
                     attackerHighRisk.alpha = 1f;
-                    attackerHighRisk.transform.GetComponentInChildren<TextMeshProUGUI>().SetText($"{Mathf.CeilToInt(preview.DefenderChanceToKillAttacker*100f)}%");
+                    attackerHighRisk.transform.GetComponentInChildren<TextMeshProUGUI>().SetText($"{Mathf.FloorToInt(preview.DefenderChanceToKillAttacker*100f)}%");
                     break;
                 default:
                     attackerGuaranteedDeath.alpha = 1f;
@@ -167,7 +167,7 @@ namespace StrategyGame.UI.HUD {
                     break;
                 case < .9995f:
                     defenderHighRisk.alpha = 1f;
-                    defenderHighRisk.transform.GetComponentInChildren<TextMeshProUGUI>().SetText($"{Mathf.CeilToInt(preview.AttackerChanceToKillDefender*100f)}%");
+                    defenderHighRisk.transform.GetComponentInChildren<TextMeshProUGUI>().SetText($"{Mathf.FloorToInt(preview.AttackerChanceToKillDefender*100f)}%");
                     break;
                 default:
                     defenderGuaranteedDeath.alpha = 1f;

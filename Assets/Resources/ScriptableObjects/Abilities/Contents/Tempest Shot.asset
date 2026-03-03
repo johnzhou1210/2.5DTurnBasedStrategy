@@ -10,16 +10,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7f9de9567f20426a92a14c14ea5277a9, type: 3}
-  m_Name: Holy Light
+  m_Name: Tempest Shot
   m_EditorClassIdentifier: Assembly-CSharp:StrategyGame.Combat:AbilityData
   StatModifiers:
+  - ModifierStat: 2
+    Flat: 0
+    Percent: 2
   - ModifierStat: 3
     Flat: 0
-    Percent: 1.75
-  - ModifierStat: 6
+    Percent: 2
+  - ModifierStat: 0
     Flat: 0
-    Percent: 0.25
+    Percent: 1.2
   OverrideDamageType: 1
-  DamageTypeOverride: 1
-  ProjectileVisualData: {fileID: 11400000, guid: 796ee15abbf5e42ba80fe03e8dd3ed0e, type: 2}
-  SkillID: -1
+  DamageTypeOverride: 0
+  ProjectileVisualData: {fileID: 11400000, guid: ed99f89e882de452fada3f565523dae8, type: 2}
+  SkillID: 3
+  Description: Imbues an arrow with the power of a strong gale, dealing physical
+    damage equal to 120% of attack. The attack enjoys increased agility and accuracy.
+  CooldownAtStart: 0
+  MaxCooldown: 2
+  Heal: 0

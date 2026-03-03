@@ -22222,6 +22222,8 @@ MonoBehaviour:
       EnemyActorFinishedCombatCinematic: 1
       PlayerDirectAttackAvailable: 0
       HighestPriorityTargetEntityID: -1
+      CurrentSelectedSkillID: -1
+      CurrentSelectedItemID: -1
       inspectedEntityID: -1
       SelectedEntityID: -1
       previousSelectedEntityID: -1

@@ -401,7 +401,7 @@ namespace StrategyGame.Core.Input {
                 }
                 case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
                     // Perform action on target
-                    // For now, assume attack
+                    // Retrieve ability data from game state
                     GridEntity actingEntity = EntityDelegates.GetGridEntityByID(state.Combat.SelectedEntityID);
                     GridEntity targetEntity = GridDelegates.GetTileFromPosition(state.Combat.InspectedTilePosition).Occupant;
                     if (targetEntity == null || targetEntity.Faction == actingEntity.Faction) { // assumes attacking opposite faction
