@@ -34109,7 +34109,7 @@ Transform:
   - {fileID: 8723461770243791743}
   - {fileID: 6261296338349454840}
   - {fileID: 4145591156296750619}
-  - {fileID: 4092870946513712449}
+  - {fileID: 3700105734053895317}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!198 &8829451551789304536
@@ -39034,7 +39034,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StrategyGame.Utils.Effects.AutoCleanup
   cleanupDelay: 2
---- !u!1001 &1125069401187775516
+--- !u!1001 &290669469534592456
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -39056,11 +39056,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3986179179329749341, guid: 8eb503696b886e04faff8fc0f480d473, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.08537
+      value: -0.21327
       objectReference: {fileID: 0}
     - target: {fileID: 3986179179329749341, guid: 8eb503696b886e04faff8fc0f480d473, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.85899
+      value: 1.2144
       objectReference: {fileID: 0}
     - target: {fileID: 3986179179329749341, guid: 8eb503696b886e04faff8fc0f480d473, type: 3}
       propertyPath: m_LocalPosition.z
@@ -39105,31 +39105,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 358637981425055526, guid: 8eb503696b886e04faff8fc0f480d473, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7635636954510663063}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8eb503696b886e04faff8fc0f480d473, type: 3}
---- !u!1 &821678168493048634 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 358637981425055526, guid: 8eb503696b886e04faff8fc0f480d473, type: 3}
-  m_PrefabInstance: {fileID: 1125069401187775516}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &7635636954510663063
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 821678168493048634}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b168156ed7964d5a844f3f422362da8d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::StrategyGame.Utils.Effects.AutoCleanup
-  cleanupDelay: 2
---- !u!4 &4092870946513712449 stripped
+--- !u!4 &3700105734053895317 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3986179179329749341, guid: 8eb503696b886e04faff8fc0f480d473, type: 3}
-  m_PrefabInstance: {fileID: 1125069401187775516}
+  m_PrefabInstance: {fileID: 290669469534592456}
   m_PrefabAsset: {fileID: 0}

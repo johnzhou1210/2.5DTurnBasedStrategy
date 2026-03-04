@@ -4,6 +4,12 @@ using StrategyGame.Combat.Weapons;
 using UnityEngine;
 
 namespace StrategyGame.Combat {
+    public enum ImpactEffectType {
+        None,
+        GigaImpactMonochrome,
+        GigaImpactFury
+    }
+    
     [CreateAssetMenu(menuName = "Strategy Game/Ability")]
     public class AbilityData : ScriptableObject {
         public List<StatModifier> StatModifiers;
@@ -17,5 +23,6 @@ namespace StrategyGame.Combat {
         public bool Heal = false;
         public GameObject AuraPrefab;
         public GameObject CollisionEffect;
+        public ImpactEffectType ImpactEffectType;
     }
 }

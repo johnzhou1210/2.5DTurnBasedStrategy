@@ -185,8 +185,8 @@ namespace StrategyGame.Combat.Cinematics {
                 
                 CombatPuppet targetPuppet = IsAttackerTurn ? attackerPuppet : defenderPuppet;
                 AbilityData ability = _combatOutcome.AttackerSkillID == -1 ? _attackerEntity.BasicAttack : DataDelegates.GetAbilityDataByID(_combatOutcome.AttackerSkillID);
-                // If acting rig's ability has aura, display it.
-                if (ability.AuraPrefab != null) {
+                // If attacking rig's ability has aura, display it.
+                if (IsAttackerTurn && ability.AuraPrefab != null) {
                     GameObject aura = Instantiate(ability.AuraPrefab, targetPuppet.transform);
                     aura.name = "Aura";
                 }
@@ -395,13 +395,29 @@ namespace StrategyGame.Combat.Cinematics {
         
         public void SpawnImpactVFX(ProjectileVisualData projectileVisualData, Transform vfxTransform, bool hit, Vector3 position, bool isBreak, bool melee = false) {
             if (!melee) OnAttackImpact();
-            
-            if (melee && IsAttackerTurn && _combatOutcome.AttackerSkillID != -1) {
-                GameObject meleeCollisionVFX = Instantiate(DataDelegates.GetAbilityDataByID(_combatOutcome.AttackerSkillID).CollisionEffect, defenderPuppet.transform);
-                // meleeCollisionVFX.transform.position = defenderPuppet.transform.position;
-                meleeCollisionVFX.name = "MeleeCollisionVFX";
-            }
             if (!hit && melee) return;
+            if (IsAttackerTurn && _combatOutcome.AttackerSkillID != -1) {
+                if (melee) {
+                    GameObject meleeCollisionVFX = Instantiate(DataDelegates.GetAbilityDataByID(_combatOutcome.AttackerSkillID).CollisionEffect, vfxTransform);
+                    meleeCollisionVFX.transform.position = defenderPuppet.transform.position;
+                    meleeCollisionVFX.name = "MeleeCollisionVFX";
+                }
+                // Add additional cool effects (e.g. giga impact)
+                ImpactEffectType extraImpactEffect = DataDelegates.GetAbilityDataByID(_combatOutcome.AttackerSkillID).ImpactEffectType;
+                switch (extraImpactEffect) {
+                    case ImpactEffectType.None:
+                        break;
+                    case ImpactEffectType.GigaImpactMonochrome:
+                        StartCoroutine(GigaImpactMonochromeEffect());
+                        break;
+                    case ImpactEffectType.GigaImpactFury:
+                        StartCoroutine(GigaImpactFuryEffect());
+                        break;
+                    default:
+                        throw new Exception($"Unknown impact effect type: {extraImpactEffect}");
+                }
+                
+            }
             if (!hit) {
                 if (projectileVisualData.MissVFXPrefab != null) {
                     GameObject missVFX = Instantiate(projectileVisualData.MissVFXPrefab, vfxTransform);
@@ -413,6 +429,7 @@ namespace StrategyGame.Combat.Cinematics {
                 }
                 return;
             }
+            
             GameObject impactVFX = Instantiate(projectileVisualData.ImpactVFXPrefab, vfxTransform);
             impactVFX.transform.position = position;
             if (projectileVisualData.ImpactBillboardVFXPrefab != null) {
@@ -426,6 +443,63 @@ namespace StrategyGame.Combat.Cinematics {
                 breakEffect.transform.position = position;
             }
             // Auto Cleanup is handled in an AutoCleanup script attached to the vfx
+
+            IEnumerator GigaImpactMonochromeEffect() {
+                float originalSaturation = _colorAdjustments.saturation.value;
+                float originalPostExposure = _colorAdjustments.postExposure.value;
+                float originalContrast = _colorAdjustments.contrast.value;
+                float originalChromaticAberration = _chromaticAberration.intensity.value;
+                float originalTimeScale = Time.timeScale;
+                float originalLensDistortion = _lensDistortion.intensity.value;
+                float originalBloom = _bloom.intensity.value;
+                SetSaturation(-100f);
+                SetPostExposure(1f);
+                SetContrast(100f);
+                SetChromaticAberration(1f);
+                SetLensDistortionIntensity(-.5f);
+                SetBloomIntensity(4f);
+                Time.timeScale = 0f;
+                cameraShakerSource.ImpulseDefinition.AmplitudeGain = 1f;       
+                cameraShakerSource.ImpulseDefinition.ImpulseDuration = .5f;
+                cameraShakerSource.GenerateImpulse();
+                yield return new WaitForSecondsRealtime(.5f);
+                Time.timeScale = originalTimeScale;
+                SetSaturation(originalSaturation);
+                SetPostExposure(originalPostExposure);
+                SetContrast(originalContrast);
+                SetChromaticAberration(originalChromaticAberration);
+                SetLensDistortionIntensity(originalLensDistortion);
+                SetBloomIntensity(originalBloom);
+                yield return null;
+            }
+            IEnumerator GigaImpactFuryEffect() {
+                float originalSaturation = _colorAdjustments.saturation.value;
+                float originalPostExposure = _colorAdjustments.postExposure.value;
+                float originalContrast = _colorAdjustments.contrast.value;
+                float originalChromaticAberration = _chromaticAberration.intensity.value;
+                float originalTimeScale = Time.timeScale;
+                float originalLensDistortion = _lensDistortion.intensity.value;
+                float originalBloom = _bloom.intensity.value;
+                SetSaturation(100f);
+                SetPostExposure(1f);
+                SetContrast(100f);
+                SetChromaticAberration(1f);
+                SetLensDistortionIntensity(-.5f);
+                SetBloomIntensity(4f);
+                Time.timeScale = .5f;
+                cameraShakerSource.ImpulseDefinition.AmplitudeGain = 1f;       
+                cameraShakerSource.ImpulseDefinition.ImpulseDuration = .5f;
+                cameraShakerSource.GenerateImpulse();
+                yield return new WaitForSeconds(.25f);
+                Time.timeScale = originalTimeScale;
+                SetSaturation(originalSaturation);
+                SetPostExposure(originalPostExposure);
+                SetContrast(originalContrast);
+                SetChromaticAberration(originalChromaticAberration);
+                SetLensDistortionIntensity(originalLensDistortion);
+                SetBloomIntensity(originalBloom);
+                yield return null;
+            }
         }
         
         
@@ -437,6 +511,11 @@ namespace StrategyGame.Combat.Cinematics {
         private void SetContrast(float newVal) {
             if (_colorAdjustments == null) return;
             _colorAdjustments.contrast.value = newVal;
+        }
+
+        private void SetSaturation(float newVal) {
+            if (_colorAdjustments == null) return;
+            _colorAdjustments.saturation.value = newVal;
         }
 
         private void SetChromaticAberration(float newVal) {
