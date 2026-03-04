@@ -10,8 +10,9 @@ namespace StrategyGame.Combat.Cinematics {
             Vector3 targetPos = puppetSource.CombatDirector.IsAttackerTurn ? puppetSource.CombatDirector.defenderPuppet.transform.position : puppetSource.CombatDirector.attackerPuppet.transform.position;
             float travelTime = data.TravelTime;
             Vector3 direction = (targetPos - startPos).normalized;
-            float distance = Vector3.Distance(startPos, targetPos);
             Vector3 lastPosition = startPos;
+            
+           
 
             bool targetReacted = false;
 
@@ -35,7 +36,8 @@ namespace StrategyGame.Combat.Cinematics {
                     float horizontalDist = new Vector2(diff.x, diff.z).magnitude;
                     float angle = Mathf.Atan2(diff.y, horizontalDist) * Mathf.Rad2Deg;
                     transform.rotation = Quaternion.LookRotation(direction);
-                    transform.Rotate(0, 0, angle);
+                    // Flip projectile sprite accordingly
+                    transform.Rotate(0, 0, angle * (!puppetSource.CombatDirector.IsAttackerTurn ? -1f : 1f) + (!puppetSource.CombatDirector.IsAttackerTurn ? 180f : 0f));
                 }
                 transform.localEulerAngles = new Vector3(transform.eulerAngles.x, 0, transform.eulerAngles.z);
                 lastPosition = transform.position;

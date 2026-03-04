@@ -397,8 +397,9 @@ namespace StrategyGame.Combat.Cinematics {
             if (!melee) OnAttackImpact();
             if (!hit && melee) return;
             if (IsAttackerTurn && _combatOutcome.AttackerSkillID != -1) {
-                if (melee) {
-                    GameObject meleeCollisionVFX = Instantiate(DataDelegates.GetAbilityDataByID(_combatOutcome.AttackerSkillID).CollisionEffect, vfxTransform);
+                AbilityData ability = DataDelegates.GetAbilityDataByID(_combatOutcome.AttackerSkillID);
+                if (melee && ability.CollisionEffect != null) {
+                    GameObject meleeCollisionVFX = Instantiate(ability.CollisionEffect, vfxTransform);
                     meleeCollisionVFX.transform.position = defenderPuppet.transform.position;
                     meleeCollisionVFX.name = "MeleeCollisionVFX";
                 }
@@ -449,21 +450,18 @@ namespace StrategyGame.Combat.Cinematics {
                 float originalPostExposure = _colorAdjustments.postExposure.value;
                 float originalContrast = _colorAdjustments.contrast.value;
                 float originalChromaticAberration = _chromaticAberration.intensity.value;
-                float originalTimeScale = Time.timeScale;
                 float originalLensDistortion = _lensDistortion.intensity.value;
                 float originalBloom = _bloom.intensity.value;
                 SetSaturation(-100f);
                 SetPostExposure(1f);
                 SetContrast(100f);
                 SetChromaticAberration(1f);
-                SetLensDistortionIntensity(-.5f);
+                SetLensDistortionIntensity(-1f);
                 SetBloomIntensity(4f);
-                Time.timeScale = 0f;
                 cameraShakerSource.ImpulseDefinition.AmplitudeGain = 1f;       
                 cameraShakerSource.ImpulseDefinition.ImpulseDuration = .5f;
                 cameraShakerSource.GenerateImpulse();
-                yield return new WaitForSecondsRealtime(.5f);
-                Time.timeScale = originalTimeScale;
+                yield return new WaitForSeconds(.2f);
                 SetSaturation(originalSaturation);
                 SetPostExposure(originalPostExposure);
                 SetContrast(originalContrast);

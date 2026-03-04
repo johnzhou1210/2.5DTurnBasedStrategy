@@ -19657,6 +19657,10 @@ PrefabInstance:
       propertyPath: looping
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5158520998695604608, guid: 8a43d9f68490c374a93a9e8085555c02, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6166639675024175333, guid: 8a43d9f68490c374a93a9e8085555c02, type: 3}
       propertyPath: looping
       value: 0
@@ -19713,6 +19717,10 @@ PrefabInstance:
       propertyPath: looping
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7972595845475221916, guid: 8a43d9f68490c374a93a9e8085555c02, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8915312667134092580, guid: 8a43d9f68490c374a93a9e8085555c02, type: 3}
       propertyPath: m_Name
       value: AoE slash green
@@ -19722,7 +19730,8 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 7972595845475221916, guid: 8a43d9f68490c374a93a9e8085555c02, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8a43d9f68490c374a93a9e8085555c02, type: 3}
