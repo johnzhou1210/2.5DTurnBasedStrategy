@@ -15,5 +15,7 @@ namespace StrategyGame.Combat {
         public bool CooldownAtStart = false;
         public int MaxCooldown = 0;
         public bool Heal = false;
+        public GameObject AuraPrefab;
+        public GameObject CollisionEffect;
     }
 }

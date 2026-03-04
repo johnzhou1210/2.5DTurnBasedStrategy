@@ -28,3 +28,5 @@ MonoBehaviour:
   CooldownAtStart: 1
   MaxCooldown: 6
   Heal: 0
+  AuraPrefab: {fileID: 8295591563862043295, guid: e8bec67e676434c1e91369ca58c70e27, type: 3}
+  CollisionEffect: {fileID: 8829451551789304542, guid: e91fa0fac941e714e8c4d5709097019f, type: 3}

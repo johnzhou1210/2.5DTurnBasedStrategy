@@ -48,7 +48,7 @@ ParticleSystem:
   ringBufferMode: 0
   ringBufferLoopRange: {x: 0, y: 1}
   emitterVelocityMode: 0
-  looping: 1
+  looping: 0
   prewarm: 0
   playOnAwake: 1
   useUnscaledTime: 0
@@ -4953,7 +4953,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b168156ed7964d5a844f3f422362da8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StrategyGame.Utils.AutoCleanup
-  cleanupTime: 0.8
+  cleanupDelay: 2
 --- !u!1 &3195425902662666683
 GameObject:
   m_ObjectHideFlags: 0
@@ -5002,7 +5002,7 @@ ParticleSystem:
   ringBufferMode: 0
   ringBufferLoopRange: {x: 0, y: 1}
   emitterVelocityMode: 0
-  looping: 1
+  looping: 0
   prewarm: 0
   playOnAwake: 1
   useUnscaledTime: 0
@@ -9896,7 +9896,7 @@ ParticleSystem:
   ringBufferMode: 0
   ringBufferLoopRange: {x: 0, y: 1}
   emitterVelocityMode: 0
-  looping: 1
+  looping: 0
   prewarm: 0
   playOnAwake: 1
   useUnscaledTime: 0
@@ -14799,7 +14799,7 @@ ParticleSystem:
   ringBufferMode: 0
   ringBufferLoopRange: {x: 0, y: 1}
   emitterVelocityMode: 0
-  looping: 1
+  looping: 0
   prewarm: 0
   playOnAwake: 1
   useUnscaledTime: 0
@@ -19653,6 +19653,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2452082064152055796}
     m_Modifications:
+    - target: {fileID: 1976360828952319648, guid: 8a43d9f68490c374a93a9e8085555c02, type: 3}
+      propertyPath: looping
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6166639675024175333, guid: 8a43d9f68490c374a93a9e8085555c02, type: 3}
+      propertyPath: looping
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6516556913553462587, guid: 8a43d9f68490c374a93a9e8085555c02, type: 3}
+      propertyPath: looping
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7096450941146470117, guid: 8a43d9f68490c374a93a9e8085555c02, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.0025
@@ -19693,9 +19705,21 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7209849245890256745, guid: 8a43d9f68490c374a93a9e8085555c02, type: 3}
+      propertyPath: looping
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7658239851851839345, guid: 8a43d9f68490c374a93a9e8085555c02, type: 3}
+      propertyPath: looping
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8915312667134092580, guid: 8a43d9f68490c374a93a9e8085555c02, type: 3}
       propertyPath: m_Name
       value: AoE slash green
+      objectReference: {fileID: 0}
+    - target: {fileID: 9191532734909787767, guid: 8a43d9f68490c374a93a9e8085555c02, type: 3}
+      propertyPath: looping
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -19715,6 +19739,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2452082064152055796}
     m_Modifications:
+    - target: {fileID: 4006456049645683702, guid: 3138a83bedbd6ad4481ba0b061da2eb6, type: 3}
+      propertyPath: looping
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4448532362567962980, guid: 3138a83bedbd6ad4481ba0b061da2eb6, type: 3}
+      propertyPath: looping
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4642848129145531053, guid: 3138a83bedbd6ad4481ba0b061da2eb6, type: 3}
+      propertyPath: looping
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6823302871133167919, guid: 3138a83bedbd6ad4481ba0b061da2eb6, type: 3}
       propertyPath: m_Name
       value: Green hit
@@ -19757,6 +19793,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7264847263909231863, guid: 3138a83bedbd6ad4481ba0b061da2eb6, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9084692674587237987, guid: 3138a83bedbd6ad4481ba0b061da2eb6, type: 3}
+      propertyPath: looping
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []

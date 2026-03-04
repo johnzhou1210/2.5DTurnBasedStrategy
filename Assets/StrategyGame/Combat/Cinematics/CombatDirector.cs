@@ -182,6 +182,16 @@ namespace StrategyGame.Combat.Cinematics {
                     BindActingRig(playableAsset, defenderAnimatedRig.GetComponent<Animator>());
                 }
                 DirectorLoadAndPlay(playableAsset);
+                
+                CombatPuppet targetPuppet = IsAttackerTurn ? attackerPuppet : defenderPuppet;
+                AbilityData ability = _combatOutcome.AttackerSkillID == -1 ? _attackerEntity.BasicAttack : DataDelegates.GetAbilityDataByID(_combatOutcome.AttackerSkillID);
+                // If acting rig's ability has aura, display it.
+                if (ability.AuraPrefab != null) {
+                    GameObject aura = Instantiate(ability.AuraPrefab, targetPuppet.transform);
+                    aura.name = "Aura";
+                }
+                
+                
                 yield return new WaitUntil((() => director.state != PlayState.Playing));
                 // defenderRigAdapter.localPosition = new Vector3(0f, 0, 0);
                 if (IsAttackerTurn) { _currAttackIndex++; } else { _currCounterIndex++;}
@@ -272,7 +282,6 @@ namespace StrategyGame.Combat.Cinematics {
             // Decide which projectile to spawn based on context
             // Decide which puppet to call the spawn on
             CombatPuppet targetPuppet = IsAttackerTurn ? attackerPuppet : defenderPuppet;
-            GridEntity targetEntity = IsAttackerTurn ? _attackerEntity : _defenderEntity;
             AbilityData ability = _combatOutcome.AttackerSkillID == -1 ? _attackerEntity.BasicAttack : DataDelegates.GetAbilityDataByID(_combatOutcome.AttackerSkillID);
             SpawnProjectile(targetPuppet, ability.ProjectileVisualData.ProjectileID);
         }
@@ -304,10 +313,18 @@ namespace StrategyGame.Combat.Cinematics {
         }
         
         public void OnAttackImpact() {
+            
+            
             GridEntity victimEntity = IsAttackerTurn ? _defenderEntity : _attackerEntity;
             Animator targetAnimator = IsAttackerTurn ? defenderPuppet.GetComponent<Animator>() : attackerPuppet.GetComponent<Animator>();
             CombatPuppet initiatorPuppet = IsAttackerTurn ? attackerPuppet : defenderPuppet;
             CombatPuppet targetPuppet = IsAttackerTurn ? defenderPuppet : attackerPuppet;
+            
+            // Clear aura if any is present
+            if (initiatorPuppet.transform.Find("Aura")) {
+                Destroy(initiatorPuppet.transform.Find("Aura").gameObject); 
+            }
+            
             bool[] hitsArr = IsAttackerTurn ? _combatOutcome.AttackHits : _combatOutcome.DefendCounterHits;
             bool[] critsArr = IsAttackerTurn ? _combatOutcome.AttackHitCrits :  _combatOutcome.DefendCounterCrits;
             bool[] breaksArr = IsAttackerTurn ? _combatOutcome.AttackBreakHits : _combatOutcome.CounterBreakHits;
@@ -322,7 +339,6 @@ namespace StrategyGame.Combat.Cinematics {
             
             if (_currCombatEvent is CombatTimeline.AttackerMeleeNormal or CombatTimeline.AttackerMeleeCrit or CombatTimeline.DefenderMeleeNormal or CombatTimeline.DefenderMeleeCrit) {
                 SpawnImpactVFX(GetProjectileVisualDataFromID(0), initiatorPuppet.VFXTransform, hit, targetPuppet.transform.position, isBreak, true); // temp
-                
             }
             
             if (IsAttackerTurn) {
@@ -379,6 +395,12 @@ namespace StrategyGame.Combat.Cinematics {
         
         public void SpawnImpactVFX(ProjectileVisualData projectileVisualData, Transform vfxTransform, bool hit, Vector3 position, bool isBreak, bool melee = false) {
             if (!melee) OnAttackImpact();
+            
+            if (melee && IsAttackerTurn && _combatOutcome.AttackerSkillID != -1) {
+                GameObject meleeCollisionVFX = Instantiate(DataDelegates.GetAbilityDataByID(_combatOutcome.AttackerSkillID).CollisionEffect, defenderPuppet.transform);
+                // meleeCollisionVFX.transform.position = defenderPuppet.transform.position;
+                meleeCollisionVFX.name = "MeleeCollisionVFX";
+            }
             if (!hit && melee) return;
             if (!hit) {
                 if (projectileVisualData.MissVFXPrefab != null) {
