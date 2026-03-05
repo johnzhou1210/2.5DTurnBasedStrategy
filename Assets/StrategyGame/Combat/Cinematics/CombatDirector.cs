@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
 using Mono.CSharp;
+using StrategyGame.Audio;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
 using StrategyGame.Core.GameState;
@@ -356,7 +357,11 @@ namespace StrategyGame.Combat.Cinematics {
                 // Any miss SFX/VFX
                 return;
             }
+            
+            AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Combat/Impact"));
             targetAnimator.SetTrigger(Hurt);
+            if (crit) AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Combat/CritHit"));
+            if (isBreak) AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Combat/Break"));
             if (crit || isBreak || victimHPAfterImpact <= 0) {
                 if (_slowMotionCoroutine != null) {
                     StopCoroutine(_slowMotionCoroutine);
@@ -369,6 +374,7 @@ namespace StrategyGame.Combat.Cinematics {
             cameraShakerSource.GenerateImpulse();
             targetPuppet.SpawnDamageNumber(impactDamage, crit, isBreak);
             if (victimHPAfterImpact <= 0) {
+                AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Combat/DeathScream"));
                 targetAnimator.SetTrigger(Death);
             }
         }

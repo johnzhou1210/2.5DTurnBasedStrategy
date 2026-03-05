@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using DG.Tweening;
+using StrategyGame.Audio;
 using StrategyGame.Combat;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
@@ -190,6 +191,7 @@ namespace StrategyGame.Core.Input {
                             currentGameState.Combat.InspectedEntityID = currentGameState.Combat.SelectedEntityID;
                             GridDelegates.SetInspectedTile(EntityDelegates.GetGridEntityByID(currentGameState.Combat.SelectedEntityID).GridPosition);
                             GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitActionMenu);
+                            AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/minimize_008"));
                             break;
                         case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: break;
                         case GameStateEnums.PlayerPhaseState.None: break;
@@ -298,6 +300,7 @@ namespace StrategyGame.Core.Input {
             if (moveInput.y < -0.5f)
                 vertical = -1;
             void Move() {
+                if (vertical == 1 || vertical == -1) AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/scratch_001"), volumeMultiplier:.5f);
                 if (vertical == 1) {
                     InputDelegates.InvokeOnUpPressed();
                 } else if (vertical == -1) {
@@ -345,6 +348,7 @@ namespace StrategyGame.Core.Input {
                     Debug.Log("InputManager.HandleEntityTileSelection: START FORMING PATH");
                     _isDiagonalMoveEnabled = false;
                     GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination);
+                    AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/select_005"));
                     break;
                 case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination: {
                     GridEntity currentSelectedEntity = EntityDelegates.GetGridEntityByID(state.Combat.SelectedEntityID);
@@ -412,6 +416,7 @@ namespace StrategyGame.Core.Input {
                     CombatOutcome attackOutcome = CombatResolver.ResolveCombatFromPreview(state.Combat.CombatPreview);
                     CombatCinematicsDelegates.GetDirector().InitializeCinematicData(actingEntity, targetEntity, attackOutcome);
                     GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitAttackCutscene);
+                    AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/select_004"));
                     break;
                 default: throw new Exception($"InputManager.HandleSelectionInput : Unexpected player phase state for entity tile selection : {state.Combat.PlayerPhase}");
             }

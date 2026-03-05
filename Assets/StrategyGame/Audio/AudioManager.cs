@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace StrategyGame.Core.Audio {
+namespace StrategyGame.Audio {
     public class AudioManager : MonoBehaviour {
         public static AudioManager Instance;
         [SerializeField] [Range(0f, 1f)] private float masterVolume, musicVolume, sfxVolume = 1f;
@@ -33,28 +33,28 @@ namespace StrategyGame.Core.Audio {
             AudioSource.PlayClipAtPoint(clip, point, GetSFXVolume());
         }
 
-        public void PlaySFXAtPoint(Vector3 point, AudioClip clip, float pitch, float startPosition = 0f) {
+        public void PlaySFXAtPoint(Vector3 point, AudioClip clip, float pitch = 1f, float startPosition = 0f, float volumeMultiplier = 1f) {
             if (clip == null) return;
             GameObject tempAudioObj = new GameObject("TempSFX");
             tempAudioObj.transform.position = point;
             AudioSource source = tempAudioObj.AddComponent<AudioSource>();
             source.clip = clip;
             source.pitch = pitch;
-            source.volume = GetSFXVolume();
+            source.volume = GetSFXVolume() *  volumeMultiplier;
             source.spatialBlend = 1f;
             source.time = startPosition;
             source.Play();
             Destroy(tempAudioObj, source.clip.length / pitch);
         }
     
-        public void PlaySFXAtPointUI(AudioClip clip, float pitch, float startPosition = 0f) {
+        public void PlaySFXAtPointUI(AudioClip clip, float pitch = 1f, float startPosition = 0f, float volumeMultiplier = 1f) {
             if (clip == null) return;
             GameObject tempAudioObj = new GameObject("TempSFX");
             tempAudioObj.transform.position = Vector3.zero;
             AudioSource source = tempAudioObj.AddComponent<AudioSource>();
             source.clip = clip;
             source.pitch = pitch;
-            source.volume = GetSFXVolume();
+            source.volume = GetSFXVolume() *  volumeMultiplier;
             source.spatialBlend = 0f;
             source.time = startPosition;
             source.Play();

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using StrategyGame.Audio;
 using StrategyGame.Combat;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
@@ -195,6 +196,7 @@ namespace StrategyGame.UI.Menus {
             SelectAction((targetCurrSelectedIndex - 1 + targetTransform.childCount) % targetTransform.childCount);
         }
         private void ConfirmAction() {
+            AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/select_005"));
             GameStateData currState = GameStateDelegates.GetCurrentGameState();
             GridEntity currentSelectedEntity = EntityDelegates.GetGridEntityByID(currState.Combat.SelectedEntityID);
             int currSelectedIndex = GetCurrSelectedIndex();
@@ -232,6 +234,7 @@ namespace StrategyGame.UI.Menus {
                     if (!currentSelectedEntity.AbilityMap.TryGetValue(currAbilityID, out int value)) throw new Exception("CombatActionMenuController.ConfirmAction: Ability not found in current selected entity's ability map!");
                     if (value != 0) {
                         // Provide some feedback to show it can't be selected
+                        AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/error_005"));
                         break;
                     }
                     // Go to target selection phase
@@ -299,6 +302,7 @@ namespace StrategyGame.UI.Menus {
         _itemMenuPreviousSelectedIndex = 0;
         }
         private void HandleCancellation() {
+            AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/minimize_008"));
             switch (_currentMenuPage) {
                 case ActionMenuPage.Main:
                     // Allow undoing of movement and go back to select unit move destination
