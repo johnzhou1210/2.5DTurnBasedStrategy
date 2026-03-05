@@ -27,7 +27,6 @@ namespace StrategyGame.Combat {
         public int AttackerCritDamagePerHit;
         public float AttackerChanceToKillDefender;
         public bool AttackerBrokenToBeginWith;
-
         public int DefenderID;
         public int DefenderCurrentHP;
         public int DefenderMaxHP;
@@ -43,10 +42,8 @@ namespace StrategyGame.Combat {
         public int DefenderCritDamagePerHit;
         public float DefenderChanceToKillAttacker;
         public bool DefenderBrokenToBeginWith;
-
         public override string ToString() {
-            return
-                $@"===== COMBAT PREVIEW =====
+            return $@"===== COMBAT PREVIEW =====
                 ATTACKER: {AttackerDisplayName} ({AttackerWeapon} ({AttackerWeapon.WeaponType})) →
                   Hits: {AttackerNumAttacks}
                   Damage/Hit: {AttackerNonCritDamagePerHit}
@@ -81,24 +78,19 @@ namespace StrategyGame.Combat {
         public bool[] CounterBreakHits = new[] { false, false };
         public int[] AttackDamageInstances = new[] { 0, 0 };
         public int[] CounterDamageInstances = new[] { 0, 0 };
-
         public bool AttackerBrokenThisSimulation = false;
         public bool DefenderBrokenThisSimulation = false;
-        
         public int DamageDealt = 0;
         public bool DefenderDied = false;
-
         public int NumCounters;
         public int NumAttacks;
-
         public int CounterDamageDealt = 0;
         public bool AttackerDied = false;
-
         public int AttackerID;
         public int DefenderID;
-
         public override string ToString() {
-            return $"AttackHits: {string.Join(",", AttackHits)}, AttackHitCrits: {string.Join(",", AttackHitCrits)}, DefendCounterHits: {string.Join(",", DefendCounterHits)}, DefendCounterCrits: {string.Join(",", DefendCounterCrits)}\n" +
+            return
+                $"AttackHits: {string.Join(",", AttackHits)}, AttackHitCrits: {string.Join(",", AttackHitCrits)}, DefendCounterHits: {string.Join(",", DefendCounterHits)}, DefendCounterCrits: {string.Join(",", DefendCounterCrits)}\n" +
                 $"  DamageDealt: {DamageDealt}, DefenderDied: {DefenderDied}, NumAttacks: {NumAttacks}, NumCounters: {NumCounters}, CounterDamageDealt: {CounterDamageDealt}, AttackerDied: {AttackerDied}";
         }
     }
@@ -136,23 +128,15 @@ namespace StrategyGame.Combat {
 
     public static class CombatResolver {
         private static readonly Dictionary<WeaponType, WeaponType> AdvantageTable =
-            new Dictionary<WeaponType, WeaponType>
-            {
-                { WeaponType.Sword, WeaponType.Axe },
-                { WeaponType.Axe, WeaponType.Spear },
-                { WeaponType.Spear, WeaponType.Sword },
-            };
-
-        
+            new Dictionary<WeaponType, WeaponType> { { WeaponType.Sword, WeaponType.Axe }, { WeaponType.Axe, WeaponType.Spear }, { WeaponType.Spear, WeaponType.Sword }, };
         private static float _baseHitChance = .85f;
         private static float _baseCritChance = .05f;
         private static DeterministicRNG _rng = new DeterministicRNG(Random.Range(0, 2048));
-        
         public static bool HasWeaponAdvantage(WeaponType attacker, WeaponType defender) {
-            if (!AdvantageTable.TryGetValue(attacker, out WeaponType value)) return false;
+            if (!AdvantageTable.TryGetValue(attacker, out WeaponType value))
+                return false;
             return value == defender;
         }
-        
         public static CombatOutcome ResolveCombatFromPreview(CombatPreview preview) {
             CombatOutcome outcome = new CombatOutcome();
             outcome.OrderOfEvents = new List<CombatDirector.CombatTimeline>();
@@ -161,24 +145,20 @@ namespace StrategyGame.Combat {
             outcome.AttackerSkillID = preview.AttackerSkillID;
             int defenderHP = preview.DefenderCurrentHP;
             int attackerHP = preview.AttackerCurrentHP;
-            
-            
             int attacksLeft = preview.MaxAttackerNumAttacks;
             int countersLeft = preview.MaxDefenderNumCounters;
             int currAttackIndex = 0;
             int currCounterIndex = 0;
-            
             while (attacksLeft > 0 || countersLeft > 0) {
                 /* Attacker does their thing */
                 if (attacksLeft > 0 && defenderHP > 0) {
                     attacksLeft--;
                     outcome.NumAttacks++;
-                    bool crit = _rng.Chance(preview.AttackerCritChance);
                     bool hit = _rng.Chance(preview.AttackerHitChance);
-                    outcome.OrderOfEvents.Add(
-                            crit ? (preview.AttackerWeapon.MaxAttackRange > 1 ? CombatDirector.CombatTimeline.AttackerRangedCrit : CombatDirector.CombatTimeline.AttackerMeleeCrit)
-                                : (preview.AttackerWeapon.MaxAttackRange > 1 ? CombatDirector.CombatTimeline.AttackerRangedNormal : CombatDirector.CombatTimeline.AttackerMeleeNormal)
-                        );
+                    bool crit = hit && _rng.Chance(preview.AttackerCritChance);
+                    outcome.OrderOfEvents.Add(crit
+                        ? (preview.AttackerWeapon.MaxAttackRange > 1 ? CombatDirector.CombatTimeline.AttackerRangedCrit : CombatDirector.CombatTimeline.AttackerMeleeCrit)
+                        : (preview.AttackerWeapon.MaxAttackRange > 1 ? CombatDirector.CombatTimeline.AttackerRangedNormal : CombatDirector.CombatTimeline.AttackerMeleeNormal));
                     if (hit) {
                         int damage = crit ? preview.AttackerCritDamagePerHit : preview.AttackerNonCritDamagePerHit;
                         defenderHP -= damage;
@@ -186,14 +166,14 @@ namespace StrategyGame.Combat {
                         outcome.AttackHitCrits[currAttackIndex] = crit;
                         outcome.AttackDamageInstances[currAttackIndex] = damage;
                         outcome.DamageDealt += damage;
-                        
+
                         // Set countersLeft to 0 if attacker weapon is strong against defender weapon
                         if (HasWeaponAdvantage(preview.AttackerWeapon.WeaponType, preview.DefenderWeapon.WeaponType)) {
                             outcome.AttackBreakHits[currAttackIndex] = true;
-                            if (!preview.DefenderBrokenToBeginWith) outcome.DefenderBrokenThisSimulation = true;
+                            if (!preview.DefenderBrokenToBeginWith)
+                                outcome.DefenderBrokenThisSimulation = true;
                             countersLeft = 0;
                         }
-                        
                         if (defenderHP <= 0) {
                             outcome.OrderOfEvents.Add(CombatDirector.CombatTimeline.DefenderDies);
                             outcome.DefenderDied = true;
@@ -203,17 +183,15 @@ namespace StrategyGame.Combat {
                     }
                     currAttackIndex++;
                 }
-                
                 /* Defender does their thing */
                 if (countersLeft > 0 && attackerHP > 0 && defenderHP > 0) {
                     countersLeft--;
                     outcome.NumCounters++;
-                    bool crit = _rng.Chance(preview.DefenderCritChance);
                     bool hit = _rng.Chance(preview.DefenderHitChance);
-                    outcome.OrderOfEvents.Add(
-                        crit ? (preview.DefenderWeapon.MaxAttackRange > 1 ? CombatDirector.CombatTimeline.DefenderRangedCrit : CombatDirector.CombatTimeline.DefenderMeleeCrit)
-                            : (preview.DefenderWeapon.MaxAttackRange > 1 ? CombatDirector.CombatTimeline.DefenderRangedNormal : CombatDirector.CombatTimeline.DefenderMeleeNormal)
-                    );
+                    bool crit = hit && _rng.Chance(preview.DefenderCritChance);
+                    outcome.OrderOfEvents.Add(crit
+                        ? (preview.DefenderWeapon.MaxAttackRange > 1 ? CombatDirector.CombatTimeline.DefenderRangedCrit : CombatDirector.CombatTimeline.DefenderMeleeCrit)
+                        : (preview.DefenderWeapon.MaxAttackRange > 1 ? CombatDirector.CombatTimeline.DefenderRangedNormal : CombatDirector.CombatTimeline.DefenderMeleeNormal));
                     if (hit) {
                         int damage = crit ? preview.DefenderCritDamagePerHit : preview.DefenderNonCritDamagePerHit;
                         attackerHP -= damage;
@@ -221,14 +199,14 @@ namespace StrategyGame.Combat {
                         outcome.DefendCounterCrits[currCounterIndex] = crit;
                         outcome.CounterDamageInstances[currCounterIndex] = damage;
                         outcome.CounterDamageDealt += damage;
-                        
+
                         // Set attacksLeft to 0 if defender weapon is strong against attacker weapon
                         if (HasWeaponAdvantage(preview.DefenderWeapon.WeaponType, preview.AttackerWeapon.WeaponType)) {
                             outcome.CounterBreakHits[currCounterIndex] = true;
-                            if (!preview.AttackerBrokenToBeginWith) outcome.AttackerBrokenThisSimulation = true;
+                            if (!preview.AttackerBrokenToBeginWith)
+                                outcome.AttackerBrokenThisSimulation = true;
                             attacksLeft = 0;
                         }
-                        
                         if (attackerHP <= 0) {
                             outcome.OrderOfEvents.Add(CombatDirector.CombatTimeline.AttackerDies);
                             outcome.AttackerDied = true;
@@ -238,12 +216,9 @@ namespace StrategyGame.Combat {
                     }
                     currCounterIndex++;
                 }
-                
             }
             return outcome;
         }
-
-
         public static CombatPreview SimulateAttackPreview(CombatStats attacker, CombatStats defender, AbilityData ability, bool attackerInDefenderRange) {
             // Compute effective stats
             int atkAcc = GetEffectiveStat(attacker.Accuracy, GetCombinedModifier(ModifierStat.Accuracy, ability, attacker.Weapon));
@@ -253,8 +228,8 @@ namespace StrategyGame.Combat {
             int atkDef = GetEffectiveStat(attacker.Defense, GetCombinedModifier(ModifierStat.Defense, ability, attacker.Weapon));
             int atkRes = GetEffectiveStat(attacker.Resistance, GetCombinedModifier(ModifierStat.Resistance, ability, attacker.Weapon));
             float atkCrit = GetEffectiveStat(_baseCritChance, GetCombinedModifier(ModifierStat.CritRate, ability, attacker.Weapon));
-            DamageType atkDamageType = ability && ability.OverrideDamageType ? ability.DamageTypeOverride : attacker.Weapon != null ? attacker.Weapon.DamageType : DamageType.Physical;
-
+            DamageType atkDamageType = ability && ability.OverrideDamageType ? ability.DamageTypeOverride :
+                attacker.Weapon != null ? attacker.Weapon.DamageType : DamageType.Physical;
             int defAcc = GetEffectiveStat(defender.Accuracy, GetModifierOfWeapon(defender.Weapon, ModifierStat.Accuracy) ?? new StatModifier());
             int defAgi = GetEffectiveStat(defender.Agility, GetModifierOfWeapon(defender.Weapon, ModifierStat.Agility) ?? new StatModifier());
             int defAtk = GetEffectiveStat(defender.Attack + defender.Weapon.BaseAttack, GetModifierOfWeapon(defender.Weapon, ModifierStat.Attack) ?? new StatModifier());
@@ -273,10 +248,11 @@ namespace StrategyGame.Combat {
             // Hits & counters
             float speedRatio = (float)atkAgi / Mathf.Max(defAgi, 1);
             GetAttackAndCounterCount(speedRatio, out int attackerHits, out int defenderCounters);
-            if (!attackerInDefenderRange || defender.IsBrokenToBeginWith) defenderCounters = 0;
+            if (!attackerInDefenderRange || defender.IsBrokenToBeginWith)
+                defenderCounters = 0;
             int maxAttackerHits = attackerHits;
             int maxDefenderCounters = defenderCounters;
-            
+
             // Damage per hit
             int defenderEffectiveDefense = atkDamageType == DamageType.Physical ? defDef : defRes;
             int attackerEffectiveDefense = defDamageType == DamageType.Physical ? atkDef : atkRes;
@@ -289,22 +265,17 @@ namespace StrategyGame.Combat {
             float chanceToKillDefender = 0f;
             float chanceToKillAttacker = 0f;
             bool defenderAlwaysDiesBeforeCounter = Mathf.Approximately(attackerHitChance, 1) && attackerNonCritDamage >= defender.HP;
-
-            if (defender.IsBrokenToBeginWith) maxDefenderCounters = 0;
-            
+            if (defender.IsBrokenToBeginWith)
+                maxDefenderCounters = 0;
             bool defenderBroken = defender.IsBrokenToBeginWith;
             bool attackerBroken = attacker.IsBrokenToBeginWith;
-            
-            SimulateCombatBranches(attackerHits, defenderCounters, attacker.HP, defender.HP, attackerBroken, defenderBroken, attacker.Weapon.WeaponType, defender.Weapon.WeaponType,
-                attackerNonCritDamage, attackerCritDamage, attackerHitChance, attackerCritChance,
-                defenderNonCritDamage, defenderCritDamage, defenderHitChance, defenderCritChance,
-                1f, ref chanceToKillDefender, ref chanceToKillAttacker);
-            
+            SimulateCombatBranches(attackerHits, defenderCounters, attacker.HP, defender.HP, attackerBroken, defenderBroken, attackerTurn: true, attacker.Weapon.WeaponType, defender.Weapon.WeaponType, attackerNonCritDamage,
+                attackerCritDamage, attackerHitChance, attackerCritChance, defenderNonCritDamage, defenderCritDamage, defenderHitChance, defenderCritChance, 1f, ref chanceToKillDefender, ref chanceToKillAttacker);
             if (defenderAlwaysDiesBeforeCounter) {
                 defenderCounters = 0;
                 chanceToKillAttacker = 0f;
             }
-            
+
             // Since preview shows what happens if all attacks land as non crit, if attacks land, and attacker is super effective against defender, disable defender counter.
             if (HasWeaponAdvantage(attacker.Weapon.WeaponType, defender.Weapon.WeaponType)) {
                 defenderCounters = 0;
@@ -312,7 +283,6 @@ namespace StrategyGame.Combat {
             if (!defenderAlwaysDiesBeforeCounter && HasWeaponAdvantage(defender.Weapon.WeaponType, attacker.Weapon.WeaponType)) {
                 attackerHits = 1;
             }
-            
             return new CombatPreview {
                 AttackerSkillID = ability.SkillID,
                 AttackerID = attacker.EntityID,
@@ -329,8 +299,7 @@ namespace StrategyGame.Combat {
                 AttackerNonCritDamagePerHit = attackerNonCritDamage,
                 AttackerCritDamagePerHit = attackerCritDamage,
                 AttackerChanceToKillDefender = chanceToKillDefender,
-                AttackerBrokenToBeginWith =  attackerBroken,
-
+                AttackerBrokenToBeginWith = attackerBroken,
                 DefenderID = defender.EntityID,
                 DefenderCurrentHP = defender.HP,
                 DefenderMaxHP = defender.MaxHP,
@@ -348,9 +317,6 @@ namespace StrategyGame.Combat {
                 DefenderBrokenToBeginWith = defenderBroken,
             };
         }
-
-
-
         private static StatModifier GetCombinedModifier(ModifierStat stat, AbilityData ability, WeaponData weapon) {
             float flat = 0;
             float percent = 1f;
@@ -368,35 +334,18 @@ namespace StrategyGame.Combat {
             }
             return new StatModifier { Flat = flat, Percent = percent };
         }
-
         private static StatModifier GetModifierOfWeapon(WeaponData weaponData, ModifierStat stat) {
-            if (weaponData?.StatModifiers == null) return null;
+            if (weaponData?.StatModifiers == null)
+                return null;
             return weaponData.StatModifiers.FirstOrDefault(m => m.ModifierStat == stat);
         }
+        private static void SimulateCombatBranches(int atkHitsLeft, int defHitsLeft, int attackerHP, int defenderHP, bool attackerBroken, bool defenderBroken, bool attackerTurn, WeaponType attackerWeaponType,
+            WeaponType defenderWeaponType, int atkNormal, int atkCrit, float atkHitChance, float atkCritChance, int defNormal, int defCrit, float defHitChance, float defCritChance, float probability, ref float attackerKills,
+            ref float defenderKills) {
+            if (probability <= 0.000001f)
+                return;
 
-        private static void SimulateCombatBranches(
-            int atkHitsLeft,
-            int defHitsLeft,
-            int attackerHP,
-            int defenderHP,
-            bool attackerBroken,
-            bool defenderBroken,
-            WeaponType attackerWeaponType,
-            WeaponType defenderWeaponType,
-            int atkNormal,
-            int atkCrit,
-            float atkHitChance,
-            float atkCritChance,
-            int defNormal,
-            int defCrit,
-            float defHitChance,
-            float defCritChance,
-            float probability,
-            ref float attackerKills,
-            ref float defenderKills
-        ) {
-            if (probability <= 0.000001f) return;
-            // Stop if someone already dead
+            // Base case: someone died
             if (attackerHP <= 0) {
                 defenderKills += probability;
                 return;
@@ -405,79 +354,51 @@ namespace StrategyGame.Combat {
                 attackerKills += probability;
                 return;
             }
-            
-            // Attacker phase first
-            if (atkHitsLeft > 0 && !attackerBroken) {
-                // Miss
-                SimulateCombatBranches(
-                    atkHitsLeft - 1, defHitsLeft,
-                    attackerHP, defenderHP, false, defenderBroken, attackerWeaponType, defenderWeaponType,
-                    atkNormal, atkCrit, atkHitChance, atkCritChance,
-                    defNormal, defCrit, defHitChance, defCritChance,
-                    probability * (1 - atkHitChance),
-                    ref attackerKills, ref defenderKills);
+            if (attackerTurn) {
+                if (atkHitsLeft <= 0 || attackerBroken) {
+                    // Only switch to defender if they have hits left and are not broken
+                    if (defHitsLeft > 0 && !defenderBroken) {
+                        SimulateCombatBranches(atkHitsLeft, defHitsLeft, attackerHP, defenderHP, attackerBroken, defenderBroken, false, attackerWeaponType, defenderWeaponType, atkNormal, atkCrit, atkHitChance, atkCritChance,
+                            defNormal, defCrit, defHitChance, defCritChance, probability, ref attackerKills, ref defenderKills);
+                    }
+                    return; // Otherwise stop recursion
+                }
+                bool newDefBroken = defenderBroken || HasWeaponAdvantage(attackerWeaponType, defenderWeaponType);
 
-                
-                bool newDefenderBroken = defenderBroken || HasWeaponAdvantage(attackerWeaponType, defenderWeaponType);
+                // Miss
+                SimulateCombatBranches(atkHitsLeft - 1, defHitsLeft, attackerHP, defenderHP, attackerBroken, defenderBroken, false, attackerWeaponType, defenderWeaponType, atkNormal, atkCrit, atkHitChance, atkCritChance, defNormal,
+                    defCrit, defHitChance, defCritChance, probability * (1 - atkHitChance), ref attackerKills, ref defenderKills);
 
                 // Normal hit
-                SimulateCombatBranches(
-                    atkHitsLeft - 1, defHitsLeft,
-                    attackerHP, defenderHP - atkNormal, false, newDefenderBroken, attackerWeaponType, defenderWeaponType,
-                    atkNormal, atkCrit, atkHitChance, atkCritChance,
-                    defNormal, defCrit, defHitChance, defCritChance,
-                    probability * atkHitChance * (1 - atkCritChance),
-                    ref attackerKills, ref defenderKills);
+                SimulateCombatBranches(atkHitsLeft - 1, defHitsLeft, attackerHP, defenderHP - atkNormal, attackerBroken, newDefBroken, false, attackerWeaponType, defenderWeaponType, atkNormal, atkCrit, atkHitChance, atkCritChance,
+                    defNormal, defCrit, defHitChance, defCritChance, probability * atkHitChance * (1 - atkCritChance), ref attackerKills, ref defenderKills);
 
                 // Crit
-                SimulateCombatBranches(
-                    atkHitsLeft - 1, defHitsLeft,
-                    attackerHP, defenderHP - atkCrit, false, newDefenderBroken, attackerWeaponType, defenderWeaponType,
-                    atkNormal, atkCrit, atkHitChance, atkCritChance,
-                    defNormal, defCrit, defHitChance, defCritChance,
-                    probability * atkHitChance * atkCritChance,
-                    ref attackerKills, ref defenderKills);
-
-                return;
-            }
-
-            // Defender counter phase
-            if (defHitsLeft > 0 && !defenderBroken) {
-                if (HasWeaponAdvantage(defenderWeaponType, attackerWeaponType)) {
-                    attackerBroken = true;
+                SimulateCombatBranches(atkHitsLeft - 1, defHitsLeft, attackerHP, defenderHP - atkCrit, attackerBroken, newDefBroken, false, attackerWeaponType, defenderWeaponType, atkNormal, atkCrit, atkHitChance, atkCritChance,
+                    defNormal, defCrit, defHitChance, defCritChance, probability * atkHitChance * atkCritChance, ref attackerKills, ref defenderKills);
+            } else {
+                if (defHitsLeft <= 0 || defenderBroken) {
+                    if (atkHitsLeft > 0 && !attackerBroken) {
+                        SimulateCombatBranches(atkHitsLeft, defHitsLeft, attackerHP, defenderHP, attackerBroken, defenderBroken, true, attackerWeaponType, defenderWeaponType, atkNormal, atkCrit, atkHitChance, atkCritChance,
+                            defNormal, defCrit, defHitChance, defCritChance, probability, ref attackerKills, ref defenderKills);
+                    }
+                    return;
                 }
-                // Miss
-                SimulateCombatBranches(
-                    atkHitsLeft, defHitsLeft - 1,
-                    attackerHP, defenderHP, attackerBroken, false, attackerWeaponType, defenderWeaponType,
-                    atkNormal, atkCrit, atkHitChance, atkCritChance,
-                    defNormal, defCrit, defHitChance, defCritChance,
-                    probability * (1 - defHitChance),
-                    ref attackerKills, ref defenderKills);
+                bool newAtkBroken = attackerBroken || HasWeaponAdvantage(defenderWeaponType, attackerWeaponType);
 
-                bool newAttackerBroken = attackerBroken || HasWeaponAdvantage(defenderWeaponType, attackerWeaponType);
-                
-                // Normal
-                SimulateCombatBranches(
-                    atkHitsLeft, defHitsLeft - 1,
-                    attackerHP - defNormal, defenderHP,  newAttackerBroken, false, attackerWeaponType, defenderWeaponType,
-                    atkNormal, atkCrit, atkHitChance, atkCritChance,
-                    defNormal, defCrit, defHitChance, defCritChance,
-                    probability * defHitChance * (1 - defCritChance),
-                    ref attackerKills, ref defenderKills);
+                // Miss
+                SimulateCombatBranches(atkHitsLeft, defHitsLeft - 1, attackerHP, defenderHP, attackerBroken, defenderBroken, true, attackerWeaponType, defenderWeaponType, atkNormal, atkCrit, atkHitChance, atkCritChance, defNormal,
+                    defCrit, defHitChance, defCritChance, probability * (1 - defHitChance), ref attackerKills, ref defenderKills);
+
+                // Normal hit
+                SimulateCombatBranches(atkHitsLeft, defHitsLeft - 1, attackerHP - defNormal, defenderHP, newAtkBroken, defenderBroken, true, attackerWeaponType, defenderWeaponType, atkNormal, atkCrit, atkHitChance, atkCritChance,
+                    defNormal, defCrit, defHitChance, defCritChance, probability * defHitChance * (1 - defCritChance), ref attackerKills, ref defenderKills);
 
                 // Crit
-                SimulateCombatBranches(
-                    atkHitsLeft, defHitsLeft - 1,
-                    attackerHP - defCrit, defenderHP,  newAttackerBroken, false, attackerWeaponType, defenderWeaponType,
-                    atkNormal, atkCrit, atkHitChance, atkCritChance,
-                    defNormal, defCrit, defHitChance, defCritChance,
-                    probability * defHitChance * defCritChance,
-                    ref attackerKills, ref defenderKills);
+                SimulateCombatBranches(atkHitsLeft, defHitsLeft - 1, attackerHP - defCrit, defenderHP, newAtkBroken, defenderBroken, true, attackerWeaponType, defenderWeaponType, atkNormal, atkCrit, atkHitChance, atkCritChance,
+                    defNormal, defCrit, defHitChance, defCritChance, probability * defHitChance * defCritChance, ref attackerKills, ref defenderKills);
             }
         }
-
-
 
         private static int GetEffectiveStat(int baseStat, StatModifier modifier) => Mathf.RoundToInt(baseStat * modifier.Percent + modifier.Flat);
 
@@ -485,19 +406,16 @@ namespace StrategyGame.Combat {
 
         private static float GetHitChance(int attackerAccuracy, int attackerAgility, int defenderEvasion, int defenderAgility) =>
             Mathf.Clamp01(_baseHitChance + ((((4f * attackerAccuracy + attackerAgility) / 2f) - ((4 * defenderEvasion + defenderAgility) / 2f)) / 100f));
-
         private static float GetCritChance(int attackerAccuracy, int attackerAgility, int defenderEvasion, int defenderAgility, float attackerBaseCrit) {
             float atkTerm = Mathf.Max(1f, 4f * attackerAccuracy + 2f * attackerAgility + 1f);
             float defTerm = Mathf.Max(1f, 4f * defenderEvasion + 2f * defenderAgility + 1f);
             float crit = attackerBaseCrit + (Mathf.Log(atkTerm) - Mathf.Log(defTerm)) / 11f;
             return Mathf.Clamp(crit, 0f, 1f);
         }
-
         private static int GetDamage(int attack, int defense, bool crit, float critMultiplier = 1.5f, float critDefenseMultiplier = 0.5f) {
             float damage = crit ? attack * critMultiplier - defense * critDefenseMultiplier : attack - defense;
             return Mathf.Max(1, Mathf.RoundToInt(damage));
         }
-
         private static void GetAttackAndCounterCount(float speedRatio, out int attackerHits, out int defenderCounters) {
             switch (speedRatio) {
                 case <= 0.5f:
@@ -518,11 +436,5 @@ namespace StrategyGame.Combat {
                     break;
             }
         }
-
-
-
-
     }
-
-
 }
