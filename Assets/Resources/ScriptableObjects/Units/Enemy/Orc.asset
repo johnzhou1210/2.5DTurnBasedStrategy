@@ -27,3 +27,4 @@ MonoBehaviour:
   animatorController: {fileID: 9100000, guid: 2fe20221ae6654b07b8e4e3ef4f61f02, type: 2}
   basicAttack: {fileID: 11400000, guid: b837f816b60a84c7fbb39ca05cd6251b, type: 2}
   abilities: []
+  vocalPitchModifier: 0.6

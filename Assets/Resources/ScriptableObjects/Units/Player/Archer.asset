@@ -28,3 +28,4 @@ MonoBehaviour:
   basicAttack: {fileID: 11400000, guid: d5e5ab5ee906c41af88e5f802ba8b73e, type: 2}
   abilities:
   - {fileID: 11400000, guid: f8b8485d54c874c8db93b17e8900bd47, type: 2}
+  vocalPitchModifier: 1.05

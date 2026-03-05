@@ -21,6 +21,7 @@ namespace StrategyGame.Grid.GridData {
         [SerializeField] private RuntimeAnimatorController animatorController;
         [SerializeField] private AbilityData basicAttack;
         [SerializeField] private List<AbilityData> abilities;
+        [SerializeField] private float vocalPitchModifier = 1f;
         
 
         public GameObject VisualPrefab { get => visualPrefab; }
@@ -42,5 +43,6 @@ namespace StrategyGame.Grid.GridData {
         public RuntimeAnimatorController AnimatorController { get => animatorController; }
         public AbilityData BasicAttack { get => basicAttack; }
         public List<AbilityData> Abilities { get => abilities; }
+        public float VocalPitchModifier { get => vocalPitchModifier; }
     }
 }

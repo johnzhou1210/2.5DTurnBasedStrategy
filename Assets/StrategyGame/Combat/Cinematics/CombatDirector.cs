@@ -374,7 +374,7 @@ namespace StrategyGame.Combat.Cinematics {
             cameraShakerSource.GenerateImpulse();
             targetPuppet.SpawnDamageNumber(impactDamage, crit, isBreak);
             if (victimHPAfterImpact <= 0) {
-                AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Combat/DeathScream"));
+                AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Combat/DeathScream"), pitch: victimEntity.GridEntityData.VocalPitchModifier);
                 targetAnimator.SetTrigger(Death);
             }
         }
