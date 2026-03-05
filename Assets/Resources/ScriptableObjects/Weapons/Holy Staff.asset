@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Holy Staff
   m_EditorClassIdentifier: Assembly-CSharp::StrategyGame.Combat.Weapons.WeaponData
   weaponType: 4
-  baseAttack: 5
+  baseAttack: 4
   maxAttackRange: 2
   minAttackRange: 1
   damageType: 1

@@ -237,6 +237,7 @@ namespace StrategyGame.Combat.Cinematics {
 
         private void EnterCinematicMode() {
             UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.BattleOutcomePreview);
+            UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.EntityHUD);
         }
 
         private void SpawnPuppets() {

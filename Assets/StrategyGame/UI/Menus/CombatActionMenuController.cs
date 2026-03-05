@@ -225,9 +225,16 @@ namespace StrategyGame.UI.Menus {
                     }
                     break;
                 case ActionMenuPage.Skills:
-                    // Go to target selection phase
                     GameObject selectedSkillItem = skillOrItemMenuItems.transform.GetChild(_skillMenuCurrentSelectedIndex).gameObject;
-                    int currAbilityID = selectedSkillItem.GetComponent<SkillOrItemEntryRenderer>().RelevantID;
+                    SkillOrItemEntryRenderer skillOrItemEntry = selectedSkillItem.GetComponent<SkillOrItemEntryRenderer>();
+                    int currAbilityID = skillOrItemEntry.RelevantID;
+                    // If skill not ready, do nothing.
+                    if (!currentSelectedEntity.AbilityMap.TryGetValue(currAbilityID, out int value)) throw new Exception("CombatActionMenuController.ConfirmAction: Ability not found in current selected entity's ability map!");
+                    if (value != 0) {
+                        // Provide some feedback to show it can't be selected
+                        break;
+                    }
+                    // Go to target selection phase
                     currState.Combat.CurrentSelectedSkillID = currAbilityID;
                     ClearCurrContainerEntries(GetCurrItemsContainerTransform());
                     SetVisible(false, ActionMenuPage.Skills);

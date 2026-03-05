@@ -154,8 +154,8 @@ namespace StrategyGame.Combat {
                 if (attacksLeft > 0 && defenderHP > 0) {
                     attacksLeft--;
                     outcome.NumAttacks++;
+                    bool crit = _rng.Chance(preview.AttackerCritChance);
                     bool hit = _rng.Chance(preview.AttackerHitChance);
-                    bool crit = hit && _rng.Chance(preview.AttackerCritChance);
                     outcome.OrderOfEvents.Add(crit
                         ? (preview.AttackerWeapon.MaxAttackRange > 1 ? CombatDirector.CombatTimeline.AttackerRangedCrit : CombatDirector.CombatTimeline.AttackerMeleeCrit)
                         : (preview.AttackerWeapon.MaxAttackRange > 1 ? CombatDirector.CombatTimeline.AttackerRangedNormal : CombatDirector.CombatTimeline.AttackerMeleeNormal));
@@ -187,8 +187,8 @@ namespace StrategyGame.Combat {
                 if (countersLeft > 0 && attackerHP > 0 && defenderHP > 0) {
                     countersLeft--;
                     outcome.NumCounters++;
+                    bool crit = _rng.Chance(preview.DefenderCritChance);
                     bool hit = _rng.Chance(preview.DefenderHitChance);
-                    bool crit = hit && _rng.Chance(preview.DefenderCritChance);
                     outcome.OrderOfEvents.Add(crit
                         ? (preview.DefenderWeapon.MaxAttackRange > 1 ? CombatDirector.CombatTimeline.DefenderRangedCrit : CombatDirector.CombatTimeline.DefenderMeleeCrit)
                         : (preview.DefenderWeapon.MaxAttackRange > 1 ? CombatDirector.CombatTimeline.DefenderRangedNormal : CombatDirector.CombatTimeline.DefenderMeleeNormal));

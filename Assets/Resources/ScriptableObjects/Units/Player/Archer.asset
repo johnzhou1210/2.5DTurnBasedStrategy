@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Archer
   m_EditorClassIdentifier: 
   visualPrefab: {fileID: 374549065707966590, guid: 3b6ff466c8d5c4a47a81bd5f3851aae2, type: 3}
-  baseHealth: 15
+  baseHealth: 20
   factionData: {fileID: 11400000, guid: f5e87dfeb9e124d96ad5b12a049afd7e, type: 2}
   movementRange: 4
   visionRange: 5

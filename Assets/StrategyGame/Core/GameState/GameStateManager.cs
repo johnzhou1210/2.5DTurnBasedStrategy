@@ -366,7 +366,10 @@ namespace StrategyGame.Core.GameState {
                 case GameStateEnums.PlayerPhaseState.UnitActionMenu:
                     ManualPath.Clear();
                     InputDelegates.InvokeOnSetGridCursorVisibility(true);
+                    
                     UIDelegates.InvokeOnSetCombatActionMenuVisibility(true, CurrentState.Combat.CurrentSelectedSkillID != -1 || CurrentState.Combat.CurrentSelectedItemID != -1 ? ActionMenuPage.Current : ActionMenuPage.Main);
+                    CurrentState.Combat.CurrentSelectedSkillID = -1;
+                    CurrentState.Combat.CurrentSelectedItemID = -1;
                     Debug.Log($"GameStateManager.SetCurrentPlayerPhaseState: SelectedEntityID is {CurrentState.Combat.SelectedEntityID}");
                     SetInspectedTile(CurrentState.Combat.InspectedTilePosition); // Force update to show walkable tiles
                     InputDelegates.InvokeOnReinstateGridCursorPosition(EntityDelegates.GetGridEntityByID(CurrentState.Combat.SelectedEntityID).GridPosition);
@@ -569,6 +572,7 @@ namespace StrategyGame.Core.GameState {
 
                 // Remove allies to get all truly walkable tiles
                 hashSetToPickFrom = hashSetToPickFrom.Where(t => t.Occupant == null).ToHashSet();
+                hashSetToPickFrom.Add(GridDelegates.GetTileFromPosition(currentEntity.GridPosition));
                 Debug.Log($"GameStateManager.RunEnemyPhaseCoroutine: hashSetToPickFrom's size after filter: {hashSetToPickFrom.Count}");
                 if (hashSetToPickFrom.Count > 0) {
                     Tile chosenRandomTile = hashSetToPickFrom.ElementAt(Random.Range(0, hashSetToPickFrom.Count));
@@ -627,12 +631,22 @@ namespace StrategyGame.Core.GameState {
             AdvancePhase();
         }
         private void ApplyAttackOutcome(CombatOutcome outcome) {
+            GridEntity attackerEntity = EntityDelegates.GetGridEntityByID(outcome.AttackerID);
+            GridEntity defenderEntity = EntityDelegates.GetGridEntityByID(outcome.DefenderID);
+            
+            // Max out skill cooldown if skill
+            if (CurrentState.Combat.CurrentSelectedSkillID != -1) {
+                if (!attackerEntity.AbilityMap.ContainsKey(CurrentState.Combat.CurrentSelectedSkillID)) throw new Exception("GameStateManager.ApplyAttackOutcome: Current ability doesn't exist in attacker's ability map!");
+                attackerEntity.AbilityMap[CurrentState.Combat.CurrentSelectedSkillID] = DataDelegates.GetAbilityDataByID(CurrentState.Combat.CurrentSelectedSkillID).MaxCooldown + 1;
+            }
+            
+            // Deplete supply by 1 if item
+            
             // Reset selected item/ability states
             CurrentState.Combat.CurrentSelectedSkillID = -1;
             CurrentState.Combat.CurrentSelectedItemID = -1;
             
-            GridEntity attackerEntity = EntityDelegates.GetGridEntityByID(outcome.AttackerID);
-            GridEntity defenderEntity = EntityDelegates.GetGridEntityByID(outcome.DefenderID);
+            
             defenderEntity.TakeDamage(outcome.DamageDealt);
             attackerEntity.TakeDamage(outcome.CounterDamageDealt);
             if (!attackerEntity.IsBroken) attackerEntity.IsBroken = outcome.AttackerBrokenThisSimulation;

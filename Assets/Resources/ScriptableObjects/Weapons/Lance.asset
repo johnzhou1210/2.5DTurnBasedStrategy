@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Lance
   m_EditorClassIdentifier: Assembly-CSharp::StrategyGame.Combat.Weapons.WeaponData
   weaponType: 1
-  baseAttack: 10
+  baseAttack: 8
   maxAttackRange: 1
   minAttackRange: 1
   damageType: 0

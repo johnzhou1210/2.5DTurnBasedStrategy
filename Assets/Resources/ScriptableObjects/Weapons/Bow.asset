@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Bow
   m_EditorClassIdentifier: Assembly-CSharp::StrategyGame.Combat.Weapons.WeaponData
   weaponType: 3
-  baseAttack: 3
+  baseAttack: 2
   maxAttackRange: 3
   minAttackRange: 2
   damageType: 0

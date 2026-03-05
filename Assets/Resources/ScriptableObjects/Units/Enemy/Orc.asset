@@ -17,7 +17,7 @@ MonoBehaviour:
   factionData: {fileID: 11400000, guid: a0b59abac260b427e80dffda475e6fd6, type: 2}
   movementRange: 3
   visionRange: 5
-  baseAttack: 9
+  baseAttack: 8
   baseAccuracy: 3
   baseDefense: 6
   baseResistance: 5
@@ -26,3 +26,4 @@ MonoBehaviour:
   weapon: {fileID: 11400000, guid: 2d42e0f132150cfc18161426673fe5af, type: 2}
   animatorController: {fileID: 9100000, guid: 2fe20221ae6654b07b8e4e3ef4f61f02, type: 2}
   basicAttack: {fileID: 11400000, guid: b837f816b60a84c7fbb39ca05cd6251b, type: 2}
+  abilities: []
