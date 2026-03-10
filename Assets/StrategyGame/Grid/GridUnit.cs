@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using StrategyGame.Combat.Targeting;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Grid.GridData;
 using UnityEngine;
@@ -21,12 +22,13 @@ namespace StrategyGame.Grid {
             GridUnitData = gridUnitData;
         }
        
-        public override HashSet<Tile> GetAttackableTilesAtPosition(Vector2Int position, bool includeSelf = true) {
-            HashSet<Tile> tilesWithinRange = GridDelegates.GetTilesInRadius(position, GridUnitData.Weapon.MinAttackRange, GridUnitData.Weapon.MaxAttackRange).ToHashSet();
-            // Also include their own tile
-            if (includeSelf) tilesWithinRange.Add(GridDelegates.GetTileFromPosition(GridPosition));
-            return tilesWithinRange;
-        }
+        // public override HashSet<Tile> GetAttackableTilesAtPosition(Vector2Int position, AttackRange attackRange, bool includeSelf = true) {
+        //     // GridDelegates.GetTilesInRadius(position, GridUnitData.Weapon.MinAttackRange, GridUnitData.Weapon.MaxAttackRange).ToHashSet();
+        //     HashSet<Tile> tilesWithinRange = attackRange.GetTiles(position); 
+        //     // Also include their own tile
+        //     if (includeSelf) tilesWithinRange.Add(GridDelegates.GetTileFromPosition(GridPosition));
+        //     return tilesWithinRange;
+        // }
 
         // public override HashSet<Tile> GetTilesWithinAttackRange() {
         //     // Debug.Log("GridUnit.GetTilesWithinAttackRange: Calling override version");
@@ -38,16 +40,16 @@ namespace StrategyGame.Grid {
         //     return dangerTiles;
         // }
         
-        public override HashSet<GridEntity> GetAttackableEntitiesAtPosition(Vector2Int position) {
-            HashSet<Tile> attackableTiles = GetAttackableTilesAtPosition(position);
-            HashSet<GridEntity> attackableEntities =  new HashSet<GridEntity>();
-            foreach (Tile tile in attackableTiles) {
-                if (tile.IsOccupied && !IsFriendlyWith(tile.Occupant)) {
-                    attackableEntities.Add(tile.Occupant);
-                }
-            }
-            return attackableEntities;
-        }
+        // public HashSet<GridEntity> GetAttackableEntitiesAtPosition(Vector2Int position, AttackRange attackRange) {
+        //     HashSet<Tile> attackableTiles = GetAttackableTilesAtPosition(position, attackRange);
+        //     HashSet<GridEntity> attackableEntities =  new HashSet<GridEntity>();
+        //     foreach (Tile tile in attackableTiles) {
+        //         if (tile.IsOccupied && !IsFriendlyWith(tile.Occupant)) {
+        //             attackableEntities.Add(tile.Occupant);
+        //         }
+        //     }
+        //     return attackableEntities;
+        // }
 
 
 

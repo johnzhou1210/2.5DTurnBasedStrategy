@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using StrategyGame.AI;
+using StrategyGame.Combat;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
 using StrategyGame.Core.GameState;
@@ -102,7 +103,9 @@ namespace StrategyGame.Grid.Rendering {
                 HashSet<GridEntity> attackableEntities = new HashSet<GridEntity>();
                 GridEntity currSelectedEntity = EntityDelegates.GetGridEntityByID(currentGameState.Combat.SelectedEntityID);
                 if (currSelectedEntity != null) {
-                    attackableEntities = currSelectedEntity.GetAttackableEntitiesAtPosition(currentGameState.Combat.InspectedTilePosition);
+                    AbilityData skill = DataDelegates.GetAbilityDataByID(currentGameState.Combat.CurrentSelectedSkillID);
+                    if (skill == null) skill = currSelectedEntity.BasicAttack;
+                    attackableEntities = currSelectedEntity.GetAttackableEntitiesAtPosition(currentGameState.Combat.InspectedTilePosition, skill);
                 }
                 switch (currentGameState.Combat.TurnPhase) {
                     case GameStateEnums.TurnPhase.Player:
@@ -128,7 +131,7 @@ namespace StrategyGame.Grid.Rendering {
                                 }
                                 break;
                             case GameStateEnums.PlayerPhaseState.UnitMovingToDestination: break;
-                            case GameStateEnums.PlayerPhaseState.UnitActionMenu: MarkTilesWithinAttackRange(Faction.Player, currSelectedEntity.GetAttackableTilesAtPosition(currSelectedEntity.GridPosition)); break;
+                            case GameStateEnums.PlayerPhaseState.UnitActionMenu: MarkTilesWithinAttackRange(Faction.Player, currSelectedEntity.GetAttackableTilesAtPosition(currSelectedEntity.GridPosition, currSelectedEntity.GetLongestRangeSkillThatIsReady())); break;
                             case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
                                 Transform entityTransform = EntityVisualDelegates.GetEntityVisualTransformByID(currentGameState.Combat.SelectedEntityID);
                                 Tile inspectedTile = GridDelegates.GetTileFromPosition(currentGameState.Combat.InspectedTilePosition);
@@ -400,7 +403,7 @@ namespace StrategyGame.Grid.Rendering {
                     GridEntity inspectedEntity = EntityDelegates.GetGridEntityByID(currentState.Combat.InspectedEntityID);
                     GameStateDelegates.InvokeOnPlayerPhaseStateChanged(currentState.Combat.PlayerDirectAttackAvailable ? GameStateEnums.PlayerPhaseState.UnitSelectTarget : GameStateEnums.PlayerPhaseState.UnitActionMenu);
                     GridEntity selectedEntity = EntityDelegates.GetGridEntityByID(currentState.Combat.SelectedEntityID);
-                    MarkTilesWithinAttackRange(Faction.Player, selectedEntity.GetAttackableTilesAtPosition(selectedEntity.GridPosition));
+                    MarkTilesWithinAttackRange(Faction.Player, selectedEntity.GetAttackableTilesAtPosition(selectedEntity.GridPosition, selectedEntity.GetLongestRangeSkillThatIsReady()));
                     currentState.Combat.PlayerDirectAttackAvailable = false;
                     GridDelegates.InvokeOnRefreshDangerZoneVisibility();
                     break;
@@ -435,7 +438,9 @@ namespace StrategyGame.Grid.Rendering {
         private void HandleManualMarkTilesWithAttackableEntities() {
             GameStateData currentState = GameStateDelegates.GetCurrentGameState();
             GridEntity selectedEntity = EntityDelegates.GetGridEntityByID(currentState.Combat.SelectedEntityID);
-            MarkTilesWithAttackableEntities(selectedEntity.GetAttackableEntitiesAtPosition(selectedEntity.GridPosition));
+            AbilityData currentSkill = DataDelegates.GetAbilityDataByID(currentState.Combat.CurrentSelectedSkillID);
+            if (currentSkill == null) currentSkill = selectedEntity.BasicAttack;
+            MarkTilesWithAttackableEntities(selectedEntity.GetAttackableEntitiesAtPosition(selectedEntity.GridPosition, currentSkill));
         }
         private void AddTilesToDangerZone() {
             // add tiles to danger zone

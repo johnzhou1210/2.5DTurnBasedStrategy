@@ -157,8 +157,8 @@ namespace StrategyGame.Combat {
                     bool crit = _rng.Chance(preview.AttackerCritChance);
                     bool hit = _rng.Chance(preview.AttackerHitChance);
                     outcome.OrderOfEvents.Add(crit
-                        ? (preview.AttackerWeapon.MaxAttackRange > 1 ? CombatDirector.CombatTimeline.AttackerRangedCrit : CombatDirector.CombatTimeline.AttackerMeleeCrit)
-                        : (preview.AttackerWeapon.MaxAttackRange > 1 ? CombatDirector.CombatTimeline.AttackerRangedNormal : CombatDirector.CombatTimeline.AttackerMeleeNormal));
+                        ? (preview.AttackerWeapon.WeaponType is WeaponType.Bow or WeaponType.Staff ? CombatDirector.CombatTimeline.AttackerRangedCrit : CombatDirector.CombatTimeline.AttackerMeleeCrit)
+                        : (preview.AttackerWeapon.WeaponType is WeaponType.Bow or WeaponType.Staff ? CombatDirector.CombatTimeline.AttackerRangedNormal : CombatDirector.CombatTimeline.AttackerMeleeNormal));
                     if (hit) {
                         int damage = crit ? preview.AttackerCritDamagePerHit : preview.AttackerNonCritDamagePerHit;
                         defenderHP -= damage;
@@ -190,8 +190,8 @@ namespace StrategyGame.Combat {
                     bool crit = _rng.Chance(preview.DefenderCritChance);
                     bool hit = _rng.Chance(preview.DefenderHitChance);
                     outcome.OrderOfEvents.Add(crit
-                        ? (preview.DefenderWeapon.MaxAttackRange > 1 ? CombatDirector.CombatTimeline.DefenderRangedCrit : CombatDirector.CombatTimeline.DefenderMeleeCrit)
-                        : (preview.DefenderWeapon.MaxAttackRange > 1 ? CombatDirector.CombatTimeline.DefenderRangedNormal : CombatDirector.CombatTimeline.DefenderMeleeNormal));
+                        ? (preview.DefenderWeapon.WeaponType is WeaponType.Bow or WeaponType.Staff ? CombatDirector.CombatTimeline.DefenderRangedCrit : CombatDirector.CombatTimeline.DefenderMeleeCrit)
+                        : (preview.DefenderWeapon.WeaponType is WeaponType.Bow or WeaponType.Staff ? CombatDirector.CombatTimeline.DefenderRangedNormal : CombatDirector.CombatTimeline.DefenderMeleeNormal));
                     if (hit) {
                         int damage = crit ? preview.DefenderCritDamagePerHit : preview.DefenderNonCritDamagePerHit;
                         attackerHP -= damage;

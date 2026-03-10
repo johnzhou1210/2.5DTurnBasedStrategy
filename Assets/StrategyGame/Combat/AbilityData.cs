@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using StrategyGame.Combat.Cinematics;
+using StrategyGame.Combat.Targeting;
 using StrategyGame.Combat.Weapons;
 using UnityEngine;
 
@@ -24,5 +25,9 @@ namespace StrategyGame.Combat {
         public GameObject AuraPrefab;
         public GameObject CollisionEffect;
         public ImpactEffectType ImpactEffectType;
+        public bool CanTargetAllies = false;
+        public bool CanTargetEnemies = true;
+        public bool CanTargetSelf = false;
+        public AttackRange AttackRange;
     }
 }

@@ -225,7 +225,9 @@ namespace StrategyGame.Core.Input {
                 // Choose best newPosition
                 float lowestPenalty = float.MaxValue;
                 GridEntity actorEntity = EntityDelegates.GetGridEntityByID(currentGameState.Combat.SelectedEntityID);
-                HashSet<Tile> targetSelectionTiles = actorEntity.GetAttackableTilesAtPosition(actorEntity.GridPosition);
+                AbilityData currentSkill = DataDelegates.GetAbilityDataByID(currentGameState.Combat.CurrentSelectedSkillID);
+                if (currentSkill == null) currentSkill = actorEntity.BasicAttack;
+                HashSet<Tile> targetSelectionTiles = actorEntity.GetAttackableTilesAtPosition(actorEntity.GridPosition, currentSkill);
                 foreach (Tile tile in targetSelectionTiles) {
                     if (tile.Position == originalPosition)
                         continue;
@@ -404,19 +406,32 @@ namespace StrategyGame.Core.Input {
                     break;
                 }
                 case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
-                    // Perform action on target
-                    // Retrieve ability data from game state
                     GridEntity actingEntity = EntityDelegates.GetGridEntityByID(state.Combat.SelectedEntityID);
                     GridEntity targetEntity = GridDelegates.GetTileFromPosition(state.Combat.InspectedTilePosition).Occupant;
-                    if (targetEntity == null || targetEntity.Faction == actingEntity.Faction) { // assumes attacking opposite faction
-                        Debug.LogWarning("InputManager.HandleEntityTileSelection: targetEntity is null!");
-                        return;
+                    // Perform action on target
+                    // Retrieve ability data from game state
+                    AbilityData skillData = DataDelegates.GetAbilityDataByID(state.Combat.CurrentSelectedSkillID);
+                    if (skillData == null) skillData = actingEntity.BasicAttack;
+                   
+
+                    if (targetEntity == null) {
+                        Debug.LogWarning("InputManager.HandleEntityTileSelection: Exiting switch case early because targetEntity is null");
+                        AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/pluck_001"));
+                        break;
                     }
-                    
-                    CombatOutcome attackOutcome = CombatResolver.ResolveCombatFromPreview(state.Combat.CombatPreview);
-                    CombatCinematicsDelegates.GetDirector().InitializeCinematicData(actingEntity, targetEntity, attackOutcome);
-                    GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitAttackCutscene);
-                    AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/select_004"));
+
+                    bool targetIsAlly = actingEntity.IsFriendlyWith(targetEntity);
+
+                    if ((skillData.CanTargetAllies && targetIsAlly) || (skillData.CanTargetEnemies && !targetIsAlly) || (skillData.CanTargetSelf && actingEntity.ID == targetEntity.ID)) {
+                        
+                        CombatOutcome attackOutcome = CombatResolver.ResolveCombatFromPreview(state.Combat.CombatPreview);
+                        CombatCinematicsDelegates.GetDirector().InitializeCinematicData(actingEntity, targetEntity, attackOutcome);
+                        GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitAttackCutscene);
+                        AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/select_004"));
+                        break;
+                    }
+                    AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/pluck_001"));
+                
                     break;
                 default: throw new Exception($"InputManager.HandleSelectionInput : Unexpected player phase state for entity tile selection : {state.Combat.PlayerPhase}");
             }

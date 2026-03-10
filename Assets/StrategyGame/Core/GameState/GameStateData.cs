@@ -84,7 +84,9 @@ namespace StrategyGame.Core.GameState {
             UIAnimationDelegates.InvokeOnShowIfHidden(AnimatorCategory.BattleOutcomePreview);
 
             // Calculate combat outcome
-            HashSet<GridEntity> entitiesWithinDefenderRange = inspectedEntity.GetAttackableEntitiesAtPosition(inspectedEntity.GridPosition);
+            AbilityData currentAbility = DataDelegates.GetAbilityDataByID(CurrentSelectedSkillID);
+            if (currentAbility == null) currentAbility = selectedEntity.BasicAttack;
+            HashSet<GridEntity> entitiesWithinDefenderRange = inspectedEntity.GetAttackableEntitiesAtPosition(inspectedEntity.GridPosition, inspectedEntity.BasicAttack);
             bool attackerInDefenderRange = entitiesWithinDefenderRange.Any(e => e.ID == selectedEntity.ID);
             CombatPreview combatPreview = CombatResolver.SimulateAttackPreview(selectedEntity.GetCombatStats(), inspectedEntity.GetCombatStats(), CurrentSelectedSkillID == -1 && CurrentSelectedItemID == -1 ?
                 selectedEntity.BasicAttack :

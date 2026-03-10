@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using StrategyGame.Combat.Targeting;
 using StrategyGame.Grid.GridData;
 using UnityEngine;
 
@@ -20,15 +21,13 @@ namespace StrategyGame.Combat.Weapons {
     public class WeaponData : ScriptableObject {
         [SerializeField] private WeaponType weaponType = WeaponType.Sword;
         [SerializeField] private int baseAttack = 5;
-        [SerializeField] private int maxAttackRange = 1;
-        [SerializeField] private int minAttackRange = 1;
+        [SerializeField] private AttackRange attackRange;
         [SerializeField] private DamageType damageType = DamageType.Physical;
         [SerializeField] private List<StatModifier> statModifiers = new();
 
         public WeaponType WeaponType { get => weaponType; }
         public int BaseAttack { get => baseAttack; }
-        public int MaxAttackRange { get => maxAttackRange; }
-        public int MinAttackRange { get => minAttackRange; }
+        public AttackRange AttackRange { get => attackRange; }
         public DamageType DamageType { get => damageType; }
         public List<StatModifier> StatModifiers { get => statModifiers; }
 

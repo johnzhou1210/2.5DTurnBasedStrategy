@@ -6,6 +6,7 @@ using System.Linq;
 using StrategyGame.AI;
 using StrategyGame.Combat;
 using StrategyGame.Combat.Cinematics;
+using StrategyGame.Combat.Targeting;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.Enums;
 using StrategyGame.Factions;
@@ -378,7 +379,9 @@ namespace StrategyGame.Core.GameState {
                     ManualPath.Clear();
                     // Populate the EnemiesCycleDeque
                     GridEntity attackingEntity = EntityDelegates.GetGridEntityByID(CurrentState.Combat.SelectedEntityID);
-                    HashSet<GridEntity> attackableEntities = attackingEntity.GetAttackableEntitiesAtPosition(attackingEntity.GridPosition);
+                    AbilityData skill = DataDelegates.GetAbilityDataByID(CurrentState.Combat.CurrentSelectedSkillID);
+                    if (skill == null) skill = attackingEntity.BasicAttack;
+                    HashSet<GridEntity> attackableEntities = attackingEntity.GetAttackableEntitiesAtPosition(attackingEntity.GridPosition, skill);
                     // Sort attackableEntities by increasing distance from player
                     List<GridEntity> sortedAttackableEntities = attackableEntities.OrderBy(e => Manhattan.Distance(e.GridPosition, attackingEntity.GridPosition)).ToList();
                     // If there is one enemy with increased priority, cycle to that one first
@@ -390,7 +393,7 @@ namespace StrategyGame.Core.GameState {
                         ListUtils.Swap(sortedAttackableEntities, 0, indexOfHighestPriorityTarget);
                     }
                     CurrentState.Combat.EnemiesCycleDeque = new LinkedList<int>(sortedAttackableEntities.Select(e => e.ID));
-                    Vector2Int firstTargetPosition = EntityDelegates.GetGridEntityByID(CurrentState.Combat.EnemiesCycleDeque.First.Value).GridPosition;
+                    Vector2Int firstTargetPosition = CurrentState.Combat.EnemiesCycleDeque.Count > 0 ? EntityDelegates.GetGridEntityByID(CurrentState.Combat.EnemiesCycleDeque.First.Value).GridPosition : attackingEntity.GridPosition;
                     InputDelegates.InvokeOnReinstateGridCursorPosition(firstTargetPosition);
                     SetInspectedTile(firstTargetPosition);
                     GridDelegates.InvokeOnManualMarkTilesWithAttackableEntities();
@@ -465,7 +468,15 @@ namespace StrategyGame.Core.GameState {
             }
 
             // Also prevent the feature of immediately attacking target if min and max range are not 1
-            if (tileAtCoordinate.Occupant != null && tileAtCoordinate.Occupant.Faction != selectedEntity.Faction && (selectedEntity.Weapon.MinAttackRange != 1 || selectedEntity.Weapon.MaxAttackRange != 1)) {
+            // quickAttackEligible is true if attack range is radial and the radial range is not ranged
+            bool quickAttackEligible = selectedEntity.Weapon.AttackRange is RadialAttackRange;
+            if (selectedEntity.Weapon.AttackRange is RadialAttackRange radialAttackRange) {
+                if (radialAttackRange.MinAttackRange != 1 || radialAttackRange.MaxAttackRange != 1) {
+                    quickAttackEligible = false;
+                }
+            }
+                                                                                                      
+            if (tileAtCoordinate.Occupant != null && tileAtCoordinate.Occupant.Faction != selectedEntity.Faction && !quickAttackEligible) {
                 Debug.LogWarning("GameStateManager.AddCoordinateToManualPath: Cannot add tile to manual path because immediate attacking is not supported for ranged units!");
                 return false;
             }
@@ -590,15 +601,20 @@ namespace StrategyGame.Core.GameState {
                     yield return new WaitUntil(() => CurrentState.Combat.NextActorReady);
                     yield return new WaitForSeconds(path.Count > 0 ? 1f : 0f);
                     // Attack weakest target in range
-                    HashSet<GridEntity> targetsInRange = currentEntity.GetAttackableEntitiesAtPosition(currentEntity.GridPosition);
+                    AbilityData skill = currentEntity.BasicAttack; // todo: update when enemies can use skills
+                    HashSet<GridEntity> targetsInRange = currentEntity.GetAttackableEntitiesAtPosition(currentEntity.GridPosition, skill);
+                    // todo: Filter targets such at it meets the skill targeting.
+                    AbilityData selectedSkill = DataDelegates.GetAbilityDataByID(CurrentState.Combat.CurrentSelectedSkillID);
                     if (targetsInRange.Count > 0) {
                         GridEntity chosenTargetEntity = targetsInRange.OrderBy(e => e.Health).First();
                         // Make them face the target
                         currentEntity.VisualFace(chosenTargetEntity);
+                       
+                        if (selectedSkill == null) selectedSkill = currentEntity.BasicAttack;
                         CombatPreview combatPreview = CombatResolver.SimulateAttackPreview(currentEntity.GetCombatStats(),
                             chosenTargetEntity.GetCombatStats(),
-                            currentEntity.BasicAttack,
-                            chosenTargetEntity.GetAttackableEntitiesAtPosition(chosenTargetEntity.GridPosition).FirstOrDefault(e => e.ID == currentEntity.ID) != null);
+                            selectedSkill,
+                            chosenTargetEntity.GetAttackableEntitiesAtPosition(chosenTargetEntity.GridPosition, chosenTargetEntity.BasicAttack).FirstOrDefault(e => e.ID == currentEntity.ID) != null);
                         CurrentState.Combat.CombatPreview = combatPreview;
                         CombatOutcome attackOutcome = CombatResolver.ResolveCombatFromPreview(combatPreview);
                         CurrentState.Combat.EnemyActorFinishedCombatCinematic = false;
@@ -636,7 +652,9 @@ namespace StrategyGame.Core.GameState {
             
             // Max out skill cooldown if skill
             if (CurrentState.Combat.CurrentSelectedSkillID != -1) {
-                if (!attackerEntity.AbilityMap.ContainsKey(CurrentState.Combat.CurrentSelectedSkillID)) throw new Exception("GameStateManager.ApplyAttackOutcome: Current ability doesn't exist in attacker's ability map!");
+                Debug.Log($"{attackerEntity.DisplayName}");
+                Debug.Log($"GameStateManager.ApplyAttackOutcome: Ability Map: {String.Join(", ", attackerEntity.AbilityMap.Select(kvp => $"{kvp.Key}: {kvp.Value}"))}");
+                if (!attackerEntity.AbilityMap.ContainsKey(CurrentState.Combat.CurrentSelectedSkillID)) throw new Exception($"GameStateManager.ApplyAttackOutcome: Current ability (id={CurrentState.Combat.CurrentSelectedSkillID}) doesn't exist in attacker's ability map!");
                 attackerEntity.AbilityMap[CurrentState.Combat.CurrentSelectedSkillID] = DataDelegates.GetAbilityDataByID(CurrentState.Combat.CurrentSelectedSkillID).MaxCooldown + 1;
             }
             

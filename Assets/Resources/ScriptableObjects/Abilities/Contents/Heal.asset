@@ -24,3 +24,10 @@ MonoBehaviour:
   CooldownAtStart: 0
   MaxCooldown: 2
   Heal: 1
+  AuraPrefab: {fileID: 0}
+  CollisionEffect: {fileID: 0}
+  ImpactEffectType: 0
+  CanTargetAllies: 1
+  CanTargetEnemies: 0
+  CanTargetSelf: 0
+  AttackRange: {fileID: 11400000, guid: eac16936112a447faa9dc603635bae7e, type: 2}

@@ -204,8 +204,7 @@ namespace StrategyGame.UI.Menus {
                 case ActionMenuPage.Main:
                     switch (currSelectedIndex) {
                         case (int)ActionType.Attack:
-                            if (currentSelectedEntity.GetAttackableEntitiesAtPosition(currentSelectedEntity.GridPosition).Count == 0)
-                                break;
+                            if (currentSelectedEntity.GetAttackableEntitiesAtPosition(currentSelectedEntity.GridPosition, currentSelectedEntity.BasicAttack).Count == 0) break;
                             GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitSelectTarget);
                             SetVisible(false, ActionMenuPage.Main);
                             break;
@@ -254,7 +253,7 @@ namespace StrategyGame.UI.Menus {
             GameStateData currState = GameStateDelegates.GetCurrentGameState();
             GridEntity currentSelectedEntity = EntityDelegates.GetGridEntityByID(currState.Combat.SelectedEntityID);
             TextMeshProUGUI attackTextMesh = attackButtonTransform.GetComponentInChildren<TextMeshProUGUI>();
-            attackTextMesh.color = currentSelectedEntity.GetAttackableEntitiesAtPosition(currentSelectedEntity.GridPosition).Count == 0 ? Color.gray4 : Color.white;
+            attackTextMesh.color = currentSelectedEntity.GetAttackableEntitiesAtPosition(currentSelectedEntity.GridPosition, currentSelectedEntity.BasicAttack).Count == 0 ? Color.gray4 : Color.white;
         }
         private void UpdateSkillsActionAllowed() {
             Transform skillsButtonTransform = actionMenuItems.transform.GetChild(1);

@@ -17,3 +17,14 @@ MonoBehaviour:
   DamageTypeOverride: 0
   ProjectileVisualData: {fileID: 11400000, guid: d72ef9f0354a044c2acbd7148113f90f, type: 2}
   SkillID: -1
+  Description: 
+  CooldownAtStart: 0
+  MaxCooldown: 0
+  Heal: 0
+  AuraPrefab: {fileID: 0}
+  CollisionEffect: {fileID: 0}
+  ImpactEffectType: 0
+  CanTargetAllies: 0
+  CanTargetEnemies: 1
+  CanTargetSelf: 0
+  AttackRange: {fileID: 11400000, guid: 569d7539fa4064301b9aa18328bdf3d2, type: 2}

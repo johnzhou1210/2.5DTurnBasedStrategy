@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using StrategyGame.Combat;
+using StrategyGame.Combat.Targeting;
 using StrategyGame.Combat.Weapons;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.GameState;
@@ -179,9 +180,8 @@ namespace StrategyGame.Grid {
         }
 
 
-        public virtual HashSet<Tile> GetAttackableTilesAtPosition(Vector2Int position, bool includeSelf = true) {
-            Debug.Log($"GridEntity.GetAttackableTilesAtPosition: Calling base");
-            HashSet<Tile> tilesWithinRange = GridDelegates.GetTilesInRadius(position, Weapon.MinAttackRange, Weapon.MaxAttackRange).ToHashSet();
+        public HashSet<Tile> GetAttackableTilesAtPosition(Vector2Int position, AbilityData skill, bool includeSelf = true) {
+            HashSet<Tile> tilesWithinRange = skill.AttackRange.GetTiles(position);
             if (includeSelf) tilesWithinRange.Add(GridDelegates.GetTileFromPosition(GridPosition));
             return tilesWithinRange;
         }
@@ -191,7 +191,7 @@ namespace StrategyGame.Grid {
             HashSet<Tile> reachableTiles = GetWalkableTiles(true);
             HashSet<Tile> dangerTiles = new HashSet<Tile>();
             foreach (Tile tile in reachableTiles) {
-                dangerTiles.UnionWith(GetAttackableTilesAtPosition(tile.Position));
+                dangerTiles.UnionWith(GetAttackableTilesAtPosition(tile.Position, GetLongestRangeSkillThatIsReady()));
             }
             return dangerTiles;
         }
@@ -207,12 +207,15 @@ namespace StrategyGame.Grid {
             return attackableEntities;
         }
 
-        public virtual HashSet<GridEntity> GetAttackableEntitiesAtPosition(Vector2Int position) {
-            HashSet<Tile> attackableTiles = GetAttackableTilesAtPosition(position);
+        public virtual HashSet<GridEntity> GetAttackableEntitiesAtPosition(Vector2Int position, AbilityData skill) {
+            Debug.Log(skill);
+            HashSet<Tile> attackableTiles = GetAttackableTilesAtPosition(position, skill);
             HashSet<GridEntity> attackableEntities =  new HashSet<GridEntity>();
             foreach (Tile tile in attackableTiles) {
-                if (tile.IsOccupied && !IsFriendlyWith(tile.Occupant)) {
-                    attackableEntities.Add(tile.Occupant);
+                if (tile.IsOccupied) {
+                    if (skill.CanTargetAllies && tile.Occupant.ID != ID && IsFriendlyWith(tile.Occupant)) attackableEntities.Add(tile.Occupant);
+                    if (skill.CanTargetSelf && tile.Occupant.ID == ID) attackableEntities.Add(tile.Occupant);
+                    if (skill.CanTargetEnemies && !IsFriendlyWith(tile.Occupant)) attackableEntities.Add(tile.Occupant);
                 }
             }
             return attackableEntities;
@@ -222,7 +225,7 @@ namespace StrategyGame.Grid {
             HashSet<Tile> tilesWhereAttackingIsPossible = new HashSet<Tile>();
             HashSet<Tile> reachableTiles = GetWalkableTiles(true);
             foreach (Tile tile in reachableTiles) {
-                HashSet<Tile> attackableTilesAtCurrPosition = GetAttackableTilesAtPosition(tile.Position, false);
+                HashSet<Tile> attackableTilesAtCurrPosition = GetAttackableTilesAtPosition(tile.Position, GetLongestRangeSkillThatIsReady());
                 Debug.Log(string.Join(", ", attackableTilesAtCurrPosition));
                 Tile tileWithEnemyOccupantFound = attackableTilesAtCurrPosition.FirstOrDefault(t => t.Occupant != null && !IsFriendlyWith(t.Occupant));
                 if (tileWithEnemyOccupantFound != null) {
@@ -289,6 +292,14 @@ namespace StrategyGame.Grid {
 
         public void VisualFace(GridEntity other) {
             EntityVisualDelegates.InvokeOnVisualFace(this, other);
+        }
+        public AbilityData GetLongestRangeSkillThatIsReady() {
+            List<(int, int)> readySkills = AbilityMap
+                .Select(kvp => (kvp.Key, kvp.Value))
+                // .OrderByDescending(e => DataDelegates.GetAbilityDataByID(e.Item1).)
+                .ToList();
+            if (readySkills.Count == 0) return BasicAttack;
+            return DataDelegates.GetAbilityDataByID(readySkills[0].Item1);
         }
 
     }
