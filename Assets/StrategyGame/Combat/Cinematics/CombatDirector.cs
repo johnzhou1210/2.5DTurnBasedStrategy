@@ -124,6 +124,7 @@ namespace StrategyGame.Combat.Cinematics {
             _attackerEntity = attacker;
             _defenderEntity = defender;
             _combatOutcome = combatOutcome;
+            Debug.Log($"CombatDirector.InitializeCinematicData: Init _attackerEntity to {attacker.DisplayName} (id={attacker.ID}), _defenderEntity to  {defender.DisplayName} (id={defender.ID}), combatOutcome: {combatOutcome}");
         }
 
 
@@ -255,6 +256,7 @@ namespace StrategyGame.Combat.Cinematics {
             UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.BattleOutcomePreview);
             GridDelegates.InvokeOnInspectedTileChanged(GridDelegates.GetTileFromPosition(currState.Combat.InspectedTilePosition), GridDelegates.GetTileFromPosition(_attackerEntity.GridPosition));
             currState.Combat.InspectedTilePosition = _attackerEntity.GridPosition;
+            Debug.Log($"CombatDirector.ExitCinematicMode: Apply attack outcome: {_combatOutcome}");
             GameStateDelegates.InvokeOnApplyAttackOutcome(_combatOutcome);
             Invoke(nameof(FinalizeAction), 1f);
             if (currState.Combat.TurnPhase == GameStateEnums.TurnPhase.Player) {

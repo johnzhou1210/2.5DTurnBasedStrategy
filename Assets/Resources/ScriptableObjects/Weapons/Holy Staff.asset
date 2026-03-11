@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StrategyGame.Combat.Weapons.WeaponData
   weaponType: 4
   baseAttack: 4
-  maxAttackRange: 2
-  minAttackRange: 1
+  attackRange: {fileID: 11400000, guid: 57f21a1d3ae0d4c138398b504d262c9d, type: 2}
   damageType: 1
   statModifiers:
   - ModifierStat: 5

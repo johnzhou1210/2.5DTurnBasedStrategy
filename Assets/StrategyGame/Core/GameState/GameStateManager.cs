@@ -650,6 +650,8 @@ namespace StrategyGame.Core.GameState {
             GridEntity attackerEntity = EntityDelegates.GetGridEntityByID(outcome.AttackerID);
             GridEntity defenderEntity = EntityDelegates.GetGridEntityByID(outcome.DefenderID);
             
+            Debug.Log($"attackerEntity: {attackerEntity.DisplayName} (id={attackerEntity.ID}), defenderEntity: {defenderEntity.DisplayName} (id={defenderEntity.ID})");
+            
             // Max out skill cooldown if skill
             if (CurrentState.Combat.CurrentSelectedSkillID != -1) {
                 Debug.Log($"{attackerEntity.DisplayName}");

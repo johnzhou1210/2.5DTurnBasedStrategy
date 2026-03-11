@@ -302,5 +302,12 @@ namespace StrategyGame.Grid {
             return DataDelegates.GetAbilityDataByID(readySkills[0].Item1);
         }
 
+        public bool CanTargetWith(AbilityData ability, GridEntity target) {
+            if (ability.CanTargetAllies && IsFriendlyWith(target)) return true;
+            if (ability.CanTargetEnemies && !IsFriendlyWith(target)) return true;
+            if (ability.CanTargetSelf && target.ID == ID) return true;
+            return false;
+        }
+
     }
 }

@@ -425,6 +425,7 @@ namespace StrategyGame.Core.Input {
                     if ((skillData.CanTargetAllies && targetIsAlly) || (skillData.CanTargetEnemies && !targetIsAlly) || (skillData.CanTargetSelf && actingEntity.ID == targetEntity.ID)) {
                         
                         CombatOutcome attackOutcome = CombatResolver.ResolveCombatFromPreview(state.Combat.CombatPreview);
+                        // Debug.Log($"InputManager.HandleEntityTileSelection: {state.Combat.CombatPreview}");
                         CombatCinematicsDelegates.GetDirector().InitializeCinematicData(actingEntity, targetEntity, attackOutcome);
                         GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitAttackCutscene);
                         AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/select_004"));

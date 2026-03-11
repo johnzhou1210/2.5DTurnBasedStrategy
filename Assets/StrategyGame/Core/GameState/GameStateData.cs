@@ -75,7 +75,9 @@ namespace StrategyGame.Core.GameState {
             }
             GridEntity inspectedEntity = EntityDelegates.GetGridEntityByID(InspectedEntityID);
             GridEntity selectedEntity = EntityDelegates.GetGridEntityByID(SelectedEntityID);
-            if (selectedEntity.IsFriendlyWith(inspectedEntity)) {
+            AbilityData currentAbility = DataDelegates.GetAbilityDataByID(CurrentSelectedSkillID);
+            if (currentAbility == null) currentAbility = selectedEntity.BasicAttack;
+            if (!selectedEntity.CanTargetWith(currentAbility, inspectedEntity)) {
                 UIAnimationDelegates.InvokeOnHideIfVisible(AnimatorCategory.BattleOutcomePreview);
                 UIAnimationDelegates.InvokeOnShowIfHidden(AnimatorCategory.EntityHUD);
                 return;
@@ -84,8 +86,6 @@ namespace StrategyGame.Core.GameState {
             UIAnimationDelegates.InvokeOnShowIfHidden(AnimatorCategory.BattleOutcomePreview);
 
             // Calculate combat outcome
-            AbilityData currentAbility = DataDelegates.GetAbilityDataByID(CurrentSelectedSkillID);
-            if (currentAbility == null) currentAbility = selectedEntity.BasicAttack;
             HashSet<GridEntity> entitiesWithinDefenderRange = inspectedEntity.GetAttackableEntitiesAtPosition(inspectedEntity.GridPosition, inspectedEntity.BasicAttack);
             bool attackerInDefenderRange = entitiesWithinDefenderRange.Any(e => e.ID == selectedEntity.ID);
             CombatPreview combatPreview = CombatResolver.SimulateAttackPreview(selectedEntity.GetCombatStats(), inspectedEntity.GetCombatStats(), CurrentSelectedSkillID == -1 && CurrentSelectedItemID == -1 ?

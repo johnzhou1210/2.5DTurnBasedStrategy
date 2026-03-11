@@ -220,6 +220,7 @@ namespace StrategyGame.Combat {
             return outcome;
         }
         public static CombatPreview SimulateAttackPreview(CombatStats attacker, CombatStats defender, AbilityData ability, bool attackerInDefenderRange) {
+            Debug.Log($"CombatResolver.SimulateAttackPreview: attacker is {attacker.EntityID},  defender is {defender.EntityID}");
             // Compute effective stats
             int atkAcc = GetEffectiveStat(attacker.Accuracy, GetCombinedModifier(ModifierStat.Accuracy, ability, attacker.Weapon));
             int atkAgi = GetEffectiveStat(attacker.Agility, GetCombinedModifier(ModifierStat.Agility, ability, attacker.Weapon));
