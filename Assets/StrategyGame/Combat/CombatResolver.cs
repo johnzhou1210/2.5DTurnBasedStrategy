@@ -45,6 +45,7 @@ namespace StrategyGame.Combat {
         public override string ToString() {
             return $@"===== COMBAT PREVIEW =====
                 ATTACKER: {AttackerDisplayName} ({AttackerWeapon} ({AttackerWeapon.WeaponType})) →
+                  Skill ID: {AttackerSkillID}
                   Hits: {AttackerNumAttacks}
                   Damage/Hit: {AttackerNonCritDamagePerHit}
                   Hit%: {AttackerHitChance:P0}
@@ -241,10 +242,13 @@ namespace StrategyGame.Combat {
             DamageType defDamageType = defender.Weapon.DamageType;
 
             // Hit & Crit chances
+            
             float attackerHitChance = GetHitChance(atkAcc, atkAgi, defEvasion, defAgi);
             float attackerCritChance = GetCritChance(atkAcc, atkAgi, defEvasion, defAgi, atkCrit);
             float defenderHitChance = GetHitChance(defAcc, defAgi, atkEvasion, atkAgi);
             float defenderCritChance = GetCritChance(defAcc, defAgi, atkEvasion, atkAgi, defCrit);
+            if (ability.NeverMiss) attackerHitChance = 1;
+            if (ability.NeverCrit) attackerCritChance = 0;
 
             // Hits & counters
             float speedRatio = (float)atkAgi / Mathf.Max(defAgi, 1);
@@ -256,6 +260,7 @@ namespace StrategyGame.Combat {
 
             // Damage per hit
             int defenderEffectiveDefense = atkDamageType == DamageType.Physical ? defDef : defRes;
+            if (ability.IgnoreDefensiveStats) defenderEffectiveDefense = 0;
             int attackerEffectiveDefense = defDamageType == DamageType.Physical ? atkDef : atkRes;
             int attackerNonCritDamage = GetDamage(atkAtk, defenderEffectiveDefense, false);
             int attackerCritDamage = GetDamage(atkAtk, defenderEffectiveDefense, true);

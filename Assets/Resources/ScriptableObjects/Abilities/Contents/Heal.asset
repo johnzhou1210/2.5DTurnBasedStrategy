@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: Heal
   m_EditorClassIdentifier: Assembly-CSharp:StrategyGame.Combat:AbilityData
   StatModifiers:
-  - ModifierStat: 3
-    Flat: Infinity
-    Percent: 0
+  - ModifierStat: 0
+    Flat: 0
+    Percent: 1.5
   OverrideDamageType: 1
   DamageTypeOverride: 1
-  ProjectileVisualData: {fileID: 11400000, guid: 796ee15abbf5e42ba80fe03e8dd3ed0e, type: 2}
+  ProjectileVisualData: {fileID: 11400000, guid: a8a2252407cc7417882cae6d0e99b076, type: 2}
   SkillID: 0
   Description: Channels holy light to recover an ally's wounds.
   CooldownAtStart: 0
@@ -29,5 +29,9 @@ MonoBehaviour:
   ImpactEffectType: 0
   CanTargetAllies: 1
   CanTargetEnemies: 0
-  CanTargetSelf: 0
+  CanTargetSelf: 1
   AttackRange: {fileID: 11400000, guid: eac16936112a447faa9dc603635bae7e, type: 2}
+  IgnoreDefensiveStats: 1
+  NeverCrit: 1
+  NeverMiss: 1
+  CinematicCutscene: 0

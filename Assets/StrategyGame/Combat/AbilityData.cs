@@ -29,5 +29,9 @@ namespace StrategyGame.Combat {
         public bool CanTargetEnemies = true;
         public bool CanTargetSelf = false;
         public AttackRange AttackRange;
+        public bool IgnoreDefensiveStats = false;
+        public bool NeverCrit = false;
+        public bool NeverMiss = false;
+        public bool AttackCutscene = true;
     }
 }
