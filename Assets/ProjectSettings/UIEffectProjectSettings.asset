@@ -23,6 +23,8 @@ ShaderVariantCollection:
         passType: 0
       - keywords: COLOR_FILTER GRADATION_GRADIENT SAMPLING_BLUR_FAST
         passType: 0
+      - keywords: COLOR_FILTER GRADATION_GRADIENT TRANSITION_FADE
+        passType: 0
       - keywords: COLOR_FILTER SAMPLING_BLUR_DETAIL
         passType: 0
       - keywords: DETAIL_MASKING
@@ -40,6 +42,8 @@ ShaderVariantCollection:
       - keywords: GRADATION_COLOR4
         passType: 0
       - keywords: GRADATION_GRADIENT
+        passType: 0
+      - keywords: GRADATION_GRADIENT UNITY_UI_ALPHACLIP
         passType: 0
       - keywords: SAMPLING_BLUR_DETAIL
         passType: 0
