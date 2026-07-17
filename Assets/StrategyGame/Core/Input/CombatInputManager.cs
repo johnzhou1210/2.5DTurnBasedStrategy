@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,19 +13,19 @@ using StrategyGame.Core.GameState;
 using StrategyGame.Factions;
 using StrategyGame.Grid;
 using StrategyGame.UI;
+using StrategyGame.Utils;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using Debug = UnityEngine.Debug;
 
 namespace StrategyGame.Core.Input {
-    public class InputManager : MonoBehaviour, IPointerMoveHandler {
+    public class CombatInputManager : InputManagerBase, IPointerMoveHandler {
         // ==============================
         // FIELDS & PROPERTIES
         // ==============================
         [SerializeField] private MouseInputRaycaster gridMouseInputRaycaster;
         [SerializeField] private CameraRigController cameraRigController;
-        [SerializeField] private PlayerInput playerInput;
         [SerializeField] private GridCursorRenderer gridCursorRenderer;
         [Header("Path Selection Settings")] [SerializeField]
         private float pathSelectionMoveActionCooldown = 0.33f;
@@ -34,9 +35,6 @@ namespace StrategyGame.Core.Input {
         [Header("UI Selection Settings")] [SerializeField]
         private float uiSelectionHoldInitialDelay = .33f;
         [SerializeField] private float uiSelectionHoldRepeatRate = .1f;
-        private InputAction _moveAction;
-        private InputAction _selectAction;
-        private InputAction _cancelAction;
         private InputAction _dangerZoneAction;
         private InputAction _cycleLeftAction;
         private InputAction _cycleRightAction;
@@ -55,78 +53,107 @@ namespace StrategyGame.Core.Input {
                 gridCursorRenderer.MoveTo(_gridCursorPosition);
             }
         }
-        private string _cachedScheme;
 
         // ==============================
         // MONOBEHAVIOUR LIFECYCLE
         // ==============================
-        private void InitializeActions() {
-            var actions = playerInput.currentActionMap.asset;
-            _moveAction = actions.FindAction("Move", true);
-            _selectAction = actions.FindAction("Select", true);
-            _cancelAction = actions.FindAction("Cancel", true);
-            _dangerZoneAction = actions.FindAction("DangerZone", true);
-            _cycleLeftAction = actions.FindAction("CycleLeft", true);
-            _cycleRightAction = actions.FindAction("CycleRight", true);
-            Debug.Log("InputManager.InitializeActions: Input actions initialized");
-        }
-        private void OnControlsChanged(PlayerInput obj) {
-            // Only happens when the device actually changes!
-            _cachedScheme = obj.currentControlScheme;
-            Debug.Log($"Switching to: {_cachedScheme}");
-
-            InitializeActions();
-        }
-
-
-        private void OnEnable() {
-            playerInput.actions.Enable();
-            playerInput.onControlsChanged += OnControlsChanged;
-            InitializeActions();
+        
+        override protected void OnEnable() {
+            base.OnEnable();
             InputDelegates.OnSetMouseRaycastEnabled += SetMouseRaycastEnabled;
             InputDelegates.OnReinstateGridCursorPosition += ReinstateGridCursorPosition;
-            
-            InputDelegates.GetUIManager = () => this;
             InputDelegates.GetGridCursorPosition = () => GridCursorPosition;
             InputDelegates.GetDangerZoneVisible = () => _isDangerZoneVisible;
         }
-        private void OnDisable() {
-            playerInput.actions.Disable();
-            playerInput.onControlsChanged -= OnControlsChanged;
+        override protected void OnDisable() {
+            base.OnDisable();
             InputDelegates.OnSetMouseRaycastEnabled -= SetMouseRaycastEnabled;
             InputDelegates.OnReinstateGridCursorPosition -= ReinstateGridCursorPosition;
-            
-            InputDelegates.GetUIManager = null;
             InputDelegates.GetGridCursorPosition = null;
             InputDelegates.GetDangerZoneVisible = null;
-            
         }
-        private void Start() {
-            GameStateEnums.UnitMoveSelectionMode currentUnitMoveSelectionMode = GameStateDelegates.GetCurrentGameState().Combat.UnitMoveSelectionMode;
-            gridMouseInputRaycaster.enabled = currentUnitMoveSelectionMode == GameStateEnums.UnitMoveSelectionMode.Automatic;
-            cameraRigController.SetPanningEnabled(currentUnitMoveSelectionMode == GameStateEnums.UnitMoveSelectionMode.Automatic);
-            // cameraRigController.SetZoomingEnabled(currentUnitMoveSelectionMode == UnitMoveSelectionMode.Automatic);
+        
+        
+        private void OnDestroy() {
+            // gridMouseInputRaycaster.enabled = false;
         }
-        private void Update() {
+        
+        
+        // =================================
+        // ABSTRACT OVERRIDES
+        // =================================
+        override protected void ProcessInput() {
             HandleCancellationInput();
             HandleInteractionInput();
             HandleAxisInput();
             HandleCombatControls();
             HandleFastForward();
         }
-        private void OnDestroy() {
-            gridMouseInputRaycaster.enabled = false;
+        override protected void HandleCancellationInput() {
+            if (!cancelAction.WasPerformedThisFrame())
+                return;
+            GameStateData currentGameState = GameStateDelegates.GetCurrentGameState();
+            switch (currentGameState.Combat.TurnPhase) {
+                case GameStateEnums.TurnPhase.Player:
+                    switch (currentGameState.Combat.PlayerPhase) {
+                        case GameStateEnums.PlayerPhaseState.SelectUnitToControl: break;
+                        case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
+                            GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitToControl);
+                            _isDiagonalMoveEnabled = true;
+                            break;
+                        case GameStateEnums.PlayerPhaseState.UnitMovingToDestination: break;
+                        case GameStateEnums.PlayerPhaseState.UnitActionMenu:
+                            // Delegate task to CombatActionMenuController
+                            InputDelegates.InvokeOnCancelPressed(); break;
+                        case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
+                            currentGameState.Combat.InspectedEntityID = currentGameState.Combat.SelectedEntityID;
+                            GridDelegates.SetInspectedTile(EntityDelegates.GetGridEntityByID(currentGameState.Combat.SelectedEntityID).GridPosition);
+                            GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitActionMenu);
+                            ServiceLocator.Get<AudioManager>().PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/minimize_008"));
+                            break;
+                        case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: break;
+                        case GameStateEnums.PlayerPhaseState.None: break;
+                        default: throw new Exception("InputManager.HandleCancellationInput: Invalid player phase state enum!");
+                    }
+                    break;
+                case GameStateEnums.TurnPhase.Enemy: break;
+                case GameStateEnums.TurnPhase.Event: break;
+                case GameStateEnums.TurnPhase.None: break;
+                default: throw new Exception("InputManager.HandleCancellationInput: Invalid turn phase state enum!");
+            }
         }
-
-        // ==============================
-        // CORE METHODS
-        // ==============================
-        private void SetMouseRaycastEnabled(bool value) {
-            gridMouseInputRaycaster.enabled = value;
+        override protected void HandleInteractionInput() {
+            GameStateData currentGameState = GameStateDelegates.GetCurrentGameState();
+            switch (currentGameState.Combat.TurnPhase) {
+                case GameStateEnums.TurnPhase.Player:
+                    switch (currentGameState.Combat.PlayerPhase) {
+                        case GameStateEnums.PlayerPhaseState.SelectUnitToControl: HandleEntityTileSelection(); break;
+                        case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination: HandleEntityTileSelection(); break;
+                        case GameStateEnums.PlayerPhaseState.UnitMovingToDestination:
+                            // HandleFastForward(); 
+                            break;
+                        case GameStateEnums.PlayerPhaseState.UnitActionMenu: HandleUIConfirmation(); break;
+                        case GameStateEnums.PlayerPhaseState.UnitSelectTarget: HandleEntityTileSelection(); break;
+                        case GameStateEnums.PlayerPhaseState.UnitAttackCutscene:
+                            // HandleFastForward(); 
+                            break;
+                        case GameStateEnums.PlayerPhaseState.None: break;
+                        default: throw new Exception("InputManager.HandleInteractionInput: Invalid player phase state enum!");
+                    }
+                    break;
+                case GameStateEnums.TurnPhase.Enemy:
+                    // HandleFastForward(); 
+                    break;
+                case GameStateEnums.TurnPhase.Event:
+                    // HandleFastForward();
+                    break;
+                case GameStateEnums.TurnPhase.None: break;
+                default: throw new Exception("InputManager.HandleInteractionInput: Invalid turn phase state enum!");
+            }
         }
-        private void HandleAxisInput() {
+        override protected void HandleAxisInput() {
             _pathSelectionMoveActionTimer = Mathf.Max(0f, _pathSelectionMoveActionTimer - Time.deltaTime);
-            Vector2 moveInput = _moveAction.ReadValue<Vector2>();
+            Vector2 moveInput = moveAction.ReadValue<Vector2>();
             GameStateData currentGameState = GameStateDelegates.GetCurrentGameState();
             if (currentGameState.Combat.TurnPhase != GameStateEnums.TurnPhase.Player)
                 return;
@@ -141,68 +168,30 @@ namespace StrategyGame.Core.Input {
                 default: throw new Exception("InputManager.HandleAxisInput: Invalid player phase state enum!");
             }
         }
-        private void HandleInteractionInput() {
-            GameStateData currentGameState = GameStateDelegates.GetCurrentGameState();
-            switch (currentGameState.Combat.TurnPhase) {
-                case GameStateEnums.TurnPhase.Player:
-                    switch (currentGameState.Combat.PlayerPhase) {
-                        case GameStateEnums.PlayerPhaseState.SelectUnitToControl: HandleEntityTileSelection(); break;
-                        case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination: HandleEntityTileSelection(); break;
-                        case GameStateEnums.PlayerPhaseState.UnitMovingToDestination: 
-                            // HandleFastForward(); 
-                            break;
-                        case GameStateEnums.PlayerPhaseState.UnitActionMenu: HandleUIConfirmation(); break;
-                        case GameStateEnums.PlayerPhaseState.UnitSelectTarget: HandleEntityTileSelection(); break;
-                        case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: 
-                            // HandleFastForward(); 
-                            break;
-                        case GameStateEnums.PlayerPhaseState.None: break;
-                        default: throw new Exception("InputManager.HandleInteractionInput: Invalid player phase state enum!");
-                    }
-                    break;
-                case GameStateEnums.TurnPhase.Enemy: 
-                    // HandleFastForward(); 
-                    break;
-                case GameStateEnums.TurnPhase.Event:
-                    // HandleFastForward();
-                    break;
-                case GameStateEnums.TurnPhase.None: break;
-                default: throw new Exception("InputManager.HandleInteractionInput: Invalid turn phase state enum!");
-            }
+        
+        
+        // ==============================
+        // VIRTUAL OVERRIDES
+        // ==============================
+        override protected void InitializeActions() {
+            base.InitializeActions();
+            InputActionAsset actions = playerInput.currentActionMap.asset;
+            _dangerZoneAction = actions.FindAction("DangerZone", true);
+            _cycleLeftAction = actions.FindAction("CycleLeft", true);
+            _cycleRightAction = actions.FindAction("CycleRight", true);
+            Debug.Log("CombatInputManager.InitializeActions: Input actions initialized");
         }
-        private void HandleCancellationInput() {
-            if (!_cancelAction.WasPerformedThisFrame())
-                return;
-            GameStateData currentGameState = GameStateDelegates.GetCurrentGameState();
-            switch (currentGameState.Combat.TurnPhase) {
-                case GameStateEnums.TurnPhase.Player:
-                    switch (currentGameState.Combat.PlayerPhase) {
-                        case GameStateEnums.PlayerPhaseState.SelectUnitToControl: break;
-                        case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
-                            GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitToControl);
-                            _isDiagonalMoveEnabled = true;
-                            break;
-                        case GameStateEnums.PlayerPhaseState.UnitMovingToDestination: break;
-                        case GameStateEnums.PlayerPhaseState.UnitActionMenu: 
-                            // Delegate task to CombatActionMenuController
-                            InputDelegates.InvokeOnCancelPressed();
-                            break;
-                        case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
-                            currentGameState.Combat.InspectedEntityID = currentGameState.Combat.SelectedEntityID;
-                            GridDelegates.SetInspectedTile(EntityDelegates.GetGridEntityByID(currentGameState.Combat.SelectedEntityID).GridPosition);
-                            GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitActionMenu);
-                            AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/minimize_008"));
-                            break;
-                        case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: break;
-                        case GameStateEnums.PlayerPhaseState.None: break;
-                        default: throw new Exception("InputManager.HandleCancellationInput: Invalid player phase state enum!");
-                    }
-                    break;
-                case GameStateEnums.TurnPhase.Enemy: break;
-                case GameStateEnums.TurnPhase.Event: break;
-                case GameStateEnums.TurnPhase.None: break;
-                default: throw new Exception("InputManager.HandleCancellationInput: Invalid turn phase state enum!");
-            }
+        override protected void Update() {
+            base.Update();
+        }
+        
+        
+        
+        // ==============================
+        // CORE METHODS
+        // ==============================
+        private void SetMouseRaycastEnabled(bool value) {
+            gridMouseInputRaycaster.enabled = value;
         }
 
         // ==============================
@@ -226,7 +215,8 @@ namespace StrategyGame.Core.Input {
                 float lowestPenalty = float.MaxValue;
                 GridEntity actorEntity = EntityDelegates.GetGridEntityByID(currentGameState.Combat.SelectedEntityID);
                 AbilityData currentSkill = DataDelegates.GetAbilityDataByID(currentGameState.Combat.CurrentSelectedSkillID);
-                if (currentSkill == null) currentSkill = actorEntity.BasicAttack;
+                if (currentSkill == null)
+                    currentSkill = actorEntity.BasicAttack;
                 HashSet<Tile> targetSelectionTiles = actorEntity.GetAttackableTilesAtPosition(actorEntity.GridPosition, currentSkill);
                 foreach (Tile tile in targetSelectionTiles) {
                     if (tile.Position == originalPosition)
@@ -268,11 +258,18 @@ namespace StrategyGame.Core.Input {
         // ==============================
         // HELPERS
         // ==============================
+        // private void InitializeBattleInput() {
+        //     GameStateEnums.UnitMoveSelectionMode currentUnitMoveSelectionMode = GameStateDelegates.GetCurrentGameState().Combat.UnitMoveSelectionMode;
+        //     gridMouseInputRaycaster.enabled = currentUnitMoveSelectionMode == GameStateEnums.UnitMoveSelectionMode.Automatic;
+        //     cameraRigController.SetPanningEnabled(currentUnitMoveSelectionMode == GameStateEnums.UnitMoveSelectionMode.Automatic);
+        //     // cameraRigController.SetZoomingEnabled(currentUnitMoveSelectionMode == UnitMoveSelectionMode.Automatic);
+        // }
+
         private void HandleGridNavigationInput(Vector2 moveInput) {
             Vector2Int moveDirection = new Vector2Int(moveInput.x > .5f ? 1 :
                 moveInput.x < -.5f ? -1 : 0, moveInput.y > .5f ? 1 :
                 moveInput.y < -.5f ? -1 : 0);
-            if (_moveAction.WasReleasedThisFrame()) {
+            if (moveAction.WasReleasedThisFrame()) {
                 _pathSelectionMoveActionTimer = 0f;
             }
             if (moveDirection != Vector2.zero) {
@@ -302,7 +299,8 @@ namespace StrategyGame.Core.Input {
             if (moveInput.y < -0.5f)
                 vertical = -1;
             void Move() {
-                if (vertical == 1 || vertical == -1) AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/scratch_001"), volumeMultiplier:.5f);
+                if (vertical == 1 || vertical == -1)
+                    ServiceLocator.Get<AudioManager>().PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/scratch_001"), volumeMultiplier: .5f);
                 if (vertical == 1) {
                     InputDelegates.InvokeOnUpPressed();
                 } else if (vertical == -1) {
@@ -318,7 +316,7 @@ namespace StrategyGame.Core.Input {
             }
 
             // New press (axis went from 0 -> non-zero)
-            if (_moveAction.WasPressedThisFrame()) {
+            if (moveAction.WasPressedThisFrame()) {
                 Move();
                 _uiSelectionHoldTimer = 0f;
                 _uiSelectionNextRepeatTimer = uiSelectionHoldInitialDelay;
@@ -333,7 +331,7 @@ namespace StrategyGame.Core.Input {
             }
         }
         private void HandleEntityTileSelection() {
-            if (!_selectAction.WasPressedThisFrame())
+            if (!selectAction.WasPressedThisFrame())
                 return;
             GameStateData state = GameStateDelegates.GetCurrentGameState();
             switch (state.Combat.PlayerPhase) {
@@ -350,7 +348,7 @@ namespace StrategyGame.Core.Input {
                     Debug.Log("InputManager.HandleEntityTileSelection: START FORMING PATH");
                     _isDiagonalMoveEnabled = false;
                     GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination);
-                    AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/select_005"));
+                    ServiceLocator.Get<AudioManager>().PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/select_005"));
                     break;
                 case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination: {
                     GridEntity currentSelectedEntity = EntityDelegates.GetGridEntityByID(state.Combat.SelectedEntityID);
@@ -371,7 +369,8 @@ namespace StrategyGame.Core.Input {
                     manualPathSet.IntersectWith(walkableTiles);
                     manualPathSet.Add(GridDelegates.GetTileFromPosition(currentSelectedEntity.GridPosition));
                     Debug.Log($"InputManager.HandleSelectionInput: Walkable tiles: {string.Join(", ", walkableTiles)}");
-                    Debug.Log($"InputManager.HandleSelectionInput: Manual path tiles: {string.Join(", ", manualPathList)} | Selected entity movement range: {currentSelectedEntity.MovementRange} | Manual path set: {string.Join(", ", manualPathSet)}");
+                    Debug.Log(
+                        $"InputManager.HandleSelectionInput: Manual path tiles: {string.Join(", ", manualPathList)} | Selected entity movement range: {currentSelectedEntity.MovementRange} | Manual path set: {string.Join(", ", manualPathSet)}");
                     Tile destinationTile = manualPathList[^1];
                     HashSet<GridEntity> attackerTrueAttackRange = currentSelectedEntity.GetEntitiesWithinAttackRange();
                     bool conditionsNeededToDirectlyAttackTarget = destinationTile.Occupant is { Faction: Faction.Enemy } && attackerTrueAttackRange.Any(e => e.ID == destinationTile.Occupant.ID);
@@ -397,7 +396,8 @@ namespace StrategyGame.Core.Input {
                             currentSelectedEntity.MoveAlongPath(manualPathList);
                             GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitMovingToDestination);
                         } else {
-                            Debug.Log($"InputManager.HandleEntityTileSelection: conditionsNeededToDirectlyAttackTarget is {conditionsNeededToDirectlyAttackTarget} and conditionsNeededToMoveToDestination is {conditionsNeededToMoveToDestination}");
+                            Debug.Log(
+                                $"InputManager.HandleEntityTileSelection: conditionsNeededToDirectlyAttackTarget is {conditionsNeededToDirectlyAttackTarget} and conditionsNeededToMoveToDestination is {conditionsNeededToMoveToDestination}");
                         }
                     } else {
                         Debug.Log($"InputManager.HandleSelectionInput: Current manual path is not allowed!");
@@ -411,34 +411,29 @@ namespace StrategyGame.Core.Input {
                     // Perform action on target
                     // Retrieve ability data from game state
                     AbilityData skillData = DataDelegates.GetAbilityDataByID(state.Combat.CurrentSelectedSkillID);
-                    if (skillData == null) skillData = actingEntity.BasicAttack;
-                   
-
+                    if (skillData == null)
+                        skillData = actingEntity.BasicAttack;
                     if (targetEntity == null) {
                         Debug.LogWarning("InputManager.HandleEntityTileSelection: Exiting switch case early because targetEntity is null");
-                        AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/pluck_001"));
+                        ServiceLocator.Get<AudioManager>().PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/pluck_001"));
                         break;
                     }
-
                     bool targetIsAlly = actingEntity.IsFriendlyWith(targetEntity);
-
                     if ((skillData.CanTargetAllies && targetIsAlly) || (skillData.CanTargetEnemies && !targetIsAlly) || (skillData.CanTargetSelf && actingEntity.ID == targetEntity.ID)) {
-                        
                         CombatOutcome attackOutcome = CombatResolver.ResolveCombatFromPreview(state.Combat.CombatPreview);
                         // Debug.Log($"InputManager.HandleEntityTileSelection: {state.Combat.CombatPreview}");
                         CombatCinematicsDelegates.GetDirector().InitializeCinematicData(actingEntity, targetEntity, attackOutcome);
                         GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitAttackCutscene);
-                        AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/select_004"));
+                        ServiceLocator.Get<AudioManager>().PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/select_004"));
                         break;
                     }
-                    AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/pluck_001"));
-                
+                    ServiceLocator.Get<AudioManager>().PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/pluck_001"));
                     break;
                 default: throw new Exception($"InputManager.HandleSelectionInput : Unexpected player phase state for entity tile selection : {state.Combat.PlayerPhase}");
             }
         }
         private void HandleUIConfirmation() {
-            if (!_selectAction.WasPressedThisFrame())
+            if (!selectAction.WasPressedThisFrame())
                 return;
             // For now, we are assuming we are in UnitActionMenu state
             InputDelegates.InvokeOnConfirmPressed();
@@ -514,23 +509,18 @@ namespace StrategyGame.Core.Input {
             _isDangerZoneVisible = !_isDangerZoneVisible;
             GridDelegates.InvokeOnSetDangerZoneVisibility(_isDangerZoneVisible);
         }
-
         private void HandleFastForward() {
             return;
             GameStateData currentState = GameStateDelegates.GetCurrentGameState();
-            if (_selectAction.IsPressed()) {
+            if (selectAction.IsPressed()) {
                 Time.timeScale = 4f;
-            } 
-            if (_selectAction.WasReleasedThisFrame()) {
+            }
+            if (selectAction.WasReleasedThisFrame()) {
                 Time.timeScale = 1f;
             }
         }
-        
-        
         private void ManualSetGridCursorPosition(Vector2Int coordinate) {
             GridCursorPosition = coordinate;
         }
-
-        
     }
 }

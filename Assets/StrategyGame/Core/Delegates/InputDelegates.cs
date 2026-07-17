@@ -56,7 +56,7 @@ namespace StrategyGame.Core.Delegates {
         // FUNCS
         // ==============================
         public static Func<Vector3> GetMouseRaycastPosition;
-        public static Func<InputManager> GetUIManager;
+        public static Func<CombatInputManager> GetUIManager;
         public static Func<Vector2Int> GetGridCursorPosition;
         public static Func<bool> GetDangerZoneVisible;
 
