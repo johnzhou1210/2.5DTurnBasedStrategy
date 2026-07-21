@@ -1,18 +1,13 @@
+using StrategyGame.Utils;
 using UnityEngine;
 
 namespace StrategyGame.Audio {
-    public class AudioManager : MonoBehaviour {
-        public static AudioManager Instance;
+    public class AudioManager : Singleton<AudioManager> {
         [SerializeField] [Range(0f, 1f)] private float masterVolume, musicVolume, sfxVolume = 1f;
         [SerializeField] AudioSource musicSource;
     
-        private void Awake() {
-            if (Instance == null) {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
-            } else {
-                Destroy(gameObject);
-            }
+        override protected void Awake() {
+            base.Awake();
             musicSource = gameObject.AddComponent<AudioSource>();
             musicSource.loop = true;
             musicSource.volume = GetMusicVolume();

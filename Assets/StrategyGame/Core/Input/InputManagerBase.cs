@@ -1,12 +1,13 @@
 using System;
 using System.Diagnostics;
 using StrategyGame.Core.Delegates;
+using StrategyGame.Utils;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Debug = UnityEngine.Debug;
 
 namespace StrategyGame.Core.Input {
-    public abstract class InputManagerBase : MonoBehaviour {
+    public abstract class InputManagerBase : Singleton<InputManagerBase> {
         [SerializeField] protected PlayerInput playerInput;
         protected InputAction moveAction;
         protected InputAction selectAction;
@@ -16,7 +17,7 @@ namespace StrategyGame.Core.Input {
         // ================================
         // MONOBEHAVIOUR LIFECYCLE
         // ================================
-        private void Awake() {
+        override protected void Awake() {
             if (FindObjectsOfType<InputManagerBase>().Length > 2) {
                 Destroy(gameObject);
                 return;

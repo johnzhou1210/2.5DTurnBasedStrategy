@@ -276,8 +276,8 @@ GameObject:
   - component: {fileID: 663003849}
   - component: {fileID: 663003847}
   - component: {fileID: 663003852}
+  - component: {fileID: 663003853}
   - component: {fileID: 663003851}
-  - component: {fileID: 663003850}
   m_Layer: 0
   m_Name: InputManager
   m_TagString: Untagged
@@ -426,47 +426,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &663003850
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 663003845}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 457e80fa90644ec99a8f0c8150fd02b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::StrategyGame.Core.Input.MenuInputManager
-  playerInput: {fileID: 663003847}
-  moveAction:
-    m_Name: 
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: adf7f7e1-54bd-470e-9368-07dd29561d38
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings: []
-    m_Flags: 0
-  selectAction:
-    m_Name: 
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: 32ec9526-6178-4ddf-84cf-2c47a0a714c5
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings: []
-    m_Flags: 0
-  cancelAction:
-    m_Name: 
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: 34c274f0-0044-48c9-94eb-fe88f594d77b
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings: []
-    m_Flags: 0
-  _cachedScheme: 
 --- !u!114 &663003851
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -490,7 +449,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 663003845}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d0c77080594343a4aa0d72dbe6f17406, type: 3}
   m_Name: 
@@ -505,6 +464,19 @@ MonoBehaviour:
   pathSelectionMoveActionCooldownAccelerationRate: 0.01
   uiSelectionHoldInitialDelay: 0.33
   uiSelectionHoldRepeatRate: 0.1
+--- !u!114 &663003853
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 663003845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d41cf502a644cb9899cd93ae345518b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StrategyGame.Core.Input.MenuInputManager
+  playerInput: {fileID: 663003847}
 --- !u!1 &818486831
 GameObject:
   m_ObjectHideFlags: 0
@@ -546,7 +518,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 818486831}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a230e80b3eb0840efaa34d2edaa48f96, type: 3}
+  m_Script: {fileID: 11500000, guid: 29134760b2f234c938b923a201d4fc92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StrategyGame.Core.GameBootstrap
 --- !u!1 &1201744000
