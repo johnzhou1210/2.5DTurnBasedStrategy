@@ -449,7 +449,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 663003845}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d0c77080594343a4aa0d72dbe6f17406, type: 3}
   m_Name: 
@@ -457,9 +457,7 @@ MonoBehaviour:
   playerInput: {fileID: 663003847}
   uiSelectionHoldRepeatRate: 0.1
   uiSelectionHoldInitialDelay: 0.33
-  gridMouseInputRaycaster: {fileID: 0}
-  cameraRigController: {fileID: 0}
-  gridCursorRenderer: {fileID: 0}
+  gridMouseInputRaycaster: {fileID: 663003851}
   pathSelectionMoveActionCooldown: 0.2
   pathSelectionMoveActionCooldownAccelerationThreshold: 0.5
   pathSelectionMoveActionMinimumCooldown: 0.05
@@ -533,6 +531,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1201744001}
   - component: {fileID: 1201744002}
+  - component: {fileID: 1201744003}
   m_Layer: 0
   m_Name: GameStateManager
   m_TagString: Untagged
@@ -567,13 +566,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0b4c689ae6844227b26f7b68574801e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1201744003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1201744000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 921a3fd9c78446d68f3457f3adc88ce0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StrategyGame.Core.GameState.MasterStateManager
   currentState:
     Combat:
       TurnPhaseCycle: 0
       TurnPhase: 3
       ActorIDsRemaining: 
       DeadEntityIDs:
-        rid: 5980237869038960789
+        rid: 2851556458167271587
       PlayerPhase: 6
       EnemyPhase: 6
       UnitMoveSelectionMode: 2
@@ -591,53 +602,9 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: 5980237869038960789
+    - rid: 2851556458167271587
       type: {class: 'HashSet`1[[System.Int32, mscorlib]]', ns: System.Collections.Generic, asm: System.Core}
       data: 
---- !u!1 &1419584491
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1419584493}
-  - component: {fileID: 1419584492}
-  m_Layer: 0
-  m_Name: GridEntityManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1419584492
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1419584491}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f2eb7ac34d42450393f48347ef5e1702, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!4 &1419584493
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1419584491}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -2.5283275, y: -14.987027, z: 34.14436}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1487446790
 GameObject:
   m_ObjectHideFlags: 0
@@ -735,7 +702,6 @@ SceneRoots:
   m_Roots:
   - {fileID: 129952564}
   - {fileID: 1201744001}
-  - {fileID: 1419584493}
   - {fileID: 2004326747}
   - {fileID: 663003849}
   - {fileID: 1487446792}

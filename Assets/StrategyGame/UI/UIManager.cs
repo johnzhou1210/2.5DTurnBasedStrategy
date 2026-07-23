@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using StrategyGame.Core.Delegates;
+using StrategyGame.Utils;
 using UnityEngine;
 
 namespace StrategyGame.UI {
@@ -10,7 +11,7 @@ namespace StrategyGame.UI {
         Battle,
     }
     
-    public class UIManager : MonoBehaviour
+    public class UIManager : Singleton<MonoBehaviour>
     {
         // ==============================
         // FIELDS & PROPERTIES

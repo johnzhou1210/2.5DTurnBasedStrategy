@@ -34,6 +34,7 @@ namespace StrategyGame.Core.Input {
         override protected void HandleInteractionInput() {
             if (!selectAction.WasPerformedThisFrame()) return;
             Debug.Log("MenuInputManager.HandleInteractionInput: Handling interaction input");
+            HandleUIConfirmation();
         }
         override protected void HandleCancellationInput() {
             if (!cancelAction.WasPerformedThisFrame()) return;

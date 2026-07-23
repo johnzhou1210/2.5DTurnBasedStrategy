@@ -1,6 +1,5 @@
 using System;
 using StrategyGame.Core.Delegates;
-using StrategyGame.Core.Enums;
 using StrategyGame.Core.GameState;
 using TMPro;
 using UnityEngine;
@@ -20,15 +19,15 @@ namespace StrategyGame.UI.HUD {
         }
 
         private void UpdateIndicator() {
-            GameStateData currentState = GameStateDelegates.GetCurrentGameState();
+            GameStateData.GameStateDatagram currentState = GameStateDelegates.GetCurrentGameState();
             Debug.Log(currentState.Combat);
             Debug.Log(currentState.Combat.TurnPhaseCycle);
             Debug.Log(currentState.Combat.TurnPhase);
             
             turnText.SetText($"Turn {currentState.Combat.TurnPhaseCycle.ToString()}");
-            indicatorBackground.color = currentState.Combat.TurnPhase == GameStateEnums.TurnPhase.Player
+            indicatorBackground.color = currentState.Combat.TurnPhase == CombatStateEnums.TurnPhase.Player
                 ? new Color(0, 0, 140 / 255f)
-                : currentState.Combat.TurnPhase == GameStateEnums.TurnPhase.Enemy
+                : currentState.Combat.TurnPhase == CombatStateEnums.TurnPhase.Enemy
                     ? new Color(150 / 255f, 0, 0)
                     : new Color(50 / 255f, 50 / 255f, 50 / 255f);
         }

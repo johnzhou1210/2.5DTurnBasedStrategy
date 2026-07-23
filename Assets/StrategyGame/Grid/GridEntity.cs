@@ -265,7 +265,7 @@ namespace StrategyGame.Grid {
             // Free up tile since they died
             GridDelegates.GetTileFromPosition(GridPosition).RemoveOccupant();
             InputDelegates.InvokeOnReinstateGridCursorPosition(InputDelegates.GetGridCursorPosition());
-            GameStateData currentState = GameStateDelegates.GetCurrentGameState();
+            GameStateData.GameStateDatagram currentState = GameStateDelegates.GetCurrentGameState();
             currentState.Combat.DeadEntityIDs.Add(ID);
             if (currentState.Combat.ActorIDsRemaining.Contains(ID)) {
                 currentState.Combat.ActorIDsRemaining.Remove(ID);

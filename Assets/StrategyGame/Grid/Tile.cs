@@ -75,7 +75,7 @@ namespace StrategyGame.Grid {
         }
 
         public bool IsInspected() {
-            GameStateData currentState = GameStateDelegates.GetCurrentGameState();
+            GameStateData.GameStateDatagram currentState = GameStateDelegates.GetCurrentGameState();
             return Position == currentState.Combat.InspectedTilePosition;
         }
 

@@ -1,10 +1,11 @@
 using System;
 using DG.Tweening;
 using StrategyGame.Core.Delegates;
-using StrategyGame.Core.Enums;
 using StrategyGame.Core.GameState;
+using StrategyGame.Core.Input;
 using StrategyGame.Factions;
 using StrategyGame.Grid;
+using StrategyGame.Utils;
 using UnityEngine;
 
 public class GridCursorRenderer : MonoBehaviour
@@ -17,7 +18,10 @@ public class GridCursorRenderer : MonoBehaviour
     [SerializeField] private GameObject attackIcon;
 
     private Vector2Int _targetPosition;
-   
+
+    private void Awake() {
+        ServiceLocator.Get<CombatInputManager>().SetGridCursorRenderer(this);
+    }
 
     private void Start() {
         downwardArrowRenderer.material.EnableKeyword("_EMISSION");
@@ -64,9 +68,9 @@ public class GridCursorRenderer : MonoBehaviour
     }
 
     private void SetMiscIcon() {
-        GameStateData currState = GameStateDelegates.GetCurrentGameState();
+        GameStateData.GameStateDatagram currState = GameStateDelegates.GetCurrentGameState();
         switch (currState.Combat.PlayerPhase) {
-            case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
+            case CombatStateEnums.PlayerPhaseState.UnitSelectTarget:
                 GridEntity occupant = GridDelegates.GetTileFromPosition(_targetPosition).Occupant;
                 GridEntity attacker = EntityDelegates.GetGridEntityByID(currState.Combat.SelectedEntityID);
                 attackIcon.SetActive(occupant != null && !attacker.IsFriendlyWith(occupant));

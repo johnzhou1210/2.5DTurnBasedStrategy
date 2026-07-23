@@ -1,5 +1,5 @@
-namespace StrategyGame.Core.Enums {
-    public class GameStateEnums {
+namespace StrategyGame.Core.GameState {
+    public class CombatStateEnums {
         public enum TurnPhase {
             Player,
             Enemy,
@@ -33,6 +33,11 @@ namespace StrategyGame.Core.Enums {
             None
         }
 
+       
+        
+    }
+
+    public class MasterStateEnums {
         public enum MasterState {
             Title,
             Home,
@@ -40,6 +45,5 @@ namespace StrategyGame.Core.Enums {
             
             
         }
-        
     }
 }

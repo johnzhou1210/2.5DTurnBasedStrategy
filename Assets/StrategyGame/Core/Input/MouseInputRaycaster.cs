@@ -1,6 +1,5 @@
 using System;
 using StrategyGame.Core.Delegates;
-using StrategyGame.Core.Enums;
 using StrategyGame.Core.GameState;
 using StrategyGame.Grid;
 using StrategyGame.Grid.Rendering;
@@ -54,7 +53,7 @@ namespace StrategyGame.Core.Input {
                 }
                 
                 // Everything below here runs if Move Selection Mode is automatic
-                if (GameStateDelegates.GetCurrentGameState().Combat.UnitMoveSelectionMode != GameStateEnums.UnitMoveSelectionMode.Automatic) return;
+                if (GameStateDelegates.GetCurrentGameState().Combat.UnitMoveSelectionMode != CombatStateEnums.UnitMoveSelectionMode.Automatic) return;
                 
                 // Check if player clicked while hovering over a tile
                 if (_selectAction.WasPressedThisFrame()) {
@@ -81,8 +80,8 @@ namespace StrategyGame.Core.Input {
                 // Debug.Log($"Highlighting: {tile}");
                 
                 // Show route if GameStateManager is currently selecting a Unit
-                GameStateData state = GameStateDelegates.GetCurrentGameState();
-                if (state.Combat.UnitMoveSelectionMode != GameStateEnums.UnitMoveSelectionMode.Automatic) return;
+                GameStateData.GameStateDatagram state = GameStateDelegates.GetCurrentGameState();
+                if (state.Combat.UnitMoveSelectionMode != CombatStateEnums.UnitMoveSelectionMode.Automatic) return;
                 GridEntity currentSelectedEntity = EntityDelegates.GetGridEntityByID(state.Combat.SelectedEntityID);
                 if (currentSelectedEntity == null) return;
                 GridDelegates.InvokeOnAStarPathPreview(currentSelectedEntity?.GridPosition ?? tile.GetComponent<TileRenderer>().GridCoordinates, tile.GetComponent<TileRenderer>().GridCoordinates);

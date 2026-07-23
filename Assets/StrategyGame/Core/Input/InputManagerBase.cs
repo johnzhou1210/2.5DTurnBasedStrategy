@@ -103,6 +103,13 @@ namespace StrategyGame.Core.Input {
             }
         }
         
+        protected virtual void HandleUIConfirmation() {
+            if (!selectAction.WasPressedThisFrame())
+                return;
+            // For now, we are assuming we are in UnitActionMenu state
+            InputDelegates.InvokeOnConfirmPressed();
+        }
+        
         // ============================
         // PRIVATE METHODS
         // ============================

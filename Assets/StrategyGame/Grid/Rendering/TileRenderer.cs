@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using StrategyGame.Core.Delegates;
-using StrategyGame.Core.Enums;
 using StrategyGame.Core.GameState;
 using StrategyGame.Factions;
 using StrategyGame.Grid.GridData;

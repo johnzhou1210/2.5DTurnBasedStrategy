@@ -1,6 +1,7 @@
 using System;
 using StrategyGame.Core.Delegates;
 using StrategyGame.Core.GameState;
+using StrategyGame.Utils;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -11,16 +12,17 @@ namespace StrategyGame.Core.Input {
         // ==============================
         // FIELDS & PROPERTIES
         // ==============================
-        [SerializeField] private PlayerInput playerInput;
+        
         [SerializeField] private float rigMoveSpeed = 5f;
         [SerializeField] private float orbitalCameraZoomSpeed = 5f;
         [SerializeField] private Vector2 rigZoomMinMax = new Vector2(0f, 10f);
         [SerializeField] private float zoomSmoothTime = 0.2f;
         [SerializeField] private CinemachineOrbitalFollow orbitalFollow;
 
+        private PlayerInput _playerInput;
         private InputAction _rigMoveAction;
         private InputAction _rigZoomAction;
-
+        
         private float _targetZoom;
         private float _zoomVelocity;
         private bool _isPanningEnabled;
@@ -32,9 +34,12 @@ namespace StrategyGame.Core.Input {
         // ==============================
         private void Awake() {
             if (orbitalFollow == null) return;
-            _rigMoveAction = playerInput.actions["Move"];
-            _rigZoomAction = playerInput.actions["Zoom"];
+            CombatInputManager combatInputManager = ServiceLocator.Get<CombatInputManager>();
+            _playerInput = combatInputManager.GetComponent<PlayerInput>();
+            _rigMoveAction = _playerInput.actions["Move"];
+            _rigZoomAction = _playerInput.actions["Zoom"];
             _targetZoom = orbitalFollow.Radius;
+            combatInputManager.SetCameraRigController(this);
         }
 
         private void OnEnable() {

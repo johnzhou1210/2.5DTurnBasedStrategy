@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using StrategyGame.Audio;
 using StrategyGame.Combat;
 using StrategyGame.Core.Delegates;
-using StrategyGame.Core.Enums;
 using StrategyGame.Core.GameState;
 using StrategyGame.Grid;
 using TMPro;
@@ -198,7 +197,7 @@ namespace StrategyGame.UI.Menus {
         }
         private void ConfirmAction() {
             AudioManager.Instance.PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/select_005"));
-            GameStateData currState = GameStateDelegates.GetCurrentGameState();
+            GameStateData.GameStateDatagram currState = GameStateDelegates.GetCurrentGameState();
             GridEntity currentSelectedEntity = EntityDelegates.GetGridEntityByID(currState.Combat.SelectedEntityID);
             int currSelectedIndex = GetCurrSelectedIndex();
             switch (_currentMenuPage) {
@@ -206,7 +205,7 @@ namespace StrategyGame.UI.Menus {
                     switch (currSelectedIndex) {
                         case (int)ActionType.Attack:
                             if (currentSelectedEntity.GetAttackableEntitiesAtPosition(currentSelectedEntity.GridPosition, currentSelectedEntity.BasicAttack).Count == 0) break;
-                            GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitSelectTarget);
+                            GameStateDelegates.InvokeOnPlayerPhaseStateChanged(CombatStateEnums.PlayerPhaseState.UnitSelectTarget);
                             SetVisible(false, ActionMenuPage.Main);
                             break;
                         case (int)ActionType.Skills: 
@@ -241,7 +240,7 @@ namespace StrategyGame.UI.Menus {
                     currState.Combat.CurrentSelectedSkillID = currAbilityID;
                     ClearCurrContainerEntries(GetCurrItemsContainerTransform());
                     SetVisible(false, ActionMenuPage.Skills);
-                    GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.UnitSelectTarget);
+                    GameStateDelegates.InvokeOnPlayerPhaseStateChanged(CombatStateEnums.PlayerPhaseState.UnitSelectTarget);
                     break;
                 case ActionMenuPage.Items:
                     // Go to target selection phase
@@ -251,21 +250,21 @@ namespace StrategyGame.UI.Menus {
         }
         private void UpdateAttackActionAllowed() {
             Transform attackButtonTransform = actionMenuItems.transform.GetChild(0);
-            GameStateData currState = GameStateDelegates.GetCurrentGameState();
+            GameStateData.GameStateDatagram currState = GameStateDelegates.GetCurrentGameState();
             GridEntity currentSelectedEntity = EntityDelegates.GetGridEntityByID(currState.Combat.SelectedEntityID);
             TextMeshProUGUI attackTextMesh = attackButtonTransform.GetComponentInChildren<TextMeshProUGUI>();
             attackTextMesh.color = currentSelectedEntity.GetAttackableEntitiesAtPosition(currentSelectedEntity.GridPosition, currentSelectedEntity.BasicAttack).Count == 0 ? Color.gray4 : Color.white;
         }
         private void UpdateSkillsActionAllowed() {
             Transform skillsButtonTransform = actionMenuItems.transform.GetChild(1);
-            GameStateData currState = GameStateDelegates.GetCurrentGameState();
+            GameStateData.GameStateDatagram currState = GameStateDelegates.GetCurrentGameState();
             GridEntity currentSelectedEntity = EntityDelegates.GetGridEntityByID(currState.Combat.SelectedEntityID);
             TextMeshProUGUI skillsTextMesh = skillsButtonTransform.GetComponentInChildren<TextMeshProUGUI>();
             skillsTextMesh.color = currentSelectedEntity.Abilities.Count == 0 ? Color.gray4 : Color.white;
         }
         private void UpdateItemsActionAllowed() {
             Transform itemsButtonTransform = actionMenuItems.transform.GetChild(2);
-            GameStateData currState = GameStateDelegates.GetCurrentGameState();
+            GameStateData.GameStateDatagram currState = GameStateDelegates.GetCurrentGameState();
             GridEntity currentSelectedEntity = EntityDelegates.GetGridEntityByID(currState.Combat.SelectedEntityID);
             TextMeshProUGUI itemsTextMesh = itemsButtonTransform.GetComponentInChildren<TextMeshProUGUI>();
             itemsTextMesh.color = currentSelectedEntity.Inventory.Count == 0 ? Color.gray4 : Color.white;
@@ -306,7 +305,7 @@ namespace StrategyGame.UI.Menus {
             switch (_currentMenuPage) {
                 case ActionMenuPage.Main:
                     // Allow undoing of movement and go back to select unit move destination
-                    GameStateDelegates.InvokeOnPlayerPhaseStateChanged(GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination); break;
+                    GameStateDelegates.InvokeOnPlayerPhaseStateChanged(CombatStateEnums.PlayerPhaseState.SelectUnitMoveDestination); break;
                 case ActionMenuPage.Skills: 
                     ClearCurrContainerEntries(GetCurrItemsContainerTransform());
                     SetVisible(true, ActionMenuPage.Main); 

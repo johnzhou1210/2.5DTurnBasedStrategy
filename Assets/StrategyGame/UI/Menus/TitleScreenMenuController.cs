@@ -1,10 +1,21 @@
 using System;
 using Mono.CSharp.Linq;
+using StrategyGame.Audio;
 using StrategyGame.Core.Delegates;
+using StrategyGame.Core.Input;
+using StrategyGame.Utils;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace StrategyGame.UI.Menus {
     public class TitleScreenMenuController : MonoBehaviour {
+        private enum MainMenuItemType {
+            NewGame,
+            Continue,
+            Settings,
+            QuitGame
+        }
+        
         [SerializeField] private GameObject mainMenuItems;
         private int _mainMenuCurrentSelectedIndex = 0;
         private int _mainMenuPreviousSelectedIndex = 0;
@@ -12,10 +23,12 @@ namespace StrategyGame.UI.Menus {
         private void OnEnable() {
             InputDelegates.OnDownPressed += GoDown;
             InputDelegates.OnUpPressed += GoUp;
+            InputDelegates.OnConfirmPressed += ConfirmSelection;
         }
         private void OnDisable() {
             InputDelegates.OnDownPressed -= GoDown;
             InputDelegates.OnUpPressed -= GoUp;
+            InputDelegates.OnConfirmPressed -= ConfirmSelection;
         }
 
         private void Start() {
@@ -59,6 +72,26 @@ namespace StrategyGame.UI.Menus {
             GameObject selectedItem = mainMenuItems.transform.GetChild(itemIndex).gameObject;
             Animator selectedItemAnimator = selectedItem.GetComponent<Animator>();
             selectedItemAnimator.Play("TitleItemSelect");
+        }
+
+        private void ConfirmSelection() {
+            switch (_mainMenuCurrentSelectedIndex) {
+                case (int)MainMenuItemType.NewGame:
+                    ServiceLocator.Get<AudioManager>().PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/select_005"), volumeMultiplier: 1f);
+                    ServiceLocator.Get<CombatInputManager>().enabled = true;
+                    SceneManager.LoadScene("Scenes/MainScene");
+                    ServiceLocator.Get<MenuInputManager>().enabled = false;
+                    break;
+                case (int)MainMenuItemType.Continue:
+                    ServiceLocator.Get<AudioManager>().PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/back_001"), volumeMultiplier: 1f);
+                    break;
+                case (int)MainMenuItemType.Settings:
+                    ServiceLocator.Get<AudioManager>().PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/back_001"), volumeMultiplier: 1f);
+                    break;
+                case (int)MainMenuItemType.QuitGame:
+                    ServiceLocator.Get<AudioManager>().PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/select_005"), volumeMultiplier: 1f);
+                    break;
+            }
         }
 
 

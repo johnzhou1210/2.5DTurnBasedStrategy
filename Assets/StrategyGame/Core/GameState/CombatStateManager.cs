@@ -8,7 +8,6 @@ using StrategyGame.Combat;
 using StrategyGame.Combat.Cinematics;
 using StrategyGame.Combat.Targeting;
 using StrategyGame.Core.Delegates;
-using StrategyGame.Core.Enums;
 using StrategyGame.Factions;
 using StrategyGame.Grid;
 using StrategyGame.Grid.GridData;
@@ -59,29 +58,28 @@ namespace StrategyGame.Core.GameState {
         }
     }
 
-    public class GameStateManager : MonoBehaviour {
+    public class CombatStateManager : Singleton<CombatStateManager> {
         private static readonly int Death = Animator.StringToHash("Death");
         private static readonly int Hurt = Animator.StringToHash("Hurt");
         // ==============================
         // FIELDS & PROPERTIES
         // ==============================
-        [SerializeField] private GameStateData currentState;
-        public GameStateData CurrentState => currentState;
+        
         public ManualPath ManualPath { get; private set; }
         private Coroutine _coreGameLoop;
         private Coroutine _enemyPhaseCoroutine;
         private Coroutine _eventPhaseCoroutine;
         private Coroutine _combatCinematicsCoroutine;
 
+        private GameStateData.GameStateDatagram CurrentState { get => GameStateDelegates.GetCurrentGameState(); }
+
+
         // ==============================
         // MONOBEHAVIOUR LIFECYCLE
         // ==============================
         private void OnEnable() {
             ManualPath = new ManualPath();
-            currentState = new GameStateData {
-                Combat = new CombatStateData { TurnPhase = GameStateEnums.TurnPhase.None, PlayerPhase = GameStateEnums.PlayerPhaseState.SelectUnitToControl, UnitMoveSelectionMode = GameStateEnums.UnitMoveSelectionMode.Manual, },
-                MasterState = GameStateEnums.MasterState.Combat
-            };
+           
             GameStateDelegates.OnGameStarted += StartGame;
             GameStateDelegates.OnUnitMoveSelectionChanged += SetCurrentUnitMoveSelectionMode;
             GameStateDelegates.OnPlayerPhaseStateChanged += SetCurrentPlayerPhaseState;
@@ -89,7 +87,7 @@ namespace StrategyGame.Core.GameState {
             GameStateDelegates.OnApplyAttackOutcome += ApplyAttackOutcome;
             GameStateDelegates.OnFinalizePlayerAction += FinalizePlayerAction;
             GameStateDelegates.GetManualPath = () => ManualPath;
-            GameStateDelegates.GetCurrentGameState = GetCurrentGameState;
+            
             GridDelegates.SetInspectedTile = HandleSetInspectedTile;
             GameStateDelegates.ManualPathSelectionGetSpentMovementCost = GetManualPathUsedMovementCost;
         }
@@ -101,7 +99,7 @@ namespace StrategyGame.Core.GameState {
             GameStateDelegates.OnApplyAttackOutcome -= ApplyAttackOutcome;
             GameStateDelegates.OnFinalizePlayerAction -= FinalizePlayerAction;
             GameStateDelegates.GetManualPath = null;
-            GameStateDelegates.GetCurrentGameState = null;
+            
             GridDelegates.SetInspectedTile = null;
             GameStateDelegates.ManualPathSelectionGetSpentMovementCost = null;
             if (_coreGameLoop != null) {
@@ -126,7 +124,7 @@ namespace StrategyGame.Core.GameState {
         // CORE METHODS
         // ==============================
         private void AdvancePhase() {
-            GameStateEnums.TurnPhase nextPhaseState = (GameStateEnums.TurnPhase)(((int)CurrentState.Combat.TurnPhase + 1) % Enum.GetValues(typeof(GameStateEnums.TurnPhase)).Length);
+            CombatStateEnums.TurnPhase nextPhaseState = (CombatStateEnums.TurnPhase)(((int)CurrentState.Combat.TurnPhase + 1) % Enum.GetValues(typeof(CombatStateEnums.TurnPhase)).Length);
             List<int> enemyIDs = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Enemy, true);
             List<int> playerIDs = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Player, true);
             if (nextPhaseState == 0) {
@@ -181,21 +179,22 @@ namespace StrategyGame.Core.GameState {
             GridDelegates.InvokeOnGridRedraw();
 
             // Start core game loop
+            Debug.LogWarning($"{CurrentState}, {CurrentState?.Combat}, {CurrentState?.Combat?.InspectedTilePosition}");
             SetInspectedTile(Vector2Int.zero);
             _coreGameLoop = StartCoroutine(CoreGameLoop());
         }
-        private void SetTurnPhaseState(GameStateEnums.TurnPhase phase) {
+        private void SetTurnPhaseState(CombatStateEnums.TurnPhase phase) {
             if (phase == CurrentState.Combat.TurnPhase)
                 return;
             CurrentState.Combat.TurnPhase = phase;
             UIDelegates.InvokeOnUpdateTurnIndicatorRenderer();
-            if (CurrentState.Combat.TurnPhase is GameStateEnums.TurnPhase.Player or GameStateEnums.TurnPhase.Enemy)
+            if (CurrentState.Combat.TurnPhase is CombatStateEnums.TurnPhase.Player or CombatStateEnums.TurnPhase.Enemy)
                 UIDelegates.InvokeOnPlayPhaseBannerAnimationSequence();
 
             // Play ui animations
             // Depending on turn phase, fill ActorsRemaining with the entities from the current phase.
             switch (CurrentState.Combat.TurnPhase) {
-                case GameStateEnums.TurnPhase.Player:
+                case CombatStateEnums.TurnPhase.Player:
                     InputDelegates.InvokeOnSetGridCursorVisibility(true);
                     CurrentState.Combat.HighestPriorityTargetEntityID = -1;
                     // Clear danger zone highlights
@@ -203,10 +202,10 @@ namespace StrategyGame.Core.GameState {
                         GridDelegates.InvokeOnRefreshDangerZoneVisibility();
                     CurrentState.Combat.ActorIDsRemaining = EntityDelegates.GetAllGridEntityIDsByFaction(Faction.Player, false);
                     CurrentState.Combat.PlayersCycleDeque = new LinkedList<int>(CurrentState.Combat.ActorIDsRemaining);
-                    CurrentState.Combat.PlayerPhase = GameStateEnums.PlayerPhaseState.SelectUnitToControl;
+                    CurrentState.Combat.PlayerPhase = CombatStateEnums.PlayerPhaseState.SelectUnitToControl;
                     InputDelegates.InvokeOnReinstateGridCursorPosition(null);
                     break;
-                case GameStateEnums.TurnPhase.Enemy:
+                case CombatStateEnums.TurnPhase.Enemy:
                     InputDelegates.InvokeOnSetGridCursorVisibility(false);
                     // Clear danger zone highlights
                     GridDelegates.InvokeOnSetDangerZoneVisibility(false); // doesn't change input state
@@ -216,10 +215,10 @@ namespace StrategyGame.Core.GameState {
                     // Automate enemy actions
                     _enemyPhaseCoroutine = StartCoroutine(RunEnemyPhaseCoroutine());
                     break;
-                case GameStateEnums.TurnPhase.Event:
+                case CombatStateEnums.TurnPhase.Event:
                     // Run any events this phase cycle
                     _eventPhaseCoroutine = StartCoroutine(RunEventPhaseCoroutine()); break;
-                case GameStateEnums.TurnPhase.None: break;
+                case CombatStateEnums.TurnPhase.None: break;
                 default: throw new Exception("GameStateManager.HandleOnTurnPhaseChange: Invalid turn phase!");
             }
         }
@@ -230,10 +229,10 @@ namespace StrategyGame.Core.GameState {
         private IEnumerator CoreGameLoop() {
             while (true) {
                 switch (CurrentState.Combat.TurnPhase) {
-                    case GameStateEnums.TurnPhase.Player: HandlePlayerPhaseState(); break;
-                    case GameStateEnums.TurnPhase.Enemy: HandleEnemyPhaseState(); break;
-                    case GameStateEnums.TurnPhase.Event: HandleEventPhaseState(); break;
-                    case GameStateEnums.TurnPhase.None: AdvancePhase(); break;
+                    case CombatStateEnums.TurnPhase.Player: HandlePlayerPhaseState(); break;
+                    case CombatStateEnums.TurnPhase.Enemy: HandleEnemyPhaseState(); break;
+                    case CombatStateEnums.TurnPhase.Event: HandleEventPhaseState(); break;
+                    case CombatStateEnums.TurnPhase.None: AdvancePhase(); break;
                     default: throw new InvalidEnumArgumentException("GameStateManager.CoreGameLoop: Invalid turn phase!");
                 }
                 yield return new WaitForEndOfFrame();
@@ -249,9 +248,9 @@ namespace StrategyGame.Core.GameState {
         /// <exception cref="InvalidEnumArgumentException">Occurs if the current player phase state is an invalid one.</exception>
         private void HandlePlayerPhaseState() {
             switch (CurrentState.Combat.PlayerPhase) {
-                case GameStateEnums.PlayerPhaseState.SelectUnitToControl: break;
-                case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination: break;
-                case GameStateEnums.PlayerPhaseState.UnitMovingToDestination:
+                case CombatStateEnums.PlayerPhaseState.SelectUnitToControl: break;
+                case CombatStateEnums.PlayerPhaseState.SelectUnitMoveDestination: break;
+                case CombatStateEnums.PlayerPhaseState.UnitMovingToDestination:
                     if (CurrentState.Combat.SelectedEntityID == -1) {
                         Debug.LogWarning("GameStateManager.HandlePlayerPhaseState: CurrentSelectedEntity is null");
                         return;
@@ -263,12 +262,12 @@ namespace StrategyGame.Core.GameState {
                     Vector3 visualPosition = EntityVisualDelegates.GetEntityVisualTransformByID(CurrentState.Combat.SelectedEntityID).position;
                     CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y, visualPosition.z));
                     break;
-                case GameStateEnums.PlayerPhaseState.UnitActionMenu: break;
-                case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
+                case CombatStateEnums.PlayerPhaseState.UnitActionMenu: break;
+                case CombatStateEnums.PlayerPhaseState.UnitSelectTarget:
                     // GridDelegates.InvokeOnSetTileVisualSelectionAnim(CurrentState.Combat.InspectedTilePosition, true);
                     break;
-                case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: break;
-                case GameStateEnums.PlayerPhaseState.None: break;
+                case CombatStateEnums.PlayerPhaseState.UnitAttackCutscene: break;
+                case CombatStateEnums.PlayerPhaseState.None: break;
                 default: throw new Exception("GameStateManager.HandlePlayerPhaseState: Invalid PlayerPhase state!");
             }
         }
@@ -277,25 +276,25 @@ namespace StrategyGame.Core.GameState {
             if (entityVisualTransform != null) {
                 Vector3 visualPosition = entityVisualTransform.position;
                 switch (CurrentState.Combat.EnemyPhase) {
-                    case GameStateEnums.EnemyPhaseState.SelectUnitToControl: CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y, visualPosition.z)); break;
-                    case GameStateEnums.EnemyPhaseState.SelectUnitMoveDestination: CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y, visualPosition.z)); break;
-                    case GameStateEnums.EnemyPhaseState.UnitMovingToDestination: CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y, visualPosition.z)); break;
-                    case GameStateEnums.EnemyPhaseState.UnitContemplateAction: CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y, visualPosition.z)); break;
-                    case GameStateEnums.EnemyPhaseState.UnitSelectTarget: CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y, visualPosition.z)); break;
-                    case GameStateEnums.EnemyPhaseState.UnitAttackCutscene: break;
-                    case GameStateEnums.EnemyPhaseState.None: break;
+                    case CombatStateEnums.EnemyPhaseState.SelectUnitToControl: CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y, visualPosition.z)); break;
+                    case CombatStateEnums.EnemyPhaseState.SelectUnitMoveDestination: CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y, visualPosition.z)); break;
+                    case CombatStateEnums.EnemyPhaseState.UnitMovingToDestination: CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y, visualPosition.z)); break;
+                    case CombatStateEnums.EnemyPhaseState.UnitContemplateAction: CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y, visualPosition.z)); break;
+                    case CombatStateEnums.EnemyPhaseState.UnitSelectTarget: CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(visualPosition.x, visualPosition.y, visualPosition.z)); break;
+                    case CombatStateEnums.EnemyPhaseState.UnitAttackCutscene: break;
+                    case CombatStateEnums.EnemyPhaseState.None: break;
                     default: throw new Exception("GameStateManager.HandleEnemyPhaseState: Invalid EnemyPhase state!");
                 }
             } else {
                 Debug.LogWarning($"GameStateManager.HandleEnemyPhaseState: Current frame doesn't have selected entity (id is {CurrentState.Combat.SelectedEntityID}).");
                 switch (CurrentState.Combat.EnemyPhase) {
-                    case GameStateEnums.EnemyPhaseState.SelectUnitToControl: break;
-                    case GameStateEnums.EnemyPhaseState.SelectUnitMoveDestination: break;
-                    case GameStateEnums.EnemyPhaseState.UnitMovingToDestination: break;
-                    case GameStateEnums.EnemyPhaseState.UnitContemplateAction: break;
-                    case GameStateEnums.EnemyPhaseState.UnitSelectTarget: break;
-                    case GameStateEnums.EnemyPhaseState.UnitAttackCutscene: break;
-                    case GameStateEnums.EnemyPhaseState.None: break;
+                    case CombatStateEnums.EnemyPhaseState.SelectUnitToControl: break;
+                    case CombatStateEnums.EnemyPhaseState.SelectUnitMoveDestination: break;
+                    case CombatStateEnums.EnemyPhaseState.UnitMovingToDestination: break;
+                    case CombatStateEnums.EnemyPhaseState.UnitContemplateAction: break;
+                    case CombatStateEnums.EnemyPhaseState.UnitSelectTarget: break;
+                    case CombatStateEnums.EnemyPhaseState.UnitAttackCutscene: break;
+                    case CombatStateEnums.EnemyPhaseState.None: break;
                     default: throw new Exception("GameStateManager.HandleEnemyPhaseState: Invalid EnemyPhase state!");
                 }
             }
@@ -306,34 +305,34 @@ namespace StrategyGame.Core.GameState {
         // ==============================
         // CORE METHODS
         // ==============================
-        private void SetCurrentUnitMoveSelectionMode(GameStateEnums.UnitMoveSelectionMode mode) {
+        private void SetCurrentUnitMoveSelectionMode(CombatStateEnums.UnitMoveSelectionMode mode) {
             if (CurrentState.Combat.UnitMoveSelectionMode == mode)
                 return;
             CurrentState.Combat.UnitMoveSelectionMode = mode;
             switch (CurrentState.Combat.UnitMoveSelectionMode) {
-                case GameStateEnums.UnitMoveSelectionMode.Manual: InputDelegates.InvokeOnSetMouseRaycastEnabled(false); break;
-                case GameStateEnums.UnitMoveSelectionMode.Automatic: InputDelegates.InvokeOnSetMouseRaycastEnabled(true); break;
-                case GameStateEnums.UnitMoveSelectionMode.None: InputDelegates.InvokeOnSetMouseRaycastEnabled(false); break;
+                case CombatStateEnums.UnitMoveSelectionMode.Manual: InputDelegates.InvokeOnSetMouseRaycastEnabled(false); break;
+                case CombatStateEnums.UnitMoveSelectionMode.Automatic: InputDelegates.InvokeOnSetMouseRaycastEnabled(true); break;
+                case CombatStateEnums.UnitMoveSelectionMode.None: InputDelegates.InvokeOnSetMouseRaycastEnabled(false); break;
                 default: throw new InvalidEnumArgumentException("GameStateManager.SetCurrentUnitMoveSelectionMode: Invalid unit move selection mode!");
             }
         }
-        private void SetCurrentPlayerPhaseState(GameStateEnums.PlayerPhaseState phase) {
+        private void SetCurrentPlayerPhaseState(CombatStateEnums.PlayerPhaseState phase) {
             if (CurrentState.Combat.PlayerPhase == phase)
                 return;
-            GameStateEnums.PlayerPhaseState previousState = CurrentState.Combat.PlayerPhase;
+            CombatStateEnums.PlayerPhaseState previousState = CurrentState.Combat.PlayerPhase;
             CurrentState.Combat.PlayerPhase = phase;
             Tile currInspectedTile = GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition);
             switch (CurrentState.Combat.PlayerPhase) {
-                case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
+                case CombatStateEnums.PlayerPhaseState.SelectUnitToControl:
                     ManualPath.Clear();
                     CurrentState.Combat.HighestPriorityTargetEntityID = -1;
                     CurrentState.Combat.SelectedEntityID = -1;
                     
                     GridDelegates.InvokeOnInspectedTileChanged(currInspectedTile, currInspectedTile);
                     break;
-                case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
+                case CombatStateEnums.PlayerPhaseState.SelectUnitMoveDestination:
                     
-                    if (previousState == GameStateEnums.PlayerPhaseState.UnitActionMenu) { // Handle going back from action menu
+                    if (previousState == CombatStateEnums.PlayerPhaseState.UnitActionMenu) { // Handle going back from action menu
                         // Clear attackable tiles
                         GridDelegates.InvokeOnClearAttackRangePreview();
                         // Teleport entity back to where they were before movement
@@ -348,7 +347,7 @@ namespace StrategyGame.Core.GameState {
                         UIDelegates.InvokeOnSetCombatActionMenuVisibility(false, ActionMenuPage.Main);
                         // Reset cursor position back to where it was before
                         InputDelegates.InvokeOnReinstateGridCursorPosition(playerPosBeforeMovement);
-                    } else if (previousState == GameStateEnums.PlayerPhaseState.SelectUnitToControl) {
+                    } else if (previousState == CombatStateEnums.PlayerPhaseState.SelectUnitToControl) {
                         Transform entityTransform = EntityVisualDelegates.GetEntityVisualTransformByID(CurrentState.Combat.InspectedEntityID);
                         SpriteRenderer spriteRenderer = entityTransform.GetComponentInChildren<SpriteRenderer>();
                         CurrentState.Combat.PlayerPositionBeforeMovementAndFlipX = (CurrentState.Combat.InspectedTilePosition, spriteRenderer.flipX);
@@ -363,8 +362,8 @@ namespace StrategyGame.Core.GameState {
                     GridDelegates.InvokeOnManualPathPreview(ManualPath);
                     SetInspectedTile(CurrentState.Combat.InspectedTilePosition); // Force update to show walkable tiles
                     break;
-                case GameStateEnums.PlayerPhaseState.UnitMovingToDestination: break;
-                case GameStateEnums.PlayerPhaseState.UnitActionMenu:
+                case CombatStateEnums.PlayerPhaseState.UnitMovingToDestination: break;
+                case CombatStateEnums.PlayerPhaseState.UnitActionMenu:
                     ManualPath.Clear();
                     InputDelegates.InvokeOnSetGridCursorVisibility(true);
                     
@@ -375,7 +374,7 @@ namespace StrategyGame.Core.GameState {
                     SetInspectedTile(CurrentState.Combat.InspectedTilePosition); // Force update to show walkable tiles
                     InputDelegates.InvokeOnReinstateGridCursorPosition(EntityDelegates.GetGridEntityByID(CurrentState.Combat.SelectedEntityID).GridPosition);
                     break;
-                case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
+                case CombatStateEnums.PlayerPhaseState.UnitSelectTarget:
                     ManualPath.Clear();
                     // Populate the EnemiesCycleDeque
                     GridEntity attackingEntity = EntityDelegates.GetGridEntityByID(CurrentState.Combat.SelectedEntityID);
@@ -398,34 +397,32 @@ namespace StrategyGame.Core.GameState {
                     SetInspectedTile(firstTargetPosition);
                     GridDelegates.InvokeOnManualMarkTilesWithAttackableEntities();
                     break;
-                case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: 
+                case CombatStateEnums.PlayerPhaseState.UnitAttackCutscene: 
                     UIDelegates.InvokeOnResetCombatActionMenuIndices();
                     _combatCinematicsCoroutine = StartCoroutine(CombatCinematicsDelegates.GetDirector().PlayCombat());
                     break;
-                case GameStateEnums.PlayerPhaseState.None: break;
+                case CombatStateEnums.PlayerPhaseState.None: break;
             }
         }
-        private GameStateData GetCurrentGameState() {
-            return CurrentState;
-        }
+        
 
         // ==============================
         // HELPERS
         // ==============================
         private bool HandleSetInspectedTile(Vector2Int coordinate) {
             switch (CurrentState.Combat.PlayerPhase) {
-                case GameStateEnums.PlayerPhaseState.SelectUnitToControl:
+                case CombatStateEnums.PlayerPhaseState.SelectUnitToControl:
                     SetInspectedTile(coordinate);
                     // UpdateAutomaticPathPreview(coordinate);
                     return true;
-                case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination: return AddCoordinateToManualPath(coordinate);
-                case GameStateEnums.PlayerPhaseState.UnitMovingToDestination: return false;
-                case GameStateEnums.PlayerPhaseState.UnitActionMenu: return false;
-                case GameStateEnums.PlayerPhaseState.UnitSelectTarget:
+                case CombatStateEnums.PlayerPhaseState.SelectUnitMoveDestination: return AddCoordinateToManualPath(coordinate);
+                case CombatStateEnums.PlayerPhaseState.UnitMovingToDestination: return false;
+                case CombatStateEnums.PlayerPhaseState.UnitActionMenu: return false;
+                case CombatStateEnums.PlayerPhaseState.UnitSelectTarget:
                     SetInspectedTile(coordinate);
                     return true;
-                case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: return false;
-                case GameStateEnums.PlayerPhaseState.None: return false;
+                case CombatStateEnums.PlayerPhaseState.UnitAttackCutscene: return false;
+                case CombatStateEnums.PlayerPhaseState.None: return false;
                 default: throw new InvalidEnumArgumentException("GameStateManager.HandleSetInspectedTile: Invalid manual move selection state!");
             }
         }
@@ -509,7 +506,7 @@ namespace StrategyGame.Core.GameState {
             Tile oldTile = GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition);
 
             // Forbid the change if player is currently in manual path selection mode and the new tile is not walkable from the old tile
-            if (CurrentState.Combat.PlayerPhase == GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination && CurrentState.Combat.UnitMoveSelectionMode == GameStateEnums.UnitMoveSelectionMode.Manual) {
+            if (CurrentState.Combat.PlayerPhase == CombatStateEnums.PlayerPhaseState.SelectUnitMoveDestination && CurrentState.Combat.UnitMoveSelectionMode == CombatStateEnums.UnitMoveSelectionMode.Manual) {
                 int movementCostUsed = GetManualPathUsedMovementCost();
                 Debug.Log($"GameStateManager.SetInspectedTile: MovementCostUsed: {movementCostUsed}");
             }
@@ -517,7 +514,7 @@ namespace StrategyGame.Core.GameState {
             GridDelegates.InvokeOnInspectedTileChanged(oldTile, newTile);
             CurrentState.Combat.InspectedEntityID = newTile.Occupant?.ID ?? -1;
             UIDelegates.InvokeOnTerrainUIUpdate(GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition));
-            if (CurrentState.Combat.UnitMoveSelectionMode == GameStateEnums.UnitMoveSelectionMode.Manual || CurrentState.Combat.InspectedEntityID != -1) {
+            if (CurrentState.Combat.UnitMoveSelectionMode == CombatStateEnums.UnitMoveSelectionMode.Manual || CurrentState.Combat.InspectedEntityID != -1) {
                 // Focus camera rig onto position
                 if (focusCameraRig)
                     CameraDelegates.InvokeOnSetCameraRigPosition(new Vector3(CurrentState.Combat.InspectedTilePosition.x, 0, CurrentState.Combat.InspectedTilePosition.y));
@@ -544,7 +541,7 @@ namespace StrategyGame.Core.GameState {
         private IEnumerator RunEnemyPhaseCoroutine() {
             while (CurrentState.Combat.ActorIDsRemaining.Count > 0) {
                 // Select enemy to control
-                CurrentState.Combat.EnemyPhase = GameStateEnums.EnemyPhaseState.SelectUnitToControl;
+                CurrentState.Combat.EnemyPhase = CombatStateEnums.EnemyPhaseState.SelectUnitToControl;
                 int entityID = CurrentState.Combat.ActorIDsRemaining[0];
                 GridEntity currentEntity = EntityDelegates.GetGridEntityByID(entityID);
                 if (currentEntity == null) {
@@ -559,7 +556,7 @@ namespace StrategyGame.Core.GameState {
                 yield return new WaitForSeconds(2f);
 
                 // Choose tile to move to
-                CurrentState.Combat.EnemyPhase = GameStateEnums.EnemyPhaseState.SelectUnitMoveDestination;
+                CurrentState.Combat.EnemyPhase = CombatStateEnums.EnemyPhaseState.SelectUnitMoveDestination;
                 HashSet<Tile> walkableTiles = currentEntity.GetWalkableTiles(true);
                 HashSet<Tile> tilesWhereAttackingIsPossible = currentEntity.GetTilesWhereAttackingIsPossible();
                 HashSet<Tile> hashSetToPickFrom = tilesWhereAttackingIsPossible.Count > 0 ? tilesWhereAttackingIsPossible : walkableTiles;
@@ -595,7 +592,7 @@ namespace StrategyGame.Core.GameState {
                     yield return new WaitForSeconds(.1f);
 
                     // Move to destination
-                    CurrentState.Combat.EnemyPhase = GameStateEnums.EnemyPhaseState.UnitMovingToDestination;
+                    CurrentState.Combat.EnemyPhase = CombatStateEnums.EnemyPhaseState.UnitMovingToDestination;
                     CurrentState.Combat.NextActorReady = false;
                     currentEntity.MoveAlongPath(path);
                     yield return new WaitUntil(() => CurrentState.Combat.NextActorReady);
@@ -621,13 +618,13 @@ namespace StrategyGame.Core.GameState {
                         CombatDirector combatDirector = CombatCinematicsDelegates.GetDirector();
                         combatDirector.InitializeCinematicData(currentEntity, chosenTargetEntity, attackOutcome);
                         StartCoroutine(combatDirector.PlayCombat());
-                        CurrentState.Combat.EnemyPhase = GameStateEnums.EnemyPhaseState.UnitAttackCutscene;
+                        CurrentState.Combat.EnemyPhase = CombatStateEnums.EnemyPhaseState.UnitAttackCutscene;
                         yield return new WaitUntil(() => CurrentState.Combat.EnemyActorFinishedCombatCinematic);
                     }
                 }
 
                 // Contemplate action
-                CurrentState.Combat.EnemyPhase = GameStateEnums.EnemyPhaseState.UnitContemplateAction;
+                CurrentState.Combat.EnemyPhase = CombatStateEnums.EnemyPhaseState.UnitContemplateAction;
                 yield return new WaitForSeconds(1f);
 
                 if (CurrentState.Combat.ActorIDsRemaining.Contains(currentEntity.ID)) {
@@ -638,7 +635,7 @@ namespace StrategyGame.Core.GameState {
                 CurrentState.Combat.InspectedEntityID = -1;
             }
             GridDelegates.InvokeOnInspectedTileChanged(GridDelegates.GetTileFromPosition(CurrentState.Combat.InspectedTilePosition), null);
-            CurrentState.Combat.EnemyPhase = GameStateEnums.EnemyPhaseState.None;
+            CurrentState.Combat.EnemyPhase = CombatStateEnums.EnemyPhaseState.None;
             AdvancePhase();
         }
         private IEnumerator RunEventPhaseCoroutine() {
@@ -682,7 +679,7 @@ namespace StrategyGame.Core.GameState {
         private void FinalizePlayerAction() {
             CurrentState.Combat.ActorIDsRemaining.Remove(CurrentState.Combat.SelectedEntityID);
             CurrentState.Combat.PlayersCycleDeque.Remove(CurrentState.Combat.SelectedEntityID);
-            GameStateDelegates.InvokeOnPlayerPhaseStateChanged(CurrentState.Combat.ActorIDsRemaining.Count == 0 ? GameStateEnums.PlayerPhaseState.None : GameStateEnums.PlayerPhaseState.SelectUnitToControl);
+            GameStateDelegates.InvokeOnPlayerPhaseStateChanged(CurrentState.Combat.ActorIDsRemaining.Count == 0 ? CombatStateEnums.PlayerPhaseState.None : CombatStateEnums.PlayerPhaseState.SelectUnitToControl);
             if (CurrentState.Combat.ActorIDsRemaining.Count == 0) {
                 GameStateDelegates.InvokeOnAdvanceTurnPhase();
             }
