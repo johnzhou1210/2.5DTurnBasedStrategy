@@ -7,6 +7,7 @@ namespace StrategyGame.UI.Menus {
     public class TitleScreenMenuController : MonoBehaviour {
         [SerializeField] private GameObject mainMenuItems;
         private int _mainMenuCurrentSelectedIndex = 0;
+        private int _mainMenuPreviousSelectedIndex = 0;
 
         private void OnEnable() {
             InputDelegates.OnDownPressed += GoDown;
@@ -47,8 +48,17 @@ namespace StrategyGame.UI.Menus {
             return mainMenuItems.transform;
         }
         private void SelectItem(int itemIndex) {
+            _mainMenuPreviousSelectedIndex = _mainMenuCurrentSelectedIndex;
             _mainMenuCurrentSelectedIndex = itemIndex;
             Debug.Log($"TitleScreenMenuController.SelectItem: Main menu selected item index is {_mainMenuCurrentSelectedIndex}");
+            if (_mainMenuPreviousSelectedIndex != _mainMenuCurrentSelectedIndex) {
+                GameObject previousSelectedItem = mainMenuItems.transform.GetChild(_mainMenuPreviousSelectedIndex).gameObject;
+                Animator previousItemAnimator = previousSelectedItem.GetComponent<Animator>();
+                previousItemAnimator.Play("TitleItemDeselect");
+            }
+            GameObject selectedItem = mainMenuItems.transform.GetChild(itemIndex).gameObject;
+            Animator selectedItemAnimator = selectedItem.GetComponent<Animator>();
+            selectedItemAnimator.Play("TitleItemSelect");
         }
 
 
