@@ -10,6 +10,7 @@ namespace StrategyGame.Utils {
                 return;
             }
             Instance = this as T;
+            DontDestroyOnLoad(gameObject);
         }
         protected virtual void OnDestroy() {
             if (Instance == this) {

@@ -44,6 +44,7 @@ namespace StrategyGame.UI.Menus {
         private int _itemMenuCurrentSelectedIndex = 0;
         private int _itemMenuPreviousSelectedIndex = 0;
         private ActionMenuPage _currentMenuPage = ActionMenuPage.Main;
+
         private void OnEnable() {
             UIDelegates.OnSetCombatActionMenuVisibility += SetVisible;
             InputDelegates.OnDownPressed += SelectNextAction;

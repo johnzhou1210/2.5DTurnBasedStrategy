@@ -1,7 +1,21 @@
+using StrategyGame.Utils;
 using UnityEngine;
 
 namespace StrategyGame.Core.Input {
     public class MenuInputManager : InputManagerBase {
+        // ==============================
+        // MONOBEHAVIOUR LIFECYCLE
+        // ==============================
+        override protected void Awake() {
+            base.Awake();
+            ServiceLocator.Register(this);
+        }
+
+        override protected void OnDestroy() {
+            base.OnDestroy();
+            ServiceLocator.Unregister<MenuInputManager>();
+        }
+        
         // ===============================
         // ABSTRACT OVERRIDES
         // ===============================
@@ -13,7 +27,8 @@ namespace StrategyGame.Core.Input {
         override protected void HandleAxisInput() {
             Vector2 axisInput = moveAction.ReadValue<Vector2>();
             if (axisInput == Vector2.zero) return;
-            Debug.Log($"MenuInputManager.HandleAxisInput: Handling axis input: {axisInput}");
+            // Debug.Log($"MenuInputManager.HandleAxisInput: Handling axis input: {axisInput}");
+            HandleMenuAxisInput(axisInput);
             
         }
         override protected void HandleInteractionInput() {

@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace StrategyGame.Utils {
     public static class ServiceLocator {
         private static readonly Dictionary<Type, object> Services = new();
         public static void Register<T>(T service) {
             Services[typeof(T)] = service;
+            Debug.Log($"ServiceLocator.Register: Registered service of type {typeof(T)}");
         }
         public static T Get<T>() {
             if (Services.TryGetValue(typeof(T), out var service))
@@ -22,6 +24,7 @@ namespace StrategyGame.Utils {
         }
         public static void Unregister<T>() {
             Services.Remove(typeof(T));
+            Debug.Log($"ServiceLocator.Unregister: Unregistered service of type {typeof(T)}");
         }
     }
 }

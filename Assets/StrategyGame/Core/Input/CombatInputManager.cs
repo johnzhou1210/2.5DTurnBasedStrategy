@@ -32,17 +32,13 @@ namespace StrategyGame.Core.Input {
         [SerializeField] private float pathSelectionMoveActionCooldownAccelerationThreshold = 1f;
         [SerializeField] private float pathSelectionMoveActionMinimumCooldown = .08f;
         [SerializeField] private float pathSelectionMoveActionCooldownAccelerationRate = .05f;
-        [Header("UI Selection Settings")] [SerializeField]
-        private float uiSelectionHoldInitialDelay = .33f;
-        [SerializeField] private float uiSelectionHoldRepeatRate = .1f;
         private InputAction _dangerZoneAction;
         private InputAction _cycleLeftAction;
         private InputAction _cycleRightAction;
         private float _pathSelectionMoveActionTimer;
         private float _currentPathSelectionMoveActionCooldown;
         private float _pathSelectionMoveActionHeldDuration;
-        private float _uiSelectionHoldTimer;
-        private float _uiSelectionNextRepeatTimer;
+        
         private bool _isDiagonalMoveEnabled = true;
         private bool _isDangerZoneVisible = false;
         private Vector2Int _gridCursorPosition;
@@ -57,6 +53,10 @@ namespace StrategyGame.Core.Input {
         // ==============================
         // MONOBEHAVIOUR LIFECYCLE
         // ==============================
+        override protected void Awake() {
+            base.Awake();
+            ServiceLocator.Register(this);
+        }
         
         override protected void OnEnable() {
             base.OnEnable();
@@ -74,8 +74,10 @@ namespace StrategyGame.Core.Input {
         }
         
         
-        private void OnDestroy() {
+        override protected void OnDestroy() {
             // gridMouseInputRaycaster.enabled = false;
+            base.OnDestroy();
+            ServiceLocator.Unregister<CombatInputManager>();
         }
         
         
@@ -161,7 +163,7 @@ namespace StrategyGame.Core.Input {
                 case GameStateEnums.PlayerPhaseState.SelectUnitToControl: HandleGridNavigationInput(moveInput); break;
                 case GameStateEnums.PlayerPhaseState.SelectUnitMoveDestination: HandleGridNavigationInput(moveInput); break;
                 case GameStateEnums.PlayerPhaseState.UnitMovingToDestination: break;
-                case GameStateEnums.PlayerPhaseState.UnitActionMenu: HandleActionMenuInput(moveInput); break;
+                case GameStateEnums.PlayerPhaseState.UnitActionMenu: HandleMenuAxisInput(moveInput); break;
                 case GameStateEnums.PlayerPhaseState.UnitSelectTarget: HandleGridNavigationInput(moveInput); break;
                 case GameStateEnums.PlayerPhaseState.UnitAttackCutscene: break;
                 case GameStateEnums.PlayerPhaseState.None: break;
@@ -292,44 +294,8 @@ namespace StrategyGame.Core.Input {
                 _currentPathSelectionMoveActionCooldown = Mathf.Lerp(_currentPathSelectionMoveActionCooldown, pathSelectionMoveActionCooldown, Time.deltaTime * 5f);
             }
         }
-        private void HandleActionMenuInput(Vector2 moveInput) {
-            int vertical = 0;
-            if (moveInput.y > 0.5f)
-                vertical = 1;
-            if (moveInput.y < -0.5f)
-                vertical = -1;
-            void Move() {
-                if (vertical == 1 || vertical == -1)
-                    ServiceLocator.Get<AudioManager>().PlaySFXAtPointUI(Resources.Load<AudioClip>("Audio/Interface/Audio/scratch_001"), volumeMultiplier: .5f);
-                if (vertical == 1) {
-                    InputDelegates.InvokeOnUpPressed();
-                } else if (vertical == -1) {
-                    InputDelegates.InvokeOnDownPressed();
-                }
-            }
-
-            // No direction -> reset
-            if (vertical == 0) {
-                _uiSelectionHoldTimer = 0f;
-                _uiSelectionNextRepeatTimer = uiSelectionHoldInitialDelay;
-                return;
-            }
-
-            // New press (axis went from 0 -> non-zero)
-            if (moveAction.WasPressedThisFrame()) {
-                Move();
-                _uiSelectionHoldTimer = 0f;
-                _uiSelectionNextRepeatTimer = uiSelectionHoldInitialDelay;
-                return;
-            }
-
-            // Held
-            _uiSelectionHoldTimer += Time.unscaledDeltaTime;
-            if (_uiSelectionHoldTimer >= _uiSelectionNextRepeatTimer) {
-                Move();
-                _uiSelectionNextRepeatTimer += uiSelectionHoldRepeatRate;
-            }
-        }
+       
+        
         private void HandleEntityTileSelection() {
             if (!selectAction.WasPressedThisFrame())
                 return;

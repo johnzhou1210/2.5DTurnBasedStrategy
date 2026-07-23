@@ -1,8 +1,10 @@
 using StrategyGame.Utils;
+using Unity.Android.Gradle.Manifest;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace StrategyGame.Audio {
-    public class AudioManager : Singleton<AudioManager> {
+    public class AudioManager : Utils.Singleton<AudioManager> {
         [SerializeField] [Range(0f, 1f)] private float masterVolume, musicVolume, sfxVolume = 1f;
         [SerializeField] AudioSource musicSource;
     
@@ -11,6 +13,12 @@ namespace StrategyGame.Audio {
             musicSource = gameObject.AddComponent<AudioSource>();
             musicSource.loop = true;
             musicSource.volume = GetMusicVolume();
+            ServiceLocator.Register(this);
+        }
+
+        override protected void OnDestroy() {
+            base.OnDestroy();
+            ServiceLocator.Unregister<AudioManager>();
         }
 
         public void PlayMusic(AudioClip clip) {
